@@ -1,0 +1,38 @@
+name: build
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      run: |
+        pipx install poetry
+        poetry config virtualenvs.create true
+
+    - name: Install dependencies with Poetry
+      run: |
+        poetry install
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Build package with Poetry
+      run: poetry build

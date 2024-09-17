@@ -1,0 +1,50 @@
+name: pypi-publish
+
+on:
+  workflow_dispatch:
+    inputs:
+      publishToPyPI:
+        description: 'Publish to PyPI?'
+        required: true
+        default: 'no'
+
+permissions:
+  contents: read
+
+jobs:
+  pypi-publish:
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/xdatbus/
+    permissions:
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install Poetry
+      run: |
+        pipx install poetry
+        poetry config virtualenvs.create true
+
+    - name: Install dependencies with Poetry
+      run: |
+        poetry install
+
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
+
+    - name: Build package with Poetry
+      run: poetry build
+
+    - name: Publish package to PyPI
+      uses: pypa/gh-action-pypi-publish@release/v1
