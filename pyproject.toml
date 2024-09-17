@@ -29,11 +29,9 @@ pandas = "2.2.2"
 pyarrow = "17.0.0"
 pymatgen = "2024.8.9"
 
-
 [tool.poetry.group.dev.dependencies]
 pytest = "8.3.2"
 pytest-cov = "5.0.0"
-
 
 [build-system]
 requires = ["poetry-core==1.9.0"]
