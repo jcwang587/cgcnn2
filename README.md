@@ -7,6 +7,6 @@ The package provides two major functions:
 - Train a CGCNN model with a customized dataset.
 - Predict material properties of new crystals with a pre-trained CGCNN model.
 
-The following paper describes the details of the CGCNN framework:
+The original paper describes the details of the CGCNN framework:
 
 [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://link.aps.org/doi/10.1103/PhysRevLett.120.145301)
