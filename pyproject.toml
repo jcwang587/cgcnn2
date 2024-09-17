@@ -27,7 +27,7 @@ mdanalysis = "2.7.0"
 numpy = "1.26.4"
 pandas = "2.2.2"
 pyarrow = "17.0.0"
-pymatgen = "2024.8.9"
+pymatgen = "2024.9.10"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "8.3.3"
