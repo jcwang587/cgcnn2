@@ -22,12 +22,11 @@ keywords = ["python", "aimd", "vasp", "gnn"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.12"
-ase = "3.23.0"
-mdanalysis = "2.7.0"
-numpy = "1.26.4"
-pandas = "2.2.2"
-pyarrow = "17.0.0"
-pymatgen = "2024.9.10"
+ase
+mdanalysis
+numpy
+pandas
+pymatgen
 
 [tool.poetry.group.dev.dependencies]
 pytest = "8.3.3"
