@@ -1,23 +1,46 @@
+"""
+This module implements the Crystal Graph Convolutional Neural Network (CGCNN) for predicting
+material properties based on their crystal structures.
+
+Classes:
+    ConvLayer: Convolutional layer for graph data.
+    MaskedConvLayer: Convolutional layer with masking for padding indices.
+    CrystalGraphConvNet: CGCNN model for predicting material properties.
+    Normalizer: Utility class for normalizing tensors.
+
+Usage:
+    Define your model by creating an instance of CrystalGraphConvNet with the desired parameters.
+    Use the Normalizer class to normalize your target properties during training.
+
+Note:
+    This code requires PyTorch and supports GPU acceleration if available.
+
+Author:
+    jiachengwang@umass.edu
+
+License:
+    MIT License
+"""
+
 import torch
 import torch.nn as nn
+from typing import List, Dict, Tuple
 
 
 class ConvLayer_v1(nn.Module):
     """
-    Convolutional operation on graphs
+    Convolutional layer for graph data.
+
+    Performs a convolutional operation on graphs, updating atom features based on their neighbors.
     """
 
     def __init__(self, atom_fea_len, nbr_fea_len):
         """
-        Initialize ConvLayer.
+        Initialize the ConvLayer.
 
-        Parameters
-        ----------
-
-        atom_fea_len: int
-          Number of atom hidden features.
-        nbr_fea_len: int
-          Number of bond features.
+        Args:
+            atom_feature_len (int): Number of atom hidden features.
+            neighbor_feature_len (int): Number of bond (neighbor) features.
         """
         super(ConvLayer_v1, self).__init__()
         self.atom_fea_len = atom_fea_len
