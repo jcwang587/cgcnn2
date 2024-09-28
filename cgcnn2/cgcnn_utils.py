@@ -247,7 +247,7 @@ def parse_arguments():
     Parses command-line arguments for the script.
     """
     parser = argparse.ArgumentParser(
-        description="Command-line interface for the Crystal gated neural networks model"
+        description="Command-line interface for the Crystal Graph Convolutional Neural Network (CGCNN) model."
     )
     parser.add_argument(
         "-mp",
