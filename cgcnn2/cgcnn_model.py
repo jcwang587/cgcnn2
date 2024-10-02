@@ -11,15 +11,6 @@ Classes:
 Usage:
     Define your model by creating an instance of CrystalGraphConvNet with the desired parameters.
     Use the Normalizer class to normalize your target properties during training.
-
-Note:
-    This code requires PyTorch and supports GPU acceleration if available.
-
-Author:
-    jiachengwang@umass.edu
-
-License:
-    MIT License
 """
 
 import torch
@@ -27,7 +18,7 @@ import torch.nn as nn
 from typing import List, Dict, Tuple
 
 
-class ConvLayer_v1(nn.Module):
+class ConvLayer(nn.Module):
     """
     Convolutional layer for graph data.
 
@@ -42,7 +33,7 @@ class ConvLayer_v1(nn.Module):
             atom_feature_len (int): Number of atom hidden features.
             neighbor_feature_len (int): Number of bond (neighbor) features.
         """
-        super(ConvLayer_v1, self).__init__()
+        super(ConvLayer, self).__init__()
         self.atom_fea_len = atom_fea_len
         self.nbr_fea_len = nbr_fea_len
         self.fc_full = nn.Linear(
@@ -102,7 +93,7 @@ class ConvLayer_v1(nn.Module):
         return out
 
 
-class ConvLayer_v2(nn.Module):
+class MaskedConvLayer(nn.Module):
     """
     Convolutional operation on graphs
     """
@@ -119,7 +110,7 @@ class ConvLayer_v2(nn.Module):
         nbr_fea_len: int
           Number of bond features.
         """
-        super(ConvLayer_v2, self).__init__()
+        super(MaskedConvLayer, self).__init__()
         self.atom_fea_len = atom_fea_len
         self.nbr_fea_len = nbr_fea_len
         self.fc_full = nn.Linear(
@@ -229,7 +220,7 @@ class CrystalGraphConvNet(nn.Module):
         self.embedding = nn.Linear(orig_atom_fea_len, atom_fea_len)
         self.convs = nn.ModuleList(
             [
-                ConvLayer_v1(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len)
+                ConvLayer(atom_fea_len=atom_fea_len, nbr_fea_len=nbr_fea_len)
                 for _ in range(n_conv)
             ]
         )
@@ -319,37 +310,61 @@ class CrystalGraphConvNet(nn.Module):
 
 class Normalizer:
     """
-    Normalizes a PyTorch tensor and allows to restore it later.
+    Normalizes a PyTorch tensor and allows restoring it later.
+
+    This class keeps track of the mean and standard deviation of a tensor and provides methods
+    to normalize and denormalize tensors using these statistics.
     """
 
     def __init__(self, tensor: torch.Tensor):
         """
-        tensor is taken as a sample to calculate the mean and std.
+        Initialize the Normalizer with a sample tensor to calculate mean and standard deviation.
+
+        Args:
+            tensor (torch.Tensor): Sample tensor to compute mean and standard deviation.
         """
         self.mean: torch.Tensor = torch.mean(tensor)
         self.std: torch.Tensor = torch.std(tensor)
 
-    def norm(self, tensor: torch.Tensor):
+    def norm(self, tensor: torch.Tensor) -> torch.Tensor:
         """
-        Normalize a tensor.
+        Normalize a tensor using the stored mean and standard deviation.
+
+        Args:
+            tensor (torch.Tensor): Tensor to normalize.
+
+        Returns:
+            torch.Tensor: Normalized tensor.
         """
         return (tensor - self.mean) / self.std
 
-    def denorm(self, normed_tensor: torch.Tensor):
+    def denorm(self, normed_tensor: torch.Tensor) -> torch.Tensor:
         """
-        Restore a normed tensor to its original state.
+        Denormalize a tensor using the stored mean and standard deviation.
+
+        Args:
+            normed_tensor (torch.Tensor): Normalized tensor to denormalize.
+
+        Returns:
+            torch.Tensor: Denormalized tensor.
         """
         return normed_tensor * self.std + self.mean
 
-    def state_dict(self):
+    def state_dict(self) -> Dict[str, torch.Tensor]:
         """
-        Return the state dictionary.
+        Returns the state dictionary containing the mean and standard deviation.
+
+        Returns:
+            Dict[str, torch.Tensor]: State dictionary.
         """
         return {"mean": self.mean, "std": self.std}
 
-    def load_state_dict(self, state_dict: dict[str, torch.Tensor]):
+    def load_state_dict(self, state_dict: Dict[str, torch.Tensor]):
         """
-        Load from a state dictionary.
+        Loads the mean and standard deviation from a state dictionary.
+
+        Args:
+            state_dict (Dict[str, torch.Tensor]): State dictionary containing 'mean' and 'std'.
         """
         self.mean = state_dict["mean"]
         self.std = state_dict["std"]
