@@ -1,9 +1,11 @@
 import csv
 import sys
+import glob
 import torch
 import argparse
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from datetime import datetime
@@ -82,14 +84,23 @@ def extract_fea(model, loader, device):
     return crys_fea, target, cif_id_list
 
 
-def viz_sliency(model, dataset, device, plot_file):
-    """
-    This function
-    """
-    model.eval()
-    saliency_maps = []
+def id_prop_gen(cif_dir):
+    cif_list = glob.glob(f"{cif_dir}/*.cif")
 
-    num_samples = len(dataset)
+    id_prop_cif = pd.DataFrame(
+        {
+            "id": [
+                cif.split(".")[0] for cif in cif_list
+            ],
+            "prop": [0 for _ in range(len(cif_list))],
+        }
+    )
+
+    id_prop_cif.to_csv(
+        f"{cif_dir}/id_prop.csv",
+        index=False,
+        header=False,
+    )
 
 
 def test_model(
