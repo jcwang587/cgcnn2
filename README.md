@@ -10,7 +10,7 @@ The package provides following major functions:
 
 The original paper describes the details of the CGCNN framework:
 
-```text
+```bibtex
 @article{PhysRevLett.120.145301,
   title = {Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties},
   author = {Xie, Tian and Grossman, Jeffrey C.},
