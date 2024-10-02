@@ -6,6 +6,7 @@ The package provides two major functions:
 
 - **Training** a CGCNN model with a customized dataset.
 - **Predicting** material properties with a pre-trained CGCNN model.
+- **Fine-tuning** a pre-trained CGCNN model on a new dataset.
 
 The original paper describes the details of the CGCNN framework:
 
