@@ -1,3 +1,4 @@
+import os
 import csv
 import sys
 import glob
@@ -90,7 +91,7 @@ def id_prop_gen(cif_dir):
     id_prop_cif = pd.DataFrame(
         {
             "id": [
-                cif.split(".")[0] for cif in cif_list
+                os.path.basename(cif).split(".")[0] for cif in cif_list
             ],
             "prop": [0 for _ in range(len(cif_list))],
         }
