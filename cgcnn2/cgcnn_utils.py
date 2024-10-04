@@ -259,7 +259,7 @@ def predict_model(
 
 
 def cgcnn_pred(
-    model_path, all_set, verbose, cuda=False, num_workers=0
+    model_path, all_set, verbose=3, cuda=False, num_workers=0
 ):
     # Validate the existence of the model file
     if not os.path.isfile(model_path):
