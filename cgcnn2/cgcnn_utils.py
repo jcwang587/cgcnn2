@@ -14,8 +14,8 @@ from scipy.stats import gaussian_kde
 from sklearn.metrics import mean_squared_error, r2_score
 
 from torch.utils.data import DataLoader
-from cgcnn_data import CIFData_pred, collate_pool
-from cgcnn_model import CrystalGraphConvNet, Normalizer
+from .cgcnn_data import CIFData_pred, collate_pool
+from .cgcnn_model import CrystalGraphConvNet, Normalizer
 
 
 def output_id_gen():
