@@ -8,6 +8,23 @@ The package provides following major functions:
 - **Predicting** material properties with a pre-trained CGCNN model.
 - **Fine-tuning** a pre-trained CGCNN model on a new dataset.
 
+## Installation
+
+Make sure you have a Python interpreter, preferably version 3.10 or higher. Then, you can simply install xdatbus from
+PyPI using `pip`:
+
+```bash
+pip install cgcnn2
+```
+
+If you'd like to use the latest unreleased version on the main branch, you can install it directly from GitHub:
+
+```bash
+pip install git+https://github.com/jcwang587/cgcnn2
+```
+
+## References
+
 The original paper describes the details of the CGCNN framework:
 
 ```bibtex
