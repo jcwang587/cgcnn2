@@ -1,14 +1,21 @@
+import os
 import csv
 import sys
+import glob
 import torch
 import argparse
 
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 
 from datetime import datetime
 from scipy.stats import gaussian_kde
 from sklearn.metrics import mean_squared_error, r2_score
+
+from torch.utils.data import DataLoader
+from .cgcnn_data import CIFData_pred, collate_pool
+from .cgcnn_model import CrystalGraphConvNet, Normalizer
 
 
 def output_id_gen():
@@ -82,14 +89,23 @@ def extract_fea(model, loader, device):
     return crys_fea, target, cif_id_list
 
 
-def viz_sliency(model, dataset, device, plot_file):
-    """
-    This function
-    """
-    model.eval()
-    saliency_maps = []
+def id_prop_gen(cif_dir):
+    cif_list = glob.glob(f"{cif_dir}/*.cif")
 
-    num_samples = len(dataset)
+    id_prop_cif = pd.DataFrame(
+        {
+            "id": [
+                os.path.basename(cif).split(".")[0] for cif in cif_list
+            ],
+            "prop": [0 for _ in range(len(cif_list))],
+        }
+    )
+
+    id_prop_cif.to_csv(
+        f"{cif_dir}/id_prop.csv",
+        index=False,
+        header=False,
+    )
 
 
 def test_model(
@@ -240,6 +256,67 @@ def predict_model(
                 )
 
     return outputs_list, crys_feas_list
+
+
+def cgcnn_pred(
+    model_path, all_set, verbose=3, cuda=False, num_workers=0
+):
+    # Validate the existence of the model file
+    if not os.path.isfile(model_path):
+        raise FileNotFoundError(f"=> No model params found at '{model_path}'")
+
+    # Depending on the arguments, either load the separate datasets or split the total data
+    # Load data from CIF files
+    total_dataset = CIFData_pred(all_set)
+
+    # Instantiate the CrystalGraphConvNet model using parameters from the checkpoint
+    checkpoint = torch.load(
+        model_path,
+        map_location=lambda storage, loc: storage if not cuda else None,
+        weights_only=False,
+    )
+    structures, _, _ = total_dataset[0]
+    orig_atom_fea_len = structures[0].shape[-1]
+    nbr_fea_len = structures[1].shape[-1]
+    model_args = argparse.Namespace(**checkpoint["args"])
+    model = CrystalGraphConvNet(
+        orig_atom_fea_len,
+        nbr_fea_len,
+        atom_fea_len=model_args.atom_fea_len,
+        n_conv=model_args.n_conv,
+        h_fea_len=model_args.h_fea_len,
+        n_h=model_args.n_h,
+    )
+    if cuda:
+        model.cuda()
+
+    # Load the normalizer and model weights from the checkpoint
+    normalizer = Normalizer(torch.zeros(3))
+    normalizer.load_state_dict(checkpoint["normalizer"])
+    model.load_state_dict(checkpoint["state_dict"])
+
+    if verbose >= 3:
+        print(
+            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
+        )
+
+    # Depending on the mode (train or test), either train the model or make predictions
+    device = "cuda" if cuda else "cpu"
+    model.to(device).eval()
+
+    full_loader = DataLoader(
+        total_dataset,
+        batch_size=1,
+        shuffle=False,
+        num_workers=num_workers,
+        collate_fn=collate_pool,
+        pin_memory=cuda,
+    )
+
+    # Test the model
+    pred, last_layer = predict_model(model, full_loader, device, verbose)
+
+    return pred, last_layer
 
 
 def parse_arguments():
