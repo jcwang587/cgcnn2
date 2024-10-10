@@ -222,7 +222,7 @@ def predict_model(
     targets_list = []
     outputs_list = []
     crys_feas_list = []
-    count = 0  # Initialize the counter
+    index = 0
 
     with torch.no_grad():
         for input, target, cif_id in loader:
@@ -239,7 +239,7 @@ def predict_model(
             outputs_list.extend(output.cpu().numpy().ravel().tolist())
             crys_feas_list.append(crys_fea.cpu().numpy())
 
-            count += 1  # Increment the counter
+            index += 1
 
             # Extract the actual values from cif_id and output tensor
             cif_id_value = cif_id[0] if cif_id and isinstance(cif_id, list) else cif_id
@@ -247,8 +247,8 @@ def predict_model(
 
             if verbose >= 3:
                 print(
-                    "count:",
-                    count,
+                    "index:",
+                    index,
                     "| cif id:",
                     cif_id_value,
                     "| prediction:",
@@ -261,15 +261,11 @@ def predict_model(
 def cgcnn_pred(
     model_path, all_set, verbose=3, cuda=False, num_workers=0
 ):
-    # Validate the existence of the model file
     if not os.path.isfile(model_path):
         raise FileNotFoundError(f"=> No model params found at '{model_path}'")
 
-    # Depending on the arguments, either load the separate datasets or split the total data
-    # Load data from CIF files
     total_dataset = CIFData_pred(all_set)
 
-    # Instantiate the CrystalGraphConvNet model using parameters from the checkpoint
     checkpoint = torch.load(
         model_path,
         map_location=lambda storage, loc: storage if not cuda else None,
@@ -290,7 +286,6 @@ def cgcnn_pred(
     if cuda:
         model.cuda()
 
-    # Load the normalizer and model weights from the checkpoint
     normalizer = Normalizer(torch.zeros(3))
     normalizer.load_state_dict(checkpoint["normalizer"])
     model.load_state_dict(checkpoint["state_dict"])
@@ -300,7 +295,6 @@ def cgcnn_pred(
             f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
         )
 
-    # Depending on the mode (train or test), either train the model or make predictions
     device = "cuda" if cuda else "cpu"
     model.to(device).eval()
 
@@ -313,7 +307,6 @@ def cgcnn_pred(
         pin_memory=cuda,
     )
 
-    # Test the model
     pred, last_layer = predict_model(model, full_loader, device, verbose)
 
     return pred, last_layer
