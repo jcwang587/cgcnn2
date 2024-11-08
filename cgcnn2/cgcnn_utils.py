@@ -316,12 +316,6 @@ def parse_arguments():
         help="Path to the file containing the trained model parameters.",
     )
     parser.add_argument(
-        "-mp2",
-        "--model-path2",
-        type=str,
-        help="Path to the file containing the trained model 2 parameters.",
-    )
-    parser.add_argument(
         "-as",
         "--total-set",
         type=str,
@@ -406,14 +400,14 @@ def parse_arguments():
         "--lr-fc",
         default=0.01,
         type=float,
-        help="Learning rate for fully connected layer.",
+        help="Learning rate for training the last fully connected layer.",
     )
     parser.add_argument(
         "-lrnfc",
         "--lr-non-fc",
         default=0.001,
         type=float,
-        help="Learning rate for non-fully connected layer.",
+        help="Learning rate for training the non-last fully connected layers.",
     )
     parser.add_argument(
         "-rs", "--random-seed", default=123, type=int, help="Random seed."
