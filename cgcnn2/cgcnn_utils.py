@@ -5,13 +5,12 @@ import glob
 import torch
 import argparse
 
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
 from datetime import datetime
-from scipy.stats import gaussian_kde
 from sklearn.metrics import mean_squared_error, r2_score
+from pymatviz import density_hexbin
 
 from torch.utils.data import DataLoader
 from .cgcnn_data import CIFData_pred, collate_pool
@@ -128,6 +127,7 @@ def test_model(
         - device (str): The device ('cuda' or 'cpu') where the model will be run.
         - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
         - results_file (str, optional): The file path where the results will be saved as a CSV file. Defaults to 'results.csv'.
+        - plot_mode (int, optional): The mode for the parity plot. Set to 1 for scatter plot or 2 for density plot. Defaults to 2.
     """
 
     model.eval()
@@ -158,38 +158,28 @@ def test_model(
     print(f"Prediction results have been saved to {results_file}")
 
     # Generate parity plot
-    plt.figure(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(8, 6))
 
     if plot_mode == 1:
-        # Calculate the point density
-        xy = np.vstack([targets_list, outputs_list])
-        z = gaussian_kde(xy)(xy)
-
-        # Sort the points by density, so that the densest points are plotted last
-        idx = z.argsort()
-        x, y, z = np.array(targets_list)[idx], np.array(outputs_list)[idx], z[idx]
-
-        plt.scatter(x, y, c=z, s=50, edgecolor="none", cmap="viridis")
-
-    elif plot_mode == 2:
-        plt.scatter(
+        ax.scatter(
             targets_list, outputs_list, alpha=0.6, s=50, edgecolor="none", color="blue"
         )
 
-    plt.plot(
-        [min(targets_list), max(targets_list)],
-        [min(targets_list), max(targets_list)],
-        "r--",
-    )
+        plt.plot(
+            [min(targets_list), max(targets_list)],
+            [min(targets_list), max(targets_list)],
+            "r--",
+        )
 
-    plt.xlabel("Actual (eV)", fontsize=14)
-    plt.ylabel("Predicted (eV)", fontsize=14)
-    plt.title(f"Parity Plot (R2={r2:.4f}, MSE={mse:.4f})", fontsize=16)
-    plt.grid(True)
+        ax.xlabel("Actual", fontsize=14)
+        ax.ylabel("Predicted", fontsize=14)
+        ax.title(f"Parity Plot (R2={r2:.4f}, MSE={mse:.4f})", fontsize=16)
+        ax.grid(True)
 
-    # Create a colorbar for the scatter plot
-    cbar = plt.colorbar()
-    # cbar.set_label('Density')
+    elif plot_mode == 2:
+        # Density plot using pymatviz
+        df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
+        density_hexbin("Actual", "Predicted", df=df, ax=ax, xlabel="Actual", ylabel="Predicted")
 
     plt.tight_layout()
     plt.savefig(plot_file, format="svg")
