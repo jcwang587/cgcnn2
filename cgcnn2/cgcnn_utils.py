@@ -179,7 +179,15 @@ def test_model(
     elif plot_mode == 2:
         # Density plot using pymatviz
         df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
-        density_hexbin("Actual", "Predicted", df=df, ax=ax, xlabel="Actual", ylabel="Predicted")
+        density_hexbin(
+            x="Actual",
+            y="Predicted",
+            df=df,
+            ax=ax,
+            xlabel="Actual",
+            ylabel="Predicted",
+            best_fit_line=False,
+        )
 
     plt.tight_layout()
     plt.savefig(plot_file, format="svg")
@@ -191,21 +199,16 @@ def predict_model(
     loader,
     device,
     verbose,
-    plot_file="parity_plot.svg",
-    results_file="results.csv",
 ):
     """
     This function tests a trained machine learning model on a provided dataset, calculates the Mean Squared Error (
-    MSE) and R2 score, and prints these results. It also saves the prediction results as a CSV file and generates a
-    parity plot as an SVG file. The plot displays the model's predictions versus the actual values, color-coded by
-    the point density.
+    MSE) and R2 score, and prints these results.
 
     Parameters:
         - model (torch.nn.Module): The trained model.
         - loader (torch.utils.data.DataLoader): DataLoader for the dataset.
         - device (str): The device ('cuda' or 'cpu') where the model will be run.
-        - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
-        - results_file (str, optional): The file path where the results will be saved as a CSV file. Defaults to 'results.csv'.
+        - verbose (int): The verbosity level of the output.
     """
 
     model.eval()
