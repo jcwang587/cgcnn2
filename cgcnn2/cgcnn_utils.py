@@ -113,7 +113,8 @@ def test_model(
     device,
     plot_file="parity_plot.svg",
     results_file="results.csv",
-    plot_mode=2,
+    plot_mode=1,
+    axis_limits=None,
 ):
     """
     This function tests a trained machine learning model on a provided dataset, calculates the Mean Squared Error (
@@ -127,7 +128,8 @@ def test_model(
         - device (str): The device ('cuda' or 'cpu') where the model will be run.
         - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
         - results_file (str, optional): The file path where the results will be saved as a CSV file. Defaults to 'results.csv'.
-        - plot_mode (int, optional): The mode for the parity plot. Set to 1 for scatter plot or 2 for density plot. Defaults to 2.
+        - plot_mode (int, optional): The mode for the parity plot. Set to 1 for scatter plot or 2 for density plot. Defaults to 1.
+        - axis_limits (list, optional): The limits for the x and y axes of the parity plot. Defaults to ([0, 10]).
     """
 
     model.eval()
@@ -161,22 +163,6 @@ def test_model(
     fig, ax = plt.subplots(figsize=(8, 6))
 
     if plot_mode == 1:
-        ax.scatter(
-            targets_list, outputs_list, alpha=0.6, s=50, edgecolor="none", color="blue"
-        )
-
-        plt.plot(
-            [min(targets_list), max(targets_list)],
-            [min(targets_list), max(targets_list)],
-            "r--",
-        )
-
-        ax.xlabel("Actual", fontsize=14)
-        ax.ylabel("Predicted", fontsize=14)
-        ax.title(f"Parity Plot (R2={r2:.4f}, MSE={mse:.4f})", fontsize=16)
-        ax.grid(True)
-
-    elif plot_mode == 2:
         # Density plot using pymatviz
         df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
         density_hexbin(
@@ -188,6 +174,22 @@ def test_model(
             ylabel="Predicted",
             best_fit_line=False,
         )
+
+    elif plot_mode == 2:
+        # Density plot using pymatviz with x and y limits
+        df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
+        density_hexbin(
+            x="Actual",
+            y="Predicted",
+            df=df,
+            ax=ax,
+            xlabel="Actual",
+            ylabel="Predicted",
+            best_fit_line=False,
+        )
+
+        ax.set_xlim(axis_limits)
+        ax.set_ylim(axis_limits)
 
     plt.tight_layout()
     plt.savefig(plot_file, format="svg")

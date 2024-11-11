@@ -356,6 +356,18 @@ def main():
             results_file=os.path.join(output_folder, "test_results_test_mode.csv"),
         )
 
+        # Test the model with axis limit
+        test_model(
+            model,
+            full_loader,
+            device,
+            plot_file=os.path.join(output_folder, "parity_plot_test_mode_axis_limit.svg"),
+            results_file=os.path.join(
+                output_folder, "test_results_test_mode_axis_limit.csv"
+            ),
+            axis_limits=[0, 10],
+        )
+
 
 if __name__ == "__main__":
     main()
