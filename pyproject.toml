@@ -22,12 +22,12 @@ keywords = ["python", "gnn", "vasp", "crystal"]
 
 [tool.poetry.dependencies]
 python = ">=3.10"
-ase = "3.23.0"
+ase = "^3.23.0"
 numpy = "*"
 pandas = "*"
 scikit-learn = "*"
 torch = "2.5.1"
-pymatgen = "2024.10.3"
+pymatgen = "^2024.10.0"
 pymatviz = "0.13.2"
 
 [tool.poetry.group.dev.dependencies]
