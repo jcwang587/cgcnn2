@@ -176,6 +176,10 @@ def test_model(
         )
 
     elif plot_mode == 2:
+        # filter out the data points that are outside the axis limits
+        targets_list = [target for target in targets_list if axis_limits[0] <= target <= axis_limits[1]]
+        outputs_list = [output for output in outputs_list if axis_limits[0] <= output <= axis_limits[1]]
+
         # Density plot using pymatviz with x and y limits
         df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
         density_hexbin(
