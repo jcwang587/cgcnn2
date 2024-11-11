@@ -203,6 +203,9 @@ def main():
             ]
         )
 
+        # Initialize the scheduler
+        scheduler = None
+
         # Train the model (only FC layer)
         criterion = nn.MSELoss()
 
@@ -334,8 +337,14 @@ def main():
         )
 
     else:
+        # Prediction mode
+        if args.total_set:
+            total_dataset = CIFData(args.total_set)
+        else:
+            raise ValueError("Total dataset must be provided in prediction mode.")
+
         full_loader = DataLoader(
-            total_dataset,
+            dataset=total_dataset,
             batch_size=args.batch_size,
             shuffle=True,
             num_workers=args.workers,
