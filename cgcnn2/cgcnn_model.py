@@ -187,14 +187,14 @@ class CrystalGraphConvNet(nn.Module):
     """
 
     def __init__(
-            self,
-            orig_atom_fea_len,
-            nbr_fea_len,
-            atom_fea_len=64,
-            n_conv=3,
-            h_fea_len=128,
-            n_h=1,
-            classification=False,
+        self,
+        orig_atom_fea_len,
+        nbr_fea_len,
+        atom_fea_len=64,
+        n_conv=3,
+        h_fea_len=128,
+        n_h=1,
+        classification=False,
     ):
         """
         Initialize CrystalGraphConvNet.
@@ -300,8 +300,8 @@ class CrystalGraphConvNet(nn.Module):
           Mapping from the crystal idx to atom idx
         """
         assert (
-                sum([len(idx_map) for idx_map in crystal_atom_idx])
-                == atom_fea.data.shape[0]
+            sum([len(idx_map) for idx_map in crystal_atom_idx])
+            == atom_fea.data.shape[0]
         )
         summed_fea = [
             torch.mean(atom_fea[idx_map], dim=0, keepdim=True)

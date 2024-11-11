@@ -343,9 +343,7 @@ def main():
             test_loader,
             device,
             plot_file=os.path.join(output_folder, "parity_plot_axis_limit.svg"),
-            results_file=os.path.join(
-                output_folder, "test_results_axis_limit.csv"
-            ),
+            results_file=os.path.join(output_folder, "test_results_axis_limit.csv"),
             plot_mode=2,
             axis_limits=[0, 10],
         )
@@ -378,19 +376,6 @@ def main():
             plot_file=os.path.join(output_folder, "parity_plot_test_mode.svg"),
             results_file=os.path.join(output_folder, "test_results_test_mode.csv"),
             plot_mode=1,
-        )
-
-        # Test the model with axis limit
-        test_model(
-            model,
-            full_loader,
-            device,
-            plot_file=os.path.join(output_folder, "parity_plot_test_mode_axis_limit.svg"),
-            results_file=os.path.join(
-                output_folder, "test_results_test_mode_axis_limit.csv"
-            ),
-            plot_mode=2,
-            axis_limits=[0, 10],
         )
 
 

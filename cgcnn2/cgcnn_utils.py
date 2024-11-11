@@ -93,9 +93,7 @@ def id_prop_gen(cif_dir):
 
     id_prop_cif = pd.DataFrame(
         {
-            "id": [
-                os.path.basename(cif).split(".")[0] for cif in cif_list
-            ],
+            "id": [os.path.basename(cif).split(".")[0] for cif in cif_list],
             "prop": [0 for _ in range(len(cif_list))],
         }
     )
@@ -177,8 +175,16 @@ def test_model(
 
     elif plot_mode == 2:
         # filter out the data points that are outside the axis limits
-        targets_list = [target for target in targets_list if axis_limits[0] <= target <= axis_limits[1]]
-        outputs_list = [output for output in outputs_list if axis_limits[0] <= output <= axis_limits[1]]
+        targets_list = [
+            target
+            for target in targets_list
+            if axis_limits[0] <= target <= axis_limits[1]
+        ]
+        outputs_list = [
+            output
+            for output in outputs_list
+            if axis_limits[0] <= output <= axis_limits[1]
+        ]
 
         # Density plot using pymatviz with x and y limits
         df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
@@ -257,9 +263,7 @@ def predict_model(
     return outputs_list, crys_feas_list
 
 
-def cgcnn_pred(
-    model_path, all_set, verbose=3, cuda=False, num_workers=0
-):
+def cgcnn_pred(model_path, all_set, verbose=3, cuda=False, num_workers=0):
     if not os.path.isfile(model_path):
         raise FileNotFoundError(f"=> No model params found at '{model_path}'")
 
