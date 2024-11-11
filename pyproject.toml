@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cgcnn2"
-version = "0.1.6"
+version = "0.1.7"
 description = "Crystal Graph Convolutional Neural Networks"
 authors = ["Jiacheng Wang <jiachengwang@umass.edu>"]
 maintainers = ["Jiacheng Wang"]
