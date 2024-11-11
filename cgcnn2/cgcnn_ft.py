@@ -330,7 +330,7 @@ def main():
         # Test the model
         test_model(
             model,
-            full_loader,
+            test_loader,
             device,
             plot_file=os.path.join(output_folder, "parity_plot.svg"),
             results_file=os.path.join(output_folder, "test_results.csv"),
@@ -340,7 +340,7 @@ def main():
         # Test the model with axis limit
         test_model(
             model,
-            full_loader,
+            test_loader,
             device,
             plot_file=os.path.join(output_folder, "parity_plot_axis_limit.svg"),
             results_file=os.path.join(
