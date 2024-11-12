@@ -20,7 +20,7 @@ from cgcnn2 import (
     CIFData,
     get_lr,
     parse_arguments,
-    test_model,
+    cgcnn_test,
 )
 
 
@@ -328,7 +328,7 @@ def main():
         model.load_state_dict(checkpoint["state_dict"])
 
         # Test the model
-        test_model(
+        cgcnn_test(
             model,
             test_loader,
             device,
@@ -358,7 +358,7 @@ def main():
         model.load_state_dict(checkpoint["state_dict"])
 
         # Test the model
-        test_model(
+        cgcnn_test(
             model,
             full_loader,
             device,

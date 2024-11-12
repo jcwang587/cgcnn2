@@ -36,6 +36,23 @@ def output_id_gen():
     return folder_name
 
 
+def id_prop_gen(cif_dir):
+    cif_list = glob.glob(f"{cif_dir}/*.cif")
+
+    id_prop_cif = pd.DataFrame(
+        {
+            "id": [os.path.basename(cif).split(".")[0] for cif in cif_list],
+            "prop": [0 for _ in range(len(cif_list))],
+        }
+    )
+
+    id_prop_cif.to_csv(
+        f"{cif_dir}/id_prop.csv",
+        index=False,
+        header=False,
+    )
+
+
 def get_lr(optimizer):
     """
     This function iterates over the parameter groups of a given PyTorch optimizer,
@@ -88,24 +105,7 @@ def extract_fea(model, loader, device):
     return crys_fea, target, cif_id_list
 
 
-def id_prop_gen(cif_dir):
-    cif_list = glob.glob(f"{cif_dir}/*.cif")
-
-    id_prop_cif = pd.DataFrame(
-        {
-            "id": [os.path.basename(cif).split(".")[0] for cif in cif_list],
-            "prop": [0 for _ in range(len(cif_list))],
-        }
-    )
-
-    id_prop_cif.to_csv(
-        f"{cif_dir}/id_prop.csv",
-        index=False,
-        header=False,
-    )
-
-
-def test_model(
+def cgcnn_test(
     model,
     loader,
     device,
@@ -206,15 +206,14 @@ def test_model(
     print(f"Parity plot has been saved to {plot_file}")
 
 
-def predict_model(
+def pred_calculator(
     model,
     loader,
     device,
     verbose,
 ):
     """
-    This function tests a trained machine learning model on a provided dataset, calculates the Mean Squared Error (
-    MSE) and R2 score, and prints these results.
+    This function applies a trained model to a dataset, returning the model's predictions and the last layer's output.
 
     Parameters:
         - model (torch.nn.Module): The trained model.
@@ -264,6 +263,17 @@ def predict_model(
 
 
 def cgcnn_pred(model_path, all_set, verbose=3, cuda=False, num_workers=0):
+    """
+    This function loads a trained CGCNN model from a file, applies it to a dataset, and returns the model's predictions
+    and the last layer's output.
+
+    Parameters:
+        - model_path (str): The path to the file containing the trained model parameters.
+        - all_set (str): The path to the directory containing all CIF files for the dataset.
+        - verbose (int): The verbosity level of the output.
+        - cuda (bool): Set to True to use CUDA, False to use CPU.
+        - num_workers (int): The number of subprocesses to use for data loading.
+    """
     if not os.path.isfile(model_path):
         raise FileNotFoundError(f"=> No model params found at '{model_path}'")
 
@@ -310,7 +320,7 @@ def cgcnn_pred(model_path, all_set, verbose=3, cuda=False, num_workers=0):
         pin_memory=cuda,
     )
 
-    pred, last_layer = predict_model(model, full_loader, device, verbose)
+    pred, last_layer = pred_calculator(model, full_loader, device, verbose)
 
     return pred, last_layer
 
