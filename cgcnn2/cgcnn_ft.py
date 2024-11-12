@@ -337,17 +337,6 @@ def main():
             plot_mode=1,
         )
 
-        # Test the model with axis limit
-        test_model(
-            model,
-            test_loader,
-            device,
-            plot_file=os.path.join(output_folder, "parity_plot_axis_limit.svg"),
-            results_file=os.path.join(output_folder, "test_results_axis_limit.csv"),
-            plot_mode=2,
-            axis_limits=[0, 10],
-        )
-
     else:
         # Prediction mode
         if args.total_set:
