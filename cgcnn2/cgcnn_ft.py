@@ -248,6 +248,7 @@ def main():
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                 loss = criterion(outputs, targets)
                 if args.bias_temperature:
+                    # A Boltzmann factor is applied to the loss to bias the model towards lower energies
                     bias = torch.exp(-targets / args.bias_temperature).to(device)
                     loss = (loss * bias).mean()
 
@@ -277,6 +278,7 @@ def main():
                     outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                     loss = criterion(outputs, targets)
                     if args.bias_temperature:
+                        # A Boltzmann factor is applied to the loss to bias the model towards lower energies
                         bias = torch.exp(-targets / args.bias_temperature).to(device)
                         loss = (loss * bias).mean()
 
