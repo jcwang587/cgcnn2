@@ -28,7 +28,7 @@ pandas = "*"
 scikit-learn = "*"
 torch = "^2.5.1"
 pymatgen = "^2024.11.13"
-pymatviz = "^0.13.2"
+pymatviz = ">=0.13.2,<0.16.0"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8"
