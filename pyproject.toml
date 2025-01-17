@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cgcnn2"
-version = "0.1.9"
+version = "0.2.1"
 description = "Crystal Graph Convolutional Neural Networks"
 authors = ["Jiacheng Wang <jiachengwang@umass.edu>"]
 maintainers = ["Jiacheng Wang"]
@@ -27,7 +27,7 @@ numpy = "*"
 pandas = "*"
 scikit-learn = "*"
 torch = "^2.5.1"
-pymatgen = "^2024.11.13"
+pymatgen = "^2025.1.0"
 pymatviz = "^0.15.0"
 
 [tool.poetry.group.dev.dependencies]
