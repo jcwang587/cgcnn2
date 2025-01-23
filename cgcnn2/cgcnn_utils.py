@@ -171,6 +171,7 @@ def cgcnn_test(
             xlabel="Actual",
             ylabel="Predicted",
             best_fit_line=False,
+            gridsize=50,
         )
 
     elif plot_mode == 2:
@@ -196,6 +197,7 @@ def cgcnn_test(
             xlabel="Actual",
             ylabel="Predicted",
             best_fit_line=False,
+            gridsize=50,
         )
 
         ax.set_xlim(axis_limits)
