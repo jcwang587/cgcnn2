@@ -480,7 +480,11 @@ def parse_arguments():
         "--bias-temperature",
         default=0.0,
         type=float,
-        help="Bias the loss function using a Boltzmann like factor.",
+        help=(
+            "Bias the loss function using a Boltzmann-like factor.\n"
+            "A smaller 'bias_temperature' strongly favors low-energy structures.\n"
+            "A larger 'bias_temperature' reduces this low-energy bias."
+        ),
     )
 
     args = parser.parse_args(sys.argv[1:])
