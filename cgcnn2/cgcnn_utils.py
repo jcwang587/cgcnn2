@@ -481,9 +481,10 @@ def parse_arguments():
         default=0.0,
         type=float,
         help=(
-            "Bias the loss function using a Boltzmann-like factor.\n"
-            "A smaller 'bias_temperature' strongly favors low-energy structures.\n"
-            "A larger 'bias_temperature' reduces this low-energy bias."
+            "If set > 0, bias the loss function using a Boltzmann-like factor.\n"
+            "Smaller 'bias_temperature' strongly favors low-energy structures.\n"
+            "Larger 'bias_temperature' reduces the low-energy bias.\n"
+            "If not specified or non-positive, no bias is applied."
         ),
     )
 

@@ -206,8 +206,9 @@ def main():
         # Initialize the scheduler
         scheduler = None
 
-        # Train the model (only FC layer)
-        criterion = nn.MSELoss()
+        # Define the loss function
+        criterion = nn.MSELoss(reduction='none')  # Returns a per-sample loss vector
+        loss = criterion(outputs, targets)        # shape [batch_size]
 
         # Define a learning rate scheduler
         if args.lr_patience:
@@ -247,10 +248,14 @@ def main():
                 # Forward pass
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                 loss = criterion(outputs, targets)
-                if args.bias_temperature:
-                    # A Boltzmann factor is applied to the loss to bias the model towards lower energies
+                if args.bias_temperature > 0.0:
+                    # shape [batch_size], each sample has its own bias weight
                     bias = torch.exp(-targets / args.bias_temperature).to(device)
+                    # Weighted average across the batch
                     loss = (loss * bias).mean()
+                else:
+                    # Unweighted average across the batch
+                    loss = loss.mean()
 
                 # Backward and optimize
                 optimizer.zero_grad()
@@ -277,7 +282,7 @@ def main():
                     # Forward pass
                     outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                     loss = criterion(outputs, targets)
-                    if args.bias_temperature:
+                    if args.bias_temperature > 0.0:
                         # A Boltzmann factor is applied to the loss to bias the model towards lower energies
                         bias = torch.exp(-targets / args.bias_temperature).to(device)
                         loss = (loss * bias).mean()
