@@ -208,7 +208,6 @@ def main():
 
         # Define the loss function
         criterion = nn.MSELoss(reduction='none')  # Returns a per-sample loss vector
-        loss = criterion(outputs, targets)        # shape [batch_size]
 
         # Define a learning rate scheduler
         if args.lr_patience:
