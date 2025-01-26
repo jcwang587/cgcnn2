@@ -343,7 +343,6 @@ def main():
             device,
             plot_file=os.path.join(output_folder, "parity_plot.svg"),
             results_file=os.path.join(output_folder, "test_results.csv"),
-            plot_mode=1,
         )
 
     else:
@@ -373,7 +372,6 @@ def main():
             device,
             plot_file=os.path.join(output_folder, "parity_plot_test_mode.svg"),
             results_file=os.path.join(output_folder, "test_results_test_mode.csv"),
-            plot_mode=1,
         )
 
 
