@@ -171,11 +171,13 @@ def cgcnn_test(
             xlabel="Actual",
             ylabel="Predicted",
             best_fit_line=False,
-            gridsize=50,
+            gridsize=40,
         )
 
     else:
-        # filter out the data points that are outside the axis limits
+        # Plot only the data points within the axis limits
+        print(f"Plotting only the data points within the axis limits: {axis_limits}")
+
         targets_list = [
             target
             for target in targets_list
@@ -197,7 +199,7 @@ def cgcnn_test(
             xlabel="Actual",
             ylabel="Predicted",
             best_fit_line=False,
-            gridsize=50,
+            gridsize=40,
         )
 
         ax.set_xlim(axis_limits)
