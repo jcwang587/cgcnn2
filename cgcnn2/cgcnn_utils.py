@@ -111,7 +111,6 @@ def cgcnn_test(
     device,
     plot_file="parity_plot.svg",
     results_file="results.csv",
-    plot_mode=1,
     axis_limits=None,
 ):
     """
@@ -126,7 +125,6 @@ def cgcnn_test(
         - device (str): The device ('cuda' or 'cpu') where the model will be run.
         - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
         - results_file (str, optional): The file path where the results will be saved as a CSV file. Defaults to 'results.csv'.
-        - plot_mode (int, optional): The mode for the parity plot. Set to 1 for scatter plot or 2 for density plot. Defaults to 1.
         - axis_limits (list, optional): The limits for the x and y axes of the parity plot. Defaults to ([0, 10]).
     """
 
@@ -162,7 +160,7 @@ def cgcnn_test(
     # Generate parity plot
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    if plot_mode == 1:
+    if axis_limits is None:
         # Density plot using pymatviz
         df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
         density_hexbin(
@@ -176,7 +174,7 @@ def cgcnn_test(
             gridsize=50,
         )
 
-    elif plot_mode == 2:
+    else:
         # filter out the data points that are outside the axis limits
         targets_list = [
             target
