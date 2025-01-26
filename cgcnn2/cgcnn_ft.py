@@ -207,7 +207,7 @@ def main():
         scheduler = None
 
         # Define the loss function
-        criterion = nn.MSELoss(reduction='none')  # Returns a per-sample loss vector
+        criterion = nn.MSELoss(reduction="none")  # Returns a per-sample loss vector
 
         # Define a learning rate scheduler
         if args.lr_patience:
