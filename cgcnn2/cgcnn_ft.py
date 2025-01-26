@@ -281,12 +281,15 @@ def main():
                     # Forward pass
                     outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                     loss = criterion(outputs, targets)
+
                     if args.bias_temperature > 0.0:
-                        # A Boltzmann factor is applied to the loss to bias the model towards lower energies
+                        # Per-sample Boltzmann factor weighting
                         bias = torch.exp(-targets / args.bias_temperature).to(device)
                         loss = (loss * bias).mean()
+                    else:
+                        # Just average the per-sample losses
+                        loss = loss.mean()
 
-                    # Add the loss to the validation loss
                     valid_loss += loss.item()
 
             # Print average training / validation loss per epoch
