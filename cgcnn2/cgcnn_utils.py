@@ -151,10 +151,12 @@ def cgcnn_test(
     print(f"MSE: {mse:.4f}, R2 Score: {r2:.4f}")
 
     # Save results to csv
+    sorted_rows = sorted(zip(cif_id, targets_list, outputs_list), key=lambda x: x[0])
+
     with open(results_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["cif_id", "Actual", "Predicted"])
-        writer.writerows(zip(cif_id, targets_list, outputs_list))
+        writer.writerows(sorted_rows)
     print(f"Prediction results have been saved to {results_file}")
 
     # Generate parity plot
