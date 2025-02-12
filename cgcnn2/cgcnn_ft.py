@@ -341,8 +341,16 @@ def main():
             model,
             test_loader,
             device,
-            plot_file=os.path.join(output_folder, "parity_plot.svg"),
-            results_file=os.path.join(output_folder, "test_results.csv"),
+            plot_file=os.path.join(output_folder, "parity_plot_test.svg"),
+            results_file=os.path.join(output_folder, "results_test.csv"),
+        )
+
+        cgcnn_test(
+            model,
+            train_loader,
+            device,
+            plot_file=os.path.join(output_folder, "parity_plot_train.svg"),
+            results_file=os.path.join(output_folder, "results_train.csv"),
         )
 
     else:
