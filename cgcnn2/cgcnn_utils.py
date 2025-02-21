@@ -112,12 +112,13 @@ def cgcnn_test(
     plot_file="parity_plot.svg",
     results_file="results.csv",
     axis_limits=None,
+    **kwargs,
 ):
     """
-    This function tests a trained machine learning model on a provided dataset, calculates the Mean Squared Error (
-    MSE) and R2 score, and prints these results. It also saves the prediction results as a CSV file and generates a
-    parity plot as an SVG file. The plot displays the model's predictions versus the actual values, color-coded by
-    the point density.
+    This function tests a trained machine learning model on a provided dataset, calculates the Mean Squared Error
+    (MSE) and R2 score, and prints these results. It also saves the prediction results as a CSV file and
+    generates a parity plot as an SVG file. The plot displays the model's predictions versus the actual values,
+    color-coded by the point density.
 
     Parameters:
         - model (torch.nn.Module): The trained model.
@@ -125,32 +126,42 @@ def cgcnn_test(
         - device (str): The device ('cuda' or 'cpu') where the model will be run.
         - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
         - results_file (str, optional): The file path where the results will be saved as a CSV file. Defaults to 'results.csv'.
-        - axis_limits (list, optional): The limits for the x and y axes of the parity plot. Defaults to ([0, 10]).
+        - axis_limits (list, optional): The limits for the x and y axes of the parity plot. Defaults to None.
+        - **kwargs: 
+            - xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
+            - ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
+            - Any other extra keyword arguments you want to pass in.
     """
+
+    # Extract optional plot labels from kwargs, with defaults
+    xlabel = kwargs.get("xlabel", "Actual")
+    ylabel = kwargs.get("ylabel", "Predicted")
 
     model.eval()
     targets_list = []
     outputs_list = []
+    cif_ids = []
 
     with torch.no_grad():
-        for input, target, cif_id in loader:
-            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
+        for input_batch, target, cif_id in loader:
+            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_batch
             atom_fea = atom_fea.to(device)
             nbr_fea = nbr_fea.to(device)
             nbr_fea_idx = nbr_fea_idx.to(device)
             crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
             target = target.to(device)
             output, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+
             targets_list.extend(target.cpu().numpy().ravel().tolist())
             outputs_list.extend(output.cpu().numpy().ravel().tolist())
+            cif_ids.extend(cif_id)
 
     mse = mean_squared_error(targets_list, outputs_list)
     r2 = r2_score(targets_list, outputs_list)
     print(f"MSE: {mse:.4f}, R2 Score: {r2:.4f}")
 
-    # Save results to csv
-    sorted_rows = sorted(zip(cif_id, targets_list, outputs_list), key=lambda x: x[0])
-
+    # Save results to CSV
+    sorted_rows = sorted(zip(cif_ids, targets_list, outputs_list), key=lambda x: x[0])
     with open(results_file, "w", newline="") as file:
         writer = csv.writer(file)
         writer.writerow(["cif_id", "Actual", "Predicted"])
@@ -160,44 +171,41 @@ def cgcnn_test(
     # Generate parity plot
     fig, ax = plt.subplots(figsize=(8, 6))
 
+    # Create a DataFrame for plotting
+    df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
+
     if axis_limits is None:
         # Density plot using pymatviz
-        df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
         density_hexbin(
             x="Actual",
             y="Predicted",
             df=df,
             ax=ax,
-            xlabel="Actual",
-            ylabel="Predicted",
+            xlabel=xlabel,
+            ylabel=ylabel,
             best_fit_line=False,
             gridsize=40,
         )
-
     else:
-        # Plot only the data points within the axis limits
+        # Filter data to only include points within the axis limits
         print(f"Plotting only the data points within the axis limits: {axis_limits}")
 
-        targets_list = [
-            target
-            for target in targets_list
-            if axis_limits[0] <= target <= axis_limits[1]
-        ]
-        outputs_list = [
-            output
-            for output in outputs_list
-            if axis_limits[0] <= output <= axis_limits[1]
+        # Filter the dataframe
+        df = df[
+            (df["Actual"] >= axis_limits[0])
+            & (df["Actual"] <= axis_limits[1])
+            & (df["Predicted"] >= axis_limits[0])
+            & (df["Predicted"] <= axis_limits[1])
         ]
 
         # Density plot using pymatviz with x and y limits
-        df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
         density_hexbin(
             x="Actual",
             y="Predicted",
             df=df,
             ax=ax,
-            xlabel="Actual",
-            ylabel="Predicted",
+            xlabel=xlabel,
+            ylabel=ylabel,
             best_fit_line=False,
             gridsize=40,
         )
