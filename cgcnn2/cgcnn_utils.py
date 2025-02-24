@@ -168,13 +168,10 @@ def cgcnn_test(
         writer.writerows(sorted_rows)
     print(f"Prediction results have been saved to {results_file}")
 
-    # Generate parity plot
+    # Create parity plot
     fig, ax = plt.subplots(figsize=(8, 6))
-
-    # Create a DataFrame for plotting
     df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
 
-    # Density plot using pymatviz
     density_hexbin(
         x="Actual",
         y="Predicted",
@@ -185,15 +182,15 @@ def cgcnn_test(
         best_fit_line=False,
         gridsize=40,
     )
+    ax.set_aspect("equal", "box")
     plt.tight_layout()
     plt.savefig(plot_file, format="svg")
     print(f"Parity plot has been saved to {plot_file}")
     plt.close()
 
-    # If axis limits are provided, create a new density plot with the specified limits
+    # If axis limits are provided, create a new parity plot with the specified limits
     if axis_limits:
         fig, ax = plt.subplots(figsize=(8, 6))
-        
         df = df[
             (df["Actual"] >= axis_limits[0])
             & (df["Actual"] <= axis_limits[1])
@@ -211,11 +208,12 @@ def cgcnn_test(
             best_fit_line=False,
             gridsize=40,
         )
-
+        ax.set_aspect("equal", "box")
         plt.tight_layout()
         plt.savefig(f"{plot_file}_axis_limits.svg", format="svg")
         print(f"Parity plot has been saved to {plot_file}_axis_limits.svg")
         plt.close()
+
 
 def pred_calculator(
     model,
