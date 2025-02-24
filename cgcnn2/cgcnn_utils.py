@@ -172,7 +172,7 @@ def cgcnn_test(
     fig, ax = plt.subplots(figsize=(8, 6))
     df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
 
-    density_hexbin(
+    ax = density_hexbin(
         x="Actual",
         y="Predicted",
         df=df,
