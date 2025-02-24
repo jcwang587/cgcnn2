@@ -345,6 +345,7 @@ def main():
             results_file=os.path.join(output_folder, "test_results.csv"),
             xlabel="Actual (eV)",
             ylabel="Predicted (eV)",
+            axis_limits=args.axis_limits,
         )
 
     else:
