@@ -127,7 +127,7 @@ def cgcnn_test(
         - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
         - results_file (str, optional): The file path where the results will be saved as a CSV file. Defaults to 'results.csv'.
         - axis_limits (list, optional): The limits for the x and y axes of the parity plot. Defaults to None.
-        - **kwargs: 
+        - **kwargs:
             - xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
             - ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
             - Any other extra keyword arguments you want to pass in.
@@ -174,23 +174,23 @@ def cgcnn_test(
     # Create a DataFrame for plotting
     df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
 
-    if axis_limits is None:
-        # Density plot using pymatviz
-        density_hexbin(
-            x="Actual",
-            y="Predicted",
-            df=df,
-            ax=ax,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            best_fit_line=False,
-            gridsize=40,
-        )
-    else:
-        # Filter data to only include points within the axis limits
-        print(f"Plotting only the data points within the axis limits: {axis_limits}")
+    # Density plot using pymatviz
+    density_hexbin(
+        x="Actual",
+        y="Predicted",
+        df=df,
+        ax=ax,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        best_fit_line=False,
+        gridsize=40,
+    )
+    plt.tight_layout()
+    plt.savefig(plot_file, format="svg")
+    print(f"Parity plot has been saved to {plot_file}")
 
-        # Filter the dataframe
+    # If axis limits are provided, create a new density plot with the specified limits
+    if axis_limits:
         df = df[
             (df["Actual"] >= axis_limits[0])
             & (df["Actual"] <= axis_limits[1])
@@ -198,7 +198,6 @@ def cgcnn_test(
             & (df["Predicted"] <= axis_limits[1])
         ]
 
-        # Density plot using pymatviz with x and y limits
         density_hexbin(
             x="Actual",
             y="Predicted",
@@ -212,10 +211,9 @@ def cgcnn_test(
 
         ax.set_xlim(axis_limits)
         ax.set_ylim(axis_limits)
-
     plt.tight_layout()
-    plt.savefig(plot_file, format="svg")
-    print(f"Parity plot has been saved to {plot_file}")
+    plt.savefig(f"{plot_file}_axis_limits.svg", format="svg")
+    print(f"Parity plot has been saved to {plot_file}_axis_limits.svg")
 
 
 def pred_calculator(
@@ -496,6 +494,14 @@ def parse_arguments():
             "Larger 'bias_temperature' reduces the low-energy bias.\n"
             "If not specified or non-positive, no bias is applied."
         ),
+    )
+    parser.add_argument(
+        "-al",
+        "--axis-limits",
+        nargs=2,
+        default=None,
+        type=float,
+        help="The limits for the x and y axes of the parity plot.",
     )
 
     args = parser.parse_args(sys.argv[1:])
