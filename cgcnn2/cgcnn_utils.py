@@ -191,9 +191,9 @@ def cgcnn_test(
     plt.close()
 
     # If axis limits are provided, create a new density plot with the specified limits
-    fig, ax = plt.subplots(figsize=(8, 6))
-
     if axis_limits:
+        fig, ax = plt.subplots(figsize=(8, 6))
+        
         df = df[
             (df["Actual"] >= axis_limits[0])
             & (df["Actual"] <= axis_limits[1])
@@ -212,10 +212,10 @@ def cgcnn_test(
             gridsize=40,
         )
 
-    plt.tight_layout()
-    plt.savefig(f"{plot_file}_axis_limits.svg", format="svg")
-    print(f"Parity plot has been saved to {plot_file}_axis_limits.svg")
-    plt.close()
+        plt.tight_layout()
+        plt.savefig(f"{plot_file}_axis_limits.svg", format="svg")
+        print(f"Parity plot has been saved to {plot_file}_axis_limits.svg")
+        plt.close()
 
 def pred_calculator(
     model,
