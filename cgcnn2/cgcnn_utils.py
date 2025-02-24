@@ -198,7 +198,7 @@ def cgcnn_test(
             & (df["Predicted"] <= axis_limits[1])
         ]
 
-        density_hexbin(
+        ax = density_hexbin(
             x="Actual",
             y="Predicted",
             df=df,
@@ -208,6 +208,7 @@ def cgcnn_test(
             best_fit_line=False,
             gridsize=40,
         )
+        
         ax.set_aspect("equal", "box")
         plt.tight_layout()
         plt.savefig(f"{plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg", format="svg")
