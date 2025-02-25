@@ -208,8 +208,11 @@ def cgcnn_test(
             best_fit_line=False,
             gridsize=40,
         )
-        
-        ax.set_aspect("equal", adjustable="datalim")
+
+        # Move the colorbar to the right side outside of the plot
+        ax.colorbar.ax.set_position([0.9, 0.1, 0.02, 0.8])
+
+        ax.set_aspect("equal", "box")
         plt.tight_layout()
         plt.savefig(f"{plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg", format="svg")
         print(f"Parity plot has been saved to {plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg")
