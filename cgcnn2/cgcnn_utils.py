@@ -182,7 +182,8 @@ def cgcnn_test(
         best_fit_line=False,
         gridsize=40,
     )
-    ax.set_aspect("equal", "box")
+    ax.set_aspect("auto")
+    ax.set_box_aspect(1)
     plt.tight_layout()
     plt.savefig(plot_file, format="svg")
     print(f"Parity plot has been saved to {plot_file}")
@@ -190,6 +191,23 @@ def cgcnn_test(
 
     # If axis limits are provided, save the csv file with the specified limits
     if axis_limits:
+        results_file = (
+            results_file.split(".")[0]
+            + "_axis_limits_"
+            + str(axis_limits[0])
+            + "_"
+            + str(axis_limits[1])
+            + ".csv"
+        )
+        plot_file = (
+            plot_file.split(".")[0]
+            + "_axis_limits_"
+            + str(axis_limits[0])
+            + "_"
+            + str(axis_limits[1])
+            + ".svg"
+        )
+
         df = df[
             (df["Actual"] >= axis_limits[0])
             & (df["Actual"] <= axis_limits[1])
@@ -197,9 +215,32 @@ def cgcnn_test(
             & (df["Predicted"] <= axis_limits[1])
         ]
 
-        df.to_csv(f"{results_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.csv", index=False)
-        print(f"Results with axis limits {axis_limits[0]} and {axis_limits[1]} have been saved to {results_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.csv")
-        
+        df.to_csv(
+            results_file,
+            index=False,
+        )
+
+        # Create parity plot
+        fig, ax = plt.subplots(figsize=(8, 6))
+        df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
+
+        ax = density_hexbin(
+            x="Actual",
+            y="Predicted",
+            df=df,
+            ax=ax,
+            xlabel=xlabel,
+            ylabel=ylabel,
+            best_fit_line=False,
+            gridsize=40,
+        )
+        ax.set_aspect("auto")
+        ax.set_box_aspect(1)
+        plt.tight_layout()
+        plt.savefig(plot_file, format="svg")
+        print(f"Parity plot has been saved to {plot_file}")
+        plt.close()
+
 
 def pred_calculator(
     model,
