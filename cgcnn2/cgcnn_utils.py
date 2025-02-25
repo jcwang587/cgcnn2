@@ -210,7 +210,7 @@ def cgcnn_test(
         )
 
         # Move the colorbar to the right side outside of the plot
-        ax.colorbar.ax.set_position([0.9, 0.1, 0.02, 0.8])
+        ax._colorbars.ax.set_position([0.9, 0.1, 0.02, 0.8])
 
         ax.set_aspect("equal", "box")
         plt.tight_layout()
