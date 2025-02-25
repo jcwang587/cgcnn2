@@ -210,7 +210,11 @@ def cgcnn_test(
         )
 
         # Move the colorbar to the right side outside of the plot
-        ax._colorbars[0].ax.set_position([0.9, 0.1, 0.02, 0.8])
+        inset_axes = [child for child in ax.get_children() if isinstance(child, plt.Axes) and child is not ax]
+        if inset_axes:
+            inset_axes[0].set_position([0.9, 0.1, 0.02, 0.8])
+        else:
+            print("No inset axes found for the colorbar.")
 
         ax.set_aspect("equal", "box")
         plt.tight_layout()
