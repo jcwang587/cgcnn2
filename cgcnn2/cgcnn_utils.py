@@ -172,7 +172,7 @@ def cgcnn_test(
     fig, ax = plt.subplots(figsize=(8, 6))
     df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
 
-    density_hexbin(
+    ax = density_hexbin(
         x="Actual",
         y="Predicted",
         df=df,
@@ -189,6 +189,7 @@ def cgcnn_test(
     plt.close()
 
     # If axis limits are provided, create a new parity plot with the specified limits
+    # The colorbar is placed on the right side of the plot, due to the potential overlap with the scatter points
     if axis_limits:
         fig, ax = plt.subplots(figsize=(8, 6))
         df = df[
@@ -198,7 +199,7 @@ def cgcnn_test(
             & (df["Predicted"] <= axis_limits[1])
         ]
 
-        density_hexbin(
+        ax = density_hexbin(
             x="Actual",
             y="Predicted",
             df=df,
@@ -208,15 +209,8 @@ def cgcnn_test(
             best_fit_line=False,
             gridsize=40,
         )
-
-        # Move the colorbar to the right side outside of the plot
-        inset_axes = [child for child in ax.get_children() if isinstance(child, plt.Axes) and child is not ax]
-        if inset_axes:
-            inset_axes[0].set_position([0.9, 0.1, 0.02, 0.8])
-        else:
-            print("No inset axes found for the colorbar.")
-
-        ax.set_aspect("equal", "box")
+        
+        ax.set_aspect("equal", "box", adjustable="datalim")
         plt.tight_layout()
         plt.savefig(f"{plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg", format="svg")
         print(f"Parity plot has been saved to {plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg")
