@@ -222,7 +222,6 @@ def cgcnn_test(
 
         # Create parity plot
         fig, ax = plt.subplots(figsize=(8, 6))
-        df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
 
         ax = density_hexbin(
             x="Actual",
