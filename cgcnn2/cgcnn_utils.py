@@ -209,7 +209,7 @@ def cgcnn_test(
             gridsize=40,
         )
         
-        ax.set_aspect("equal", "box")
+        ax.set_aspect("equal", adjustable="datalim")
         plt.tight_layout()
         plt.savefig(f"{plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg", format="svg")
         print(f"Parity plot has been saved to {plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg")
