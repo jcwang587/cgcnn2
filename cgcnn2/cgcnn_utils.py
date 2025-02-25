@@ -188,10 +188,8 @@ def cgcnn_test(
     print(f"Parity plot has been saved to {plot_file}")
     plt.close()
 
-    # If axis limits are provided, create a new parity plot with the specified limits
-    # The colorbar is placed on the right side of the plot, due to the potential overlap with the scatter points
+    # If axis limits are provided, save the csv file with the specified limits
     if axis_limits:
-        fig, ax = plt.subplots(figsize=(8, 6))
         df = df[
             (df["Actual"] >= axis_limits[0])
             & (df["Actual"] <= axis_limits[1])
@@ -199,23 +197,9 @@ def cgcnn_test(
             & (df["Predicted"] <= axis_limits[1])
         ]
 
-        ax = density_hexbin(
-            x="Actual",
-            y="Predicted",
-            df=df,
-            ax=ax,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            best_fit_line=False,
-            gridsize=40,
-        )
+        df.to_csv(f"{results_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.csv", index=False)
+        print(f"Results with axis limits {axis_limits[0]} and {axis_limits[1]} have been saved to {results_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.csv")
         
-        ax.set_aspect("equal", "box", adjustable="datalim")
-        plt.tight_layout()
-        plt.savefig(f"{plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg", format="svg")
-        print(f"Parity plot has been saved to {plot_file}_axis_limits_{axis_limits[0]}_{axis_limits[1]}.svg")
-        plt.close()
-
 
 def pred_calculator(
     model,
