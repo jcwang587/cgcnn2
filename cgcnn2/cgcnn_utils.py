@@ -405,6 +405,12 @@ def parse_arguments():
         help="The ratio of the dataset to be used for training. Default: 0.6",
     )
     parser.add_argument(
+        "-trrfs",
+        "--train-ratio-force-set",
+        type=str,
+        help="Under the setting of input training dataset using train_ratio, this option allows you to force a specific set of cif files to be used for training.",
+    )
+    parser.add_argument(
         "-vr",
         "--valid-ratio",
         default=0.2,
