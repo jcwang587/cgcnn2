@@ -45,22 +45,50 @@ def main():
 
     # Depending on the arguments, either load the separate datasets or split the total data
     if args.train_set and args.valid_set and args.test_set:
-        # Load data from CIF files
         train_dataset = CIFData(args.train_set)
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.total_set:
-        # Load data from CIF files
         total_dataset = CIFData(args.total_set)
-        # Split data into train and (temporary) test
-        train_dataset, temp_dataset = train_test_split(
-            total_dataset, test_size=(1 - args.train_ratio)
-        )
-        # Split the temporary test dataset into validation and test
-        valid_ratio_adjusted = args.valid_ratio / (1 - args.train_ratio)
-        valid_dataset, test_dataset = train_test_split(
-            temp_dataset, test_size=(1 - valid_ratio_adjusted)
-        )
+
+        if args.train_ratio_force_set:
+            # Load forced training dataset
+            train_force_dataset = CIFData(args.train_ratio_force_set)
+            total_size = len(total_dataset)
+            forced_train_size = int(len(train_force_dataset))
+
+            # Calculate expected total training samples from total_dataset
+            expected_train_size = int(total_size * args.train_ratio)
+            additional_train_size = int(max(expected_train_size - forced_train_size, 0))
+
+            # Sample additional training data from total_dataset if needed
+            if additional_train_size > 0:
+                additional_train_dataset, temp_dataset = train_test_split(
+                    total_dataset, train_size=additional_train_size
+                )
+            else:
+                raise ValueError(
+                    f"Forced training set is larger than expected training set. Expected: {expected_train_size}, Forced: {forced_train_size}"
+                )
+
+            # Combine the forced training set with the additional samples
+            train_dataset = train_force_dataset + additional_train_dataset
+
+            # Split the remaining dataset into valid and test sets with the same expected ratio
+            valid_ratio_adjusted = args.valid_ratio / (1 - args.train_ratio)
+            valid_dataset, test_dataset = train_test_split(
+                temp_dataset, test_size=(1 - valid_ratio_adjusted)
+            )
+
+        else:
+            # Split data into train, valid, and test
+            train_dataset, temp_dataset = train_test_split(
+                total_dataset, test_size=(1 - args.train_ratio)
+            )
+            valid_ratio_adjusted = args.valid_ratio / (1 - args.train_ratio)
+            valid_dataset, test_dataset = train_test_split(
+                temp_dataset, test_size=(1 - valid_ratio_adjusted)
+            )
 
     else:
         raise ValueError(
