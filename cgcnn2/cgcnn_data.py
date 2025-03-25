@@ -287,20 +287,13 @@ class CombinedCIFData(Dataset):
     """
     Combine multiple CIFData datasets into a single dataset.
 
-    Parameters
-    ----------
-    datasets: list of CIFData objects
-
-    Returns
-    -------
-    atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-    nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-    nbr_fea_idx: torch.LongTensor shape (n_i, M)
-    target: torch.Tensor shape (1, )
-    cif_id: str or int
+    Example Usage:
+        combined_dataset = CombinedCIFData([cifdata1, cifdata2])
+        loader = DataLoader(combined_dataset, ...)
     """
 
     def __init__(self, datasets):
+        super().__init__()
         self.datasets = datasets
         self.cumulative_lengths = []
         total = 0
@@ -312,36 +305,24 @@ class CombinedCIFData(Dataset):
         return self.cumulative_lengths[-1] if self.cumulative_lengths else 0
 
     def __getitem__(self, idx):
-        # Identify which dataset the index falls into.
+        # Figure out which sub-dataset 'idx' belongs to
         for i, cum_len in enumerate(self.cumulative_lengths):
             if idx < cum_len:
                 if i == 0:
                     index_in_dataset = idx
                 else:
                     index_in_dataset = idx - self.cumulative_lengths[i - 1]
+                # Return the sample from that sub-dataset
                 return self.datasets[i][index_in_dataset]
-        raise IndexError("Index out of range")
+        raise IndexError("Index out of range.")
 
 
 def cifdata_add(self, other):
-    """
-    Add another CIFData object to the current dataset.
-
-    Parameters
-    ----------
-    other: CIFData object
-
-    Returns
-    -------
-    CombinedCIFData object
-    """
-    if isinstance(other, CIFData):
-        return CombinedCIFData([self, other])
-    else:
+    if not isinstance(other, CIFData):
         return NotImplemented
+    return CombinedCIFData([self, other])
 
 
-# Add the __add__ method to the CIFData class
 CIFData.__add__ = cifdata_add
 
 
