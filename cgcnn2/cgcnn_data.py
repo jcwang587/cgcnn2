@@ -4,8 +4,11 @@ import json
 import os
 import random
 import warnings
+import shutil
+import tempfile
 
 import numpy as np
+import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset
@@ -283,53 +286,6 @@ class CIFData(Dataset):
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
-def cifdata_add(self, other):
-    """
-    Add two CIFData datasets element-wise.
-
-    Parameters
-    ----------
-    other: CIFData
-        The second dataset to add
-
-    Returns
-    -------
-    ExtendedCIFData
-        A new dataset that combines the two input datasets element-wise
-    """
-
-    if not isinstance(other, CIFData):
-        return NotImplemented
-    if len(self) != len(other):
-        raise ValueError(
-            "Both datasets must have the same length for element-wise addition."
-        )
-
-    class ExtendedCIFData(Dataset):
-        def __init__(self, ds1, ds2):
-            self.ds1 = ds1
-            self.ds2 = ds2
-
-        def __len__(self):
-            return len(self.ds1)
-
-        def __getitem__(self, idx):
-            (atom_fea1, nbr_fea1, nbr_fea_idx1), target1, cif_id1 = self.ds1[idx]
-            (atom_fea2, nbr_fea2, nbr_fea_idx2), target2, cif_id2 = self.ds2[idx]
-
-            new_atom_fea = torch.cat([atom_fea1, atom_fea2], dim=-1)
-            new_nbr_fea = torch.cat([nbr_fea1, nbr_fea2], dim=-1)
-            new_nbr_fea_idx = torch.cat([nbr_fea_idx1, nbr_fea_idx2], dim=-1)
-
-            return (new_atom_fea, new_nbr_fea, new_nbr_fea_idx), target1, cif_id1
-
-    return ExtendedCIFData(self, other)
-
-
-# Add the __add__ method to the CIFData class
-CIFData.__add__ = cifdata_add
-
-
 class CIFData_pred(Dataset):
     """
     The CIFData dataset is a wrapper for a dataset where the crystal structures
@@ -437,3 +393,75 @@ class CIFData_pred(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+
+
+def train_force_split(total_set, train_ratio_force_set, train_ratio):
+    # create a new temporary directory for the training set
+    temp_train_dir = tempfile.mkdtemp()
+    temp_valid_test_dir = tempfile.mkdtemp()
+
+    shutil.copy(f"{total_set}/atom_init.json", temp_train_dir)
+    shutil.copy(f"{total_set}/atom_init.json", temp_valid_test_dir)
+
+    # concatenate the two csv files in the temp_train_dir
+    train_force_csv = pd.read_csv(f"{train_ratio_force_set}/id_prop.csv")
+    train_split_csv = pd.read_csv(f"{total_set}/id_prop.csv")
+    train_csv = pd.concat([train_force_csv, train_split_csv])
+    train_csv.to_csv(f"{temp_train_dir}/id_prop.csv", index=False, header=False)
+
+    for file in os.listdir(train_ratio_force_set):
+        shutil.copy(
+            os.path.join(train_ratio_force_set, file),
+            os.path.join(temp_train_dir, file),
+        )
+
+    total_cif_files = [f for f in os.listdir(total_set) if f.endswith(".cif")]
+
+    train_force_dataset = CIFData(temp_train_dir)
+    train_force_size = len(train_force_dataset)
+    total_size = len(total_cif_files)
+    train_size = int(total_size * train_ratio)
+    train_split_size = int(max(train_size - train_force_size, 0))
+
+    print(f"Forced training set size: {train_force_size}")
+    print(f"Total dataset size: {total_size}")
+    print(f"Expected training set size: {train_size}")
+    print(f"Split training set size: {train_split_size}")
+
+    if train_split_size > 0:
+        random_train_cif_files = random.sample(total_cif_files, train_split_size)
+        random_not_train_cif_files = [
+            f for f in total_cif_files if f not in random_train_cif_files
+        ]
+
+        for file in random_train_cif_files:
+            shutil.copy(
+                os.path.join(total_set, file),
+                os.path.join(temp_train_dir, file),
+            )
+
+        train_csv = train_csv[
+            ~train_csv[train_csv.columns[0]].isin(random_not_train_cif_files)
+        ]
+        train_csv.to_csv(f"{temp_train_dir}/id_prop.csv", index=False, header=False)
+
+        for file in random_not_train_cif_files:
+            shutil.copy(
+                os.path.join(total_set, file),
+                os.path.join(temp_valid_test_dir, file),
+            )
+
+        temp_csv = train_csv[
+            train_csv[train_csv.columns[0]].isin(random_not_train_cif_files)
+        ]
+        temp_csv.to_csv(f"{temp_valid_test_dir}/id_prop.csv", index=False, header=False)
+
+        train_dataset = CIFData(temp_train_dir)
+        temp_valid_test_dataset = CIFData(temp_valid_test_dir)
+
+        return train_dataset, temp_valid_test_dataset
+
+    else:
+        raise ValueError(
+            f"Forced training set is larger than expected training set. Expected: {train_size}, Forced: {train_force_size}"
+        )
