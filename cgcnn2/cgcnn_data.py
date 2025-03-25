@@ -283,46 +283,50 @@ class CIFData(Dataset):
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
-class CombinedCIFData(Dataset):
-    """
-    Combine multiple CIFData datasets into a single dataset.
-
-    Example Usage:
-        combined_dataset = CombinedCIFData([cifdata1, cifdata2])
-        loader = DataLoader(combined_dataset, ...)
-    """
-
-    def __init__(self, datasets):
-        super().__init__()
-        self.datasets = datasets
-        self.cumulative_lengths = []
-        total = 0
-        for d in datasets:
-            total += len(d)
-            self.cumulative_lengths.append(total)
-
-    def __len__(self):
-        return self.cumulative_lengths[-1] if self.cumulative_lengths else 0
-
-    def __getitem__(self, idx):
-        # Figure out which sub-dataset 'idx' belongs to
-        for i, cum_len in enumerate(self.cumulative_lengths):
-            if idx < cum_len:
-                if i == 0:
-                    index_in_dataset = idx
-                else:
-                    index_in_dataset = idx - self.cumulative_lengths[i - 1]
-                # Return the sample from that sub-dataset
-                return self.datasets[i][index_in_dataset]
-        raise IndexError("Index out of range.")
-
-
 def cifdata_add(self, other):
+    """
+    Add two CIFData datasets element-wise.
+
+    Parameters
+    ----------
+    other: CIFData
+        The second dataset to add
+
+    Returns
+    -------
+    ExtendedCIFData
+        A new dataset that combines the two input datasets element-wise
+    """
+
     if not isinstance(other, CIFData):
         return NotImplemented
-    return CombinedCIFData([self, other])
+    if len(self) != len(other):
+        raise ValueError(
+            "Both datasets must have the same length for element-wise addition."
+        )
+
+    class ExtendedCIFData(Dataset):
+        def __init__(self, ds1, ds2):
+            self.ds1 = ds1
+            self.ds2 = ds2
+
+        def __len__(self):
+            return len(self.ds1)
+
+        def __getitem__(self, idx):
+            (atom_fea1, nbr_fea1, nbr_fea_idx1), target1, cif_id1 = self.ds1[idx]
+            (atom_fea2, nbr_fea2, nbr_fea_idx2), target2, cif_id2 = self.ds2[idx]
+
+            new_atom_fea = torch.cat([atom_fea1, atom_fea2], dim=-1)
+            new_nbr_fea = torch.cat([nbr_fea1, nbr_fea2], dim=-1)
+            new_nbr_fea_idx = torch.cat([nbr_fea_idx1, nbr_fea_idx2], dim=-1)
+
+            return (new_atom_fea, new_nbr_fea, new_nbr_fea_idx), target1, cif_id1
+
+    return ExtendedCIFData(self, other)
 
 
+# Add the __add__ method to the CIFData class
 CIFData.__add__ = cifdata_add
 
 
