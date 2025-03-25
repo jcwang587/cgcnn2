@@ -53,6 +53,8 @@ def main():
 
         if args.train_ratio_force_set:
             train_force_dataset = CIFData(args.train_ratio_force_set)
+            train_force_dataset = train_test_split(train_force_dataset, 0)
+            
             total_size = len(total_dataset)
             forced_train_size = int(len(train_force_dataset))
 
