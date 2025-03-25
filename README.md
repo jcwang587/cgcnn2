@@ -28,6 +28,12 @@ If you'd like to use the latest unreleased version on the main branch, you can i
 pip install git+https://github.com/jcwang587/cgcnn2
 ```
 
+Or install from the `dev` branch:
+
+```bash
+pip install git+https://github.com/jcwang587/cgcnn2.git@dev
+```
+
 ## Get Started
 
 ```bash
