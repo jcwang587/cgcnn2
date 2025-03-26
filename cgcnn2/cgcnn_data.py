@@ -461,6 +461,9 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         train_dataset = CIFData(temp_train_dir)
         temp_valid_test_dataset = CIFData(temp_valid_test_dir)
 
+        print(f"Train dataset size: {len(train_dataset)}")
+        print(f"Temp valid test dataset size: {len(temp_valid_test_dataset)}")
+
         return train_dataset, temp_valid_test_dataset
 
     else:
