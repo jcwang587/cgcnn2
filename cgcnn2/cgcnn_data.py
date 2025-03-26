@@ -410,8 +410,8 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
 
     # concatenate the two csv files in the temp_train_dir
     train_force_csv = pd.read_csv(f"{train_ratio_force_set}/id_prop.csv")
-    train_split_csv = pd.read_csv(f"{total_set}/id_prop.csv")
-    train_csv = pd.concat([train_force_csv, train_split_csv])
+    split_csv = pd.read_csv(f"{total_set}/id_prop.csv")
+    total_csv = pd.concat([train_force_csv, split_csv])
 
     train_force_cif_files = [
         f for f in os.listdir(train_ratio_force_set) if f.endswith(".cif")
@@ -456,23 +456,23 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
                 os.path.join(temp_valid_test_dir, file),
             )
 
-        train_csv = train_csv[~train_csv[train_csv.columns[0]].isin(valid_test_cif_ids)]
+        train_csv = total_csv[~total_csv[total_csv.columns[0]].isin(valid_test_cif_ids)]
         train_csv.to_csv(f"{temp_train_dir}/id_prop.csv", index=False, header=False)
 
-        temp_valid_test_csv = train_csv[
-            train_csv[train_csv.columns[0]].isin(valid_test_cif_ids)
+        valid_test_csv = total_csv[
+            total_csv[total_csv.columns[0]].isin(valid_test_cif_ids)
         ]
-        temp_valid_test_csv.to_csv(
+        valid_test_csv.to_csv(
             f"{temp_valid_test_dir}/id_prop.csv", index=False, header=False
         )
 
         train_dataset = CIFData(temp_train_dir)
-        temp_valid_test_dataset = CIFData(temp_valid_test_dir)
+        valid_test_dataset = CIFData(temp_valid_test_dir)
 
         print(f"Train dataset size: {len(train_dataset)}")
-        print(f"Temp valid test dataset size: {len(temp_valid_test_dataset)}")
+        print(f"Valid test dataset size: {len(valid_test_dataset)}")
 
-        return train_dataset, temp_valid_test_dataset
+        return train_dataset, valid_test_dataset
 
     else:
         raise ValueError(

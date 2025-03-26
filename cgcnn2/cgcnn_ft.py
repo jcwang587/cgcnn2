@@ -54,18 +54,18 @@ def main():
         test_dataset = CIFData(args.test_set)
     elif args.total_set:
         if args.train_ratio_force_set:
-            train_dataset, temp_valid_test_dataset = train_force_split(
+            train_dataset, valid_test_dataset = train_force_split(
                 args.total_set, args.train_ratio_force_set, args.train_ratio
             )
         else:
             total_dataset = CIFData(args.total_set)
-            train_dataset, temp_valid_test_dataset = train_test_split(
+            train_dataset, valid_test_dataset = train_test_split(
                 total_dataset, test_size=(1 - args.train_ratio)
             )
 
         valid_ratio_adjusted = args.valid_ratio / (1 - args.train_ratio)
         valid_dataset, test_dataset = train_test_split(
-            temp_valid_test_dataset, test_size=(1 - valid_ratio_adjusted)
+            valid_test_dataset, test_size=(1 - valid_ratio_adjusted)
         )
 
     else:
