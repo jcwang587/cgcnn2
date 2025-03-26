@@ -397,8 +397,10 @@ class CIFData_pred(Dataset):
 
 def train_force_split(total_set, train_ratio_force_set, train_ratio):
     # create a new temporary directory for the training set
-    temp_train_dir = tempfile.TemporaryDirectory()
-    temp_valid_test_dir = tempfile.TemporaryDirectory()
+    temp_train_dir_obj = tempfile.TemporaryDirectory()
+    temp_valid_test_dir_obj = tempfile.TemporaryDirectory()
+    temp_train_dir = temp_train_dir_obj.name
+    temp_valid_test_dir = temp_valid_test_dir_obj.name
 
     print(f"temp_train_dir: {temp_train_dir}")
     print(f"temp_valid_test_dir: {temp_valid_test_dir}")
