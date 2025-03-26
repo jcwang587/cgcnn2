@@ -55,7 +55,7 @@ def main():
     elif args.total_set:
         if args.train_ratio_force_set:
             train_dataset, valid_test_dataset = train_force_split(
-                args.total_set, args.train_ratio_force_set, args.train_ratio, output_folder
+                args.total_set, args.train_ratio_force_set, args.train_ratio
             )
         else:
             total_dataset = CIFData(args.total_set)

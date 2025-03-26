@@ -395,16 +395,10 @@ class CIFData_pred(Dataset):
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
-def train_force_split(total_set, train_ratio_force_set, train_ratio, output_folder):
+def train_force_split(total_set, train_ratio_force_set, train_ratio):
     # create a new temporary directory for the training set
-    temp_train_dir = output_folder + "/train"
-    temp_valid_test_dir = output_folder + "/valid_test"
-
-    os.makedirs(temp_train_dir, exist_ok=True)
-    os.makedirs(temp_valid_test_dir, exist_ok=True)
-
-    print(f"temp_train_dir: {temp_train_dir}")
-    print(f"temp_valid_test_dir: {temp_valid_test_dir}")
+    temp_train_dir = tempfile.mkdtemp()
+    temp_valid_test_dir = tempfile.mkdtemp()
 
     shutil.copy(f"{total_set}/atom_init.json", temp_train_dir)
     shutil.copy(f"{total_set}/atom_init.json", temp_valid_test_dir)
@@ -430,20 +424,12 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio, output_fold
     train_size = int(total_size * train_ratio)
     train_split_size = int(max(train_size - train_force_size, 0))
 
-    print(f"Forced training set size: {train_force_size}")
-    print(f"Total dataset size: {total_size}")
-    print(f"Expected training set size: {train_size}")
-    print(f"Split training set size: {train_split_size}")
-
     if train_split_size > 0:
         train_split_cif_files = random.sample(total_cif_files, train_split_size)
         valid_test_cif_files = [
             f for f in total_cif_files if f not in train_split_cif_files
         ]
         valid_test_cif_ids = [f[:-4] for f in valid_test_cif_files]
-
-        print(f"Train split cif files: {train_split_cif_files}")
-        print(f"Valid test cif files: {valid_test_cif_files}")
 
         for file in train_split_cif_files:
             shutil.copy(
@@ -469,9 +455,6 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio, output_fold
 
         train_dataset = CIFData(temp_train_dir)
         valid_test_dataset = CIFData(temp_valid_test_dir)
-
-        print(f"Train dataset size: {len(train_dataset)}")
-        print(f"Valid test dataset size: {len(valid_test_dataset)}")
 
         return train_dataset, valid_test_dataset
 
