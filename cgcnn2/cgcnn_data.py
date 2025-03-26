@@ -400,6 +400,9 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
     temp_train_dir = tempfile.mkdtemp()
     temp_valid_test_dir = tempfile.mkdtemp()
 
+    print(f"temp_train_dir: {temp_train_dir}")
+    print(f"temp_valid_test_dir: {temp_valid_test_dir}")
+
     shutil.copy(f"{total_set}/atom_init.json", temp_train_dir)
     shutil.copy(f"{total_set}/atom_init.json", temp_valid_test_dir)
 
@@ -436,16 +439,14 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         ]
         random_not_train_cif_ids = [f[:-4] for f in random_not_train_cif_files]
 
+        print(f"Random train cif files: {random_train_cif_files}")
+        print(f"Random not train cif files: {random_not_train_cif_files}")
+
         for file in random_train_cif_files:
             shutil.copy(
                 os.path.join(total_set, file),
                 os.path.join(temp_train_dir, file),
             )
-
-        train_csv = train_csv[
-            ~train_csv[train_csv.columns[0]].isin(random_not_train_cif_ids)
-        ]
-        train_csv.to_csv(f"{temp_train_dir}/id_prop.csv", index=False, header=False)
 
         for file in random_not_train_cif_files:
             shutil.copy(
@@ -453,10 +454,17 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
                 os.path.join(temp_valid_test_dir, file),
             )
 
-        temp_csv = train_csv[
+        train_csv = train_csv[
+            ~train_csv[train_csv.columns[0]].isin(random_not_train_cif_ids)
+        ]
+        train_csv.to_csv(f"{temp_train_dir}/id_prop.csv", index=False, header=False)
+
+        temp_valid_test_csv = train_csv[
             train_csv[train_csv.columns[0]].isin(random_not_train_cif_ids)
         ]
-        temp_csv.to_csv(f"{temp_valid_test_dir}/id_prop.csv", index=False, header=False)
+        temp_valid_test_csv.to_csv(
+            f"{temp_valid_test_dir}/id_prop.csv", index=False, header=False
+        )
 
         train_dataset = CIFData(temp_train_dir)
         temp_valid_test_dataset = CIFData(temp_valid_test_dir)
