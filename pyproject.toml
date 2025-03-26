@@ -31,12 +31,12 @@ pymatgen = "^2025.3.0"
 pymatviz = "^0.15.0"
 
 [tool.poetry.group.dev.dependencies]
-pytest = ">=8"
-pytest-cov = ">=5"
+pytest = "^8.3.0"
+pytest-cov = "^6.0.0"
 
 [tool.poetry.scripts]
 cgcnn-ft = "cgcnn2.cgcnn_ft:main"
 
 [build-system]
-requires = ["poetry-core==1.9.0"]
+requires = ["poetry-core==2.1.1"]
 build-backend = "poetry.core.masonry.api"
