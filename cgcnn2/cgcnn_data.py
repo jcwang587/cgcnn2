@@ -410,8 +410,8 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio, output_fold
     shutil.copy(f"{total_set}/atom_init.json", temp_valid_test_dir)
 
     # concatenate the two csv files in the temp_train_dir
-    train_force_csv = pd.read_csv(f"{train_ratio_force_set}/id_prop.csv")
-    split_csv = pd.read_csv(f"{total_set}/id_prop.csv")
+    train_force_csv = pd.read_csv(f"{train_ratio_force_set}/id_prop.csv", header=None)
+    split_csv = pd.read_csv(f"{total_set}/id_prop.csv", header=None)
     total_csv = pd.concat([train_force_csv, split_csv])
 
     train_force_cif_files = [
