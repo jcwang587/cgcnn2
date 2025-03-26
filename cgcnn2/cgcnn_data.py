@@ -396,6 +396,25 @@ class CIFData_pred(Dataset):
 
 
 def train_force_split(total_set, train_ratio_force_set, train_ratio):
+    """
+    Set up a training dataset with a forced training set.
+
+    Parameters
+    ----------
+    total_set: str
+        The path to the total set
+    train_ratio_force_set: str
+        The path to the forced training set
+    train_ratio: float
+        The ratio of the training set
+
+    Returns
+    -------
+    train_dataset: CIFData
+        The training dataset
+    valid_test_dataset: CIFData
+        The validation set
+    """
     # create a new temporary directory for the training set
     temp_train_dir = tempfile.mkdtemp()
     temp_valid_test_dir = tempfile.mkdtemp()
