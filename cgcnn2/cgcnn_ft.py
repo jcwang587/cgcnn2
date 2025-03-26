@@ -3,9 +3,6 @@ import os
 import random
 import argparse
 import warnings
-import tempfile
-import shutil
-import pandas as pd
 
 # Third-party Libraries
 import numpy as np
@@ -43,6 +40,9 @@ def main():
     np.random.seed(seed)
     torch.manual_seed(seed)
 
+    # Create the output folder
+    output_folder = "output_" + args.job_id
+
     # Validate the existence of the model file
     if not os.path.isfile(args.model_path):
         raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
@@ -55,7 +55,7 @@ def main():
     elif args.total_set:
         if args.train_ratio_force_set:
             train_dataset, valid_test_dataset = train_force_split(
-                args.total_set, args.train_ratio_force_set, args.train_ratio
+                args.total_set, args.train_ratio_force_set, args.train_ratio, output_folder
             )
         else:
             total_dataset = CIFData(args.total_set)
@@ -106,8 +106,6 @@ def main():
     # Depending on the mode (train or test), either train the model or make predictions
     device = "cuda" if args.cuda else "cpu"
     model.to(device).eval()
-
-    output_folder = "output_" + args.job_id
 
     if args.mode:
         # Initialize DataLoader
