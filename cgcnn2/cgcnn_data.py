@@ -407,18 +407,19 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
     train_force_csv = pd.read_csv(f"{train_ratio_force_set}/id_prop.csv")
     train_split_csv = pd.read_csv(f"{total_set}/id_prop.csv")
     train_csv = pd.concat([train_force_csv, train_split_csv])
-    train_csv.to_csv(f"{temp_train_dir}/id_prop.csv", index=False, header=False)
 
-    for file in os.listdir(train_ratio_force_set):
+    train_force_cif_files = [
+        f for f in os.listdir(train_ratio_force_set) if f.endswith(".cif")
+    ]
+    total_cif_files = [f for f in os.listdir(total_set) if f.endswith(".cif")]
+
+    for file in train_force_cif_files:
         shutil.copy(
             os.path.join(train_ratio_force_set, file),
             os.path.join(temp_train_dir, file),
         )
 
-    total_cif_files = [f for f in os.listdir(total_set) if f.endswith(".cif")]
-
-    train_force_dataset = CIFData(temp_train_dir)
-    train_force_size = len(train_force_dataset)
+    train_force_size = len(train_force_cif_files)
     total_size = len(total_cif_files)
     train_size = int(total_size * train_ratio)
     train_split_size = int(max(train_size - train_force_size, 0))
@@ -433,6 +434,7 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         random_not_train_cif_files = [
             f for f in total_cif_files if f not in random_train_cif_files
         ]
+        random_not_train_cif_ids = [f[:-4] for f in random_not_train_cif_files]
 
         for file in random_train_cif_files:
             shutil.copy(
@@ -441,7 +443,7 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
             )
 
         train_csv = train_csv[
-            ~train_csv[train_csv.columns[0]].isin(random_not_train_cif_files)
+            ~train_csv[train_csv.columns[0]].isin(random_not_train_cif_ids)
         ]
         train_csv.to_csv(f"{temp_train_dir}/id_prop.csv", index=False, header=False)
 
@@ -452,7 +454,7 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
             )
 
         temp_csv = train_csv[
-            train_csv[train_csv.columns[0]].isin(random_not_train_cif_files)
+            train_csv[train_csv.columns[0]].isin(random_not_train_cif_ids)
         ]
         temp_csv.to_csv(f"{temp_valid_test_dir}/id_prop.csv", index=False, header=False)
 
