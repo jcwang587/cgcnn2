@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
+from pymatgen.analysis.structure_matcher import StructureMatcher
 from torch.utils.data import Dataset
 
 
@@ -481,3 +482,37 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         raise ValueError(
             f"Forced training set is larger than expected training set. Expected: {train_size}, Forced: {train_force_size}"
         )
+
+
+def check_unique_structures(dataset_dir):
+    """
+    Checks for duplicate (structurally equivalent) structures in a directory 
+    of CIF files using pymatgen's StructureMatcher and returns the count 
+    of unique structures.
+
+    Parameters
+    ----------
+    dataset_dir: str
+        The path to the dataset containing CIF files.
+
+    Returns
+    -------
+    int
+        Number of unique structures.
+    """
+    # Get all CIF files
+    cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
+
+    # Read each file into a pymatgen Structure
+    structures = []
+    for filename in cif_files:
+        full_path = os.path.join(dataset_dir, filename)
+        structure = Structure.from_file(full_path)
+        structures.append(structure)
+    
+    # Group equivalent structures
+    matcher = StructureMatcher()
+    grouped = matcher.group_structures(structures)
+
+    # The number of unique groups = number of unique structures
+    return len(grouped)
