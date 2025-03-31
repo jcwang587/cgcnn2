@@ -484,35 +484,40 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         )
 
 
-def check_unique_structures(dataset_dir):
+def unique_structures_clean(dataset_dir, delete_duplicates=False):
     """
-    Checks for duplicate (structurally equivalent) structures in a directory 
-    of CIF files using pymatgen's StructureMatcher and returns the count 
+    Checks for duplicate (structurally equivalent) structures in a directory
+    of CIF files using pymatgen's StructureMatcher and returns the count
     of unique structures.
 
     Parameters
     ----------
     dataset_dir: str
         The path to the dataset containing CIF files.
+    delete_duplicates: bool
+        Whether to delete the duplicate structures, default is False.
 
     Returns
     -------
-    int
-        Number of unique structures.
+    grouped: list
+        A list of lists, where each sublist contains structurally equivalent
+        structures.
     """
-    # Get all CIF files
     cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
 
-    # Read each file into a pymatgen Structure
     structures = []
     for filename in cif_files:
         full_path = os.path.join(dataset_dir, filename)
         structure = Structure.from_file(full_path)
         structures.append(structure)
-    
-    # Group equivalent structures
+
     matcher = StructureMatcher()
     grouped = matcher.group_structures(structures)
 
-    # The number of unique groups = number of unique structures
-    return len(grouped)
+    if delete_duplicates:
+        for group in grouped:
+            if len(group) > 1:
+                for structure in group[1:]:
+                    os.remove(os.path.join(dataset_dir, structure.filename))
+
+    return grouped
