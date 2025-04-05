@@ -35,7 +35,7 @@ pytest = "^8.3.0"
 pytest-cov = "^6.0.0"
 
 [tool.poetry.scripts]
-cgcnn-ft = "cgcnn2.cgcnn_ft:main"
+cgcnn-ft = "cgcnn2.cgcnn-ft:main"
 
 [build-system]
 requires = ["poetry-core==2.1.1"]
