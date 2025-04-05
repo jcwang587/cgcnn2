@@ -1,6 +1,5 @@
 import os
 import csv
-import sys
 import glob
 import torch
 import argparse
@@ -37,6 +36,14 @@ def output_id_gen():
 
 
 def id_prop_gen(cif_dir):
+    """
+    This function generates a CSV file containing the IDs and properties of the CIF files in the given directory.
+    The target property is set to 0 for all cases.
+
+    Parameters:
+        - cif_dir (str): The directory containing the CIF files.
+    """
+
     cif_list = glob.glob(f"{cif_dir}/*.cif")
 
     id_prop_cif = pd.DataFrame(
@@ -115,13 +122,13 @@ def cgcnn_test(
     **kwargs,
 ):
     """
-    This function tests a trained machine learning model on a provided dataset, calculates the Mean Squared Error
+    This function tests a trained CGCNN model on a provided dataset, calculates the Mean Squared Error
     (MSE) and R2 score, and prints these results. It also saves the prediction results as a CSV file and
     generates a parity plot as an SVG file. The plot displays the model's predictions versus the actual values,
     color-coded by the point density.
 
     Parameters:
-        - model (torch.nn.Module): The trained model.
+        - model (torch.nn.Module): The trained CGCNN model.
         - loader (torch.utils.data.DataLoader): DataLoader for the dataset.
         - device (str): The device ('cuda' or 'cpu') where the model will be run.
         - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
@@ -241,7 +248,7 @@ def cgcnn_test(
         plt.close()
 
 
-def pred_calculator(
+def cgcnn_calculator(
     model,
     loader,
     device,
@@ -355,191 +362,6 @@ def cgcnn_pred(model_path, all_set, verbose=3, cuda=False, num_workers=0):
         pin_memory=cuda,
     )
 
-    pred, last_layer = pred_calculator(model, full_loader, device, verbose)
+    pred, last_layer = cgcnn_calculator(model, full_loader, device, verbose)
 
     return pred, last_layer
-
-
-def parse_arguments():
-    """
-    Parses command-line arguments for the script.
-    """
-    parser = argparse.ArgumentParser(
-        description="Command-line interface for the Crystal Graph Convolutional Neural Network (CGCNN) model."
-    )
-    parser.add_argument(
-        "-mp",
-        "--model-path",
-        type=str,
-        help="Path to the file containing the trained model parameters.",
-    )
-    parser.add_argument(
-        "-as",
-        "--total-set",
-        type=str,
-        help="Path to the directory containing all CIF files for the dataset.",
-    )
-    parser.add_argument(
-        "-trs",
-        "--train-set",
-        type=str,
-        help="Path to the directory containing CIF files for the train dataset.",
-    )
-    parser.add_argument(
-        "-vs",
-        "--valid-set",
-        type=str,
-        help="Path to the directory containing CIF files for the validation dataset.",
-    )
-    parser.add_argument(
-        "-ts",
-        "--test-set",
-        type=str,
-        help="Path to the directory containing CIF files for the test dataset.",
-    )
-    parser.add_argument(
-        "-trr",
-        "--train-ratio",
-        default=0.6,
-        type=float,
-        help="The ratio of the dataset to be used for training. Default: 0.6",
-    )
-    parser.add_argument(
-        "-trrfs",
-        "--train-ratio-force-set",
-        type=str,
-        help="Under the setting of input training dataset using train_ratio, this option allows you to force a specific set of cif files to be used for training.",
-    )
-    parser.add_argument(
-        "-vr",
-        "--valid-ratio",
-        default=0.2,
-        type=float,
-        help="The ratio of the dataset to be used for validation. Default: 0.2",
-    )
-    parser.add_argument(
-        "-tr",
-        "--test-ratio",
-        default=0.2,
-        type=float,
-        help="The ratio of the dataset to be used for testing. Default: 0.2",
-    )
-    parser.add_argument(
-        "-e",
-        "--epoch",
-        default=10000,
-        type=float,
-        help="Total epochs for training the model.",
-    )
-    parser.add_argument(
-        "-sp",
-        "--stop-patience",
-        default=100,
-        type=float,
-        help="Epochs for early stopping.",
-    )
-    parser.add_argument(
-        "-lrp",
-        "--lr-patience",
-        default=0,
-        type=float,
-        help="Epochs for reducing learning rate.",
-    )
-    parser.add_argument(
-        "-lrf",
-        "--lr-factor",
-        default=0.0,
-        type=float,
-        help="Factor for reducing learning rate.",
-    )
-    parser.add_argument(
-        "-tlfc",
-        "--train-last-fc",
-        default=0,
-        type=int,
-        help="Train on the last fully connected layer or all the fully connected layers",
-    )
-    parser.add_argument(
-        "-lrfc",
-        "--lr-fc",
-        default=0.01,
-        type=float,
-        help="Learning rate for training the last fully connected layer.",
-    )
-    parser.add_argument(
-        "-lrnfc",
-        "--lr-non-fc",
-        default=0.001,
-        type=float,
-        help="Learning rate for training the non-last fully connected layers.",
-    )
-    parser.add_argument(
-        "-rs", "--random-seed", default=123, type=int, help="Random seed."
-    )
-    parser.add_argument(
-        "-bs",
-        "--batch-size",
-        default=256,
-        type=int,
-        metavar="N",
-        help="The size of each batch during training or testing. Default: 256",
-    )
-    parser.add_argument(
-        "-j",
-        "--workers",
-        default=0,
-        type=int,
-        metavar="N",
-        help="The number of subprocesses to use for data loading. Default: 0",
-    )
-    parser.add_argument(
-        "--disable-cuda",
-        action="store_true",
-        help="Set this flag to disable CUDA, even if it is available.",
-    )
-    parser.add_argument(
-        "-m",
-        "--mode",
-        default=1,
-        type=int,
-        help="Set to 1 to train the model, or 0 to test the model. Default: 1",
-    )
-    parser.add_argument(
-        "-ji", "--job-id", default=None, type=str, help="The id of the current job."
-    )
-    parser.add_argument(
-        "-r",
-        "--replace",
-        default=1,
-        type=int,
-        help="Replace the training layer to restart.",
-    )
-    parser.add_argument(
-        "-bt",
-        "--bias-temperature",
-        default=0.0,
-        type=float,
-        help=(
-            "If set > 0, bias the loss function using a Boltzmann-like factor.\n"
-            "Smaller 'bias_temperature' strongly favors low-energy structures.\n"
-            "Larger 'bias_temperature' reduces the low-energy bias.\n"
-            "If not specified or non-positive, no bias is applied."
-        ),
-    )
-    parser.add_argument(
-        "-al",
-        "--axis-limits",
-        nargs=2,
-        default=None,
-        type=float,
-        help="The limits for the x and y axes of the parity plot.",
-    )
-
-    args = parser.parse_args(sys.argv[1:])
-    args.cuda = not args.disable_cuda and torch.cuda.is_available()
-
-    # Warning if train ratio and test ratio don't sum to 1
-    if abs(args.train_ratio + args.valid_ratio + args.test_ratio - 1) > 1e-6:
-        print("Warning: Train ratio, Valid ratio and Test ratio do not sum up to 1")
-
-    return args

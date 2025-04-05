@@ -1,4 +1,2 @@
-from .cgcnn_data import *
-from .cgcnn_model import *
-from .cgcnn_utils import *
-from .cgcnn_ft import *
+import warnings
+warnings.filterwarnings("ignore", message="Issues encountered while parsing CIF", category=UserWarning)
