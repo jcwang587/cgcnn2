@@ -23,8 +23,8 @@ mkdir -p $OUTDIR
 
 cp $0 $OUTDIR
 
-MODELPATH=${1:-"../models/formation-energy-per-atom.pth.tar"}
-TOTALSET=${2:-"./data/train_struct_cif"}
+MODELPATH=${1:-"../../models/formation-energy-per-atom.pth.tar"}
+TOTALSET=${2:-"../data/sample-regression"}
 TRAINRATIO=${3:-"0.6"}
 VALIDRATIO=${4:-"0.2"}
 TESTRATIO=${5:-"0.2"}
