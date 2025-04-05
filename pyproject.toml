@@ -26,8 +26,8 @@ ase = "^3.24.0"
 numpy = "*"
 pandas = "*"
 scikit-learn = "*"
-torch = "^2.6.0"
-pymatgen = "^2025.3.0"
+torch = "^2.0.0"
+pymatgen = "^2025.1.9"
 pymatviz = "^0.15.0"
 
 [tool.poetry.group.dev.dependencies]
