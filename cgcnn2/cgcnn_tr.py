@@ -3,6 +3,7 @@ import os
 import random
 import argparse
 import warnings
+from random import sample
 
 # Third-party Libraries
 import numpy as np
@@ -73,35 +74,37 @@ def main():
             "Either train, valid, and test datasets or a total data directory must be provided."
         )
 
-    # Instantiate the CrystalGraphConvNet model using parameters from the checkpoint
-    checkpoint = torch.load(
-        args.model_path,
-        map_location=lambda storage, loc: storage if not args.cuda else None,
-        weights_only=False,
-    )
+    # obtain target value normalizer
+    if args.task == 'classification':
+        normalizer = Normalizer(torch.zeros(2))
+        normalizer.load_state_dict({'mean': 0., 'std': 1.})
+    else:
+        if len(total_dataset) < 500:
+            warnings.warn('Dataset has less than 500 data points. '
+                          'Lower accuracy is expected. ')
+            sample_data_list = [total_dataset[i] for i in range(len(total_dataset))]
+        else:
+            sample_data_list = [total_dataset[i] for i in
+                                sample(range(len(total_dataset)), 500)]
+        _, sample_target, _ = collate_pool(sample_data_list)
+        normalizer = Normalizer(sample_target)
+
+
+    # Instantiate the CrystalGraphConvNet model 
     structures, _, _ = train_dataset[0]
     orig_atom_fea_len = structures[0].shape[-1]
     nbr_fea_len = structures[1].shape[-1]
-    model_args = argparse.Namespace(**checkpoint["args"])
     model = CrystalGraphConvNet(
         orig_atom_fea_len,
         nbr_fea_len,
-        atom_fea_len=model_args.atom_fea_len,
-        n_conv=model_args.n_conv,
-        h_fea_len=model_args.h_fea_len,
-        n_h=model_args.n_h,
+        atom_fea_len=args.atom_fea_len,
+        n_conv=args.n_conv,
+        h_fea_len=args.h_fea_len,
+        n_h=args.n_h,
+        classification=True if args.task == "classification" else False,
     )
     if args.cuda:
         model.cuda()
-
-    # Load the normalizer and model weights from the checkpoint
-    normalizer = Normalizer(torch.zeros(3))
-    normalizer.load_state_dict(checkpoint["normalizer"])
-    model.load_state_dict(checkpoint["state_dict"])
-
-    print(
-        f"=> Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
-    )
 
     # Depending on the mode (train or test), either train the model or make predictions
     device = "cuda" if args.cuda else "cpu"
@@ -316,7 +319,7 @@ def main():
                     "state_dict": model.state_dict(),
                     "normalizer": normalizer.state_dict(),
                     "best_mae_error": avg_valid_loss,
-                    "args": vars(model_args),
+                    "args": vars(args),
                 }
                 torch.save(savepoint, os.path.join(output_folder, "best_model.ckpt"))
                 best_valid_loss = avg_valid_loss
