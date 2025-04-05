@@ -1,5 +1,6 @@
 # Python Standard Library
 import os
+import sys
 import random
 import argparse
 import warnings
@@ -208,7 +209,7 @@ def parse_arguments():
 
     # Warning if train ratio and test ratio don't sum to 1
     if abs(args.train_ratio + args.valid_ratio + args.test_ratio - 1) > 1e-6:
-        print("Warning: Train ratio, Valid ratio and Test ratio do not sum up to 1")
+        warnings.warn("Train ratio, Valid ratio and Test ratio do not sum up to 1")
 
     return args
 
