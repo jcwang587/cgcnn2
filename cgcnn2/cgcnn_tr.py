@@ -75,22 +75,23 @@ def main():
         )
 
     # obtain target value normalizer
-    if args.task == 'classification':
+    if args.task == "classification":
         normalizer = Normalizer(torch.zeros(2))
-        normalizer.load_state_dict({'mean': 0., 'std': 1.})
+        normalizer.load_state_dict({"mean": 0.0, "std": 1.0})
     else:
         if len(total_dataset) < 500:
-            warnings.warn('Dataset has less than 500 data points. '
-                          'Lower accuracy is expected. ')
+            warnings.warn(
+                "Dataset has less than 500 data points. " "Lower accuracy is expected. "
+            )
             sample_data_list = [total_dataset[i] for i in range(len(total_dataset))]
         else:
-            sample_data_list = [total_dataset[i] for i in
-                                sample(range(len(total_dataset)), 500)]
+            sample_data_list = [
+                total_dataset[i] for i in sample(range(len(total_dataset)), 500)
+            ]
         _, sample_target, _ = collate_pool(sample_data_list)
         normalizer = Normalizer(sample_target)
 
-
-    # Instantiate the CrystalGraphConvNet model 
+    # Instantiate the CrystalGraphConvNet model
     structures, _, _ = train_dataset[0]
     orig_atom_fea_len = structures[0].shape[-1]
     nbr_fea_len = structures[1].shape[-1]
