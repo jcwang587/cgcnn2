@@ -1,2 +1,3 @@
 tests
 output_*
+__pycache__
