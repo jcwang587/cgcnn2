@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
+from pymatgen.analysis.structure_matcher import StructureMatcher
 from torch.utils.data import Dataset
 
 
@@ -396,6 +397,25 @@ class CIFData_pred(Dataset):
 
 
 def train_force_split(total_set, train_ratio_force_set, train_ratio):
+    """
+    Set up a training dataset with a forced training set.
+
+    Parameters
+    ----------
+    total_set: str
+        The path to the total set
+    train_ratio_force_set: str
+        The path to the forced training set
+    train_ratio: float
+        The ratio of the training set
+
+    Returns
+    -------
+    train_dataset: CIFData
+        The training dataset
+    valid_test_dataset: CIFData
+        The validation set
+    """
     # create a new temporary directory for the training set
     temp_train_dir = tempfile.mkdtemp()
     temp_valid_test_dir = tempfile.mkdtemp()
@@ -462,3 +482,42 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         raise ValueError(
             f"Forced training set is larger than expected training set. Expected: {train_size}, Forced: {train_force_size}"
         )
+
+
+def unique_structures_clean(dataset_dir, delete_duplicates=False):
+    """
+    Checks for duplicate (structurally equivalent) structures in a directory
+    of CIF files using pymatgen's StructureMatcher and returns the count
+    of unique structures.
+
+    Parameters
+    ----------
+    dataset_dir: str
+        The path to the dataset containing CIF files.
+    delete_duplicates: bool
+        Whether to delete the duplicate structures, default is False.
+
+    Returns
+    -------
+    grouped: list
+        A list of lists, where each sublist contains structurally equivalent
+        structures.
+    """
+    cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
+
+    structures = []
+    for filename in cif_files:
+        full_path = os.path.join(dataset_dir, filename)
+        structure = Structure.from_file(full_path)
+        structures.append(structure)
+
+    matcher = StructureMatcher()
+    grouped = matcher.group_structures(structures)
+
+    if delete_duplicates:
+        for group in grouped:
+            if len(group) > 1:
+                for structure in group[1:]:
+                    os.remove(os.path.join(dataset_dir, structure.filename))
+
+    return grouped
