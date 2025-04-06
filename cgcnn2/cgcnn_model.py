@@ -24,7 +24,7 @@ class ConvLayer(nn.Module):
     Performs a convolutional operation on graphs, updating atom features based on their neighbors.
     """
 
-    def __init__(self, atom_fea_len, nbr_fea_len):
+    def __init__(self, atom_fea_len: int, nbr_fea_len: int) -> None:
         """
         Initialize the ConvLayer.
 
@@ -100,14 +100,14 @@ class CrystalGraphConvNet(nn.Module):
 
     def __init__(
         self,
-        orig_atom_fea_len,
-        nbr_fea_len,
-        atom_fea_len=64,
-        n_conv=3,
-        h_fea_len=128,
-        n_h=1,
-        classification=False,
-    ):
+        orig_atom_fea_len: int,
+        nbr_fea_len: int,
+        atom_fea_len: int = 64,
+        n_conv: int = 3,
+        h_fea_len: int = 128,
+        n_h: int = 1,
+        classification: bool = False,
+    ) -> None:
         """
         Initialize CrystalGraphConvNet.
 
@@ -153,7 +153,13 @@ class CrystalGraphConvNet(nn.Module):
             self.logsoftmax = nn.LogSoftmax(dim=1)
             self.dropout = nn.Dropout()
 
-    def forward(self, atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx):
+    def forward(
+        self,
+        atom_fea: torch.Tensor,
+        nbr_fea: torch.Tensor,
+        nbr_fea_idx: torch.LongTensor,
+        crystal_atom_idx: list[torch.LongTensor],
+    ):
         """
         Forward pass
 
@@ -196,7 +202,9 @@ class CrystalGraphConvNet(nn.Module):
             out = self.logsoftmax(out)
         return out, crys_fea
 
-    def pooling(self, atom_fea, crystal_atom_idx):
+    def pooling(
+        self, atom_fea: torch.Tensor, crystal_atom_idx: list[torch.LongTensor]
+    ) -> torch.Tensor:
         """
         Pooling the atom features to crystal features
 
@@ -230,7 +238,7 @@ class Normalizer:
     to normalize and denormalize tensors using these statistics.
     """
 
-    def __init__(self, tensor: torch.Tensor):
+    def __init__(self, tensor: torch.Tensor) -> None:
         """
         Initialize the Normalizer with a sample tensor to calculate mean and standard deviation.
 
@@ -273,7 +281,7 @@ class Normalizer:
         """
         return {"mean": self.mean, "std": self.std}
 
-    def load_state_dict(self, state_dict: dict[str, torch.Tensor]):
+    def load_state_dict(self, state_dict: dict[str, torch.Tensor]) -> None:
         """
         Loads the mean and standard deviation from a state dictionary.
 
