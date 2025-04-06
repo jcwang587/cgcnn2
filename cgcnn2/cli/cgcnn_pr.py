@@ -1,22 +1,12 @@
-# Python Standard Library
 import argparse
 import os
 import random
 import sys
 import warnings
-
-# Third-party Libraries
 import numpy as np
 import torch
+from cgcnn2 import CIFData, CrystalGraphConvNet, cgcnn_test, collate_pool
 from torch.utils.data import DataLoader
-
-# Local Application / Specific Library Imports
-from cgcnn2 import (
-    CIFData,
-    CrystalGraphConvNet,
-    cgcnn_test,
-    collate_pool,
-)
 
 
 def parse_arguments(args=None):

@@ -1,33 +1,20 @@
-# Python Standard Library
-import os
-import sys
-import random
 import argparse
+import os
+import random
+import sys
 import warnings
-
-# Third-party Libraries
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
+from cgcnn2 import (CIFData, CrystalGraphConvNet, Normalizer, cgcnn_test,
+                    collate_pool, get_lr, train_force_split)
 from sklearn.model_selection import train_test_split
-
-
-# Local Application / Specific Library Imports
-from cgcnn2 import (
-    CrystalGraphConvNet,
-    Normalizer,
-    collate_pool,
-    CIFData,
-    get_lr,
-    cgcnn_test,
-    train_force_split,
-)
+from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):
     """
-    Parses command-line arguments for the script.
+    Parses command-line arguments for the fine-tuning script.
 
     Parameters
     ----------
@@ -35,19 +22,20 @@ def parse_arguments(args=None):
         List of command line arguments to parse. If None, sys.argv[1:] is used.
     """
     parser = argparse.ArgumentParser(
-        description="Command-line interface for the Crystal Graph Convolutional Neural Network (CGCNN) model."
+        description="Command-line interface for the CGCNN fine-tuning script."
     )
     parser.add_argument(
         "-mp",
         "--model-path",
         type=str,
-        help="Path to the file containing the trained model parameters.",
+        help="Path to the file containing the pre-trained model parameters.",
     )
     parser.add_argument(
         "-as",
         "--total-set",
         type=str,
-        help="Path to the directory containing all CIF files for the dataset.",
+        help="Path to the directory containing all CIF files for the whole dataset.\n"
+        "Training, validation and test ratios are mandatory when using this option.",
     )
     parser.add_argument(
         "-trs",
@@ -78,7 +66,8 @@ def parse_arguments(args=None):
         "-trrfs",
         "--train-ratio-force-set",
         type=str,
-        help="Under the setting of input training dataset using train_ratio, this option allows you to force a specific set of cif files to be used for training.",
+        help="When using the total-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
+        "The train : valid : test ratio will be kept as is.",
     )
     parser.add_argument(
         "-vr",
@@ -94,19 +83,20 @@ def parse_arguments(args=None):
         type=float,
         help="The ratio of the dataset to be used for testing. Default: 0.2",
     )
+    # Early stopping scheduler
     parser.add_argument(
         "-e",
         "--epoch",
-        default=10000,
+        default=1000,
         type=float,
-        help="Total epochs for training the model.",
+        help="Total epochs for training the model. Default: 1000",
     )
     parser.add_argument(
         "-sp",
         "--stop-patience",
         default=100,
         type=float,
-        help="Epochs for early stopping.",
+        help="Epochs for early stopping. Default: 100",
     )
     # Learning rate scheduler
     parser.add_argument(
@@ -114,42 +104,52 @@ def parse_arguments(args=None):
         "--lr-patience",
         default=0,
         type=float,
-        help="Epochs for reducing learning rate.",
+        help="Epochs for reducing learning rate. Default: 0\n"
+        "If set to 0, the learning rate scheduler will not be used.",
     )
     parser.add_argument(
         "-lrf",
         "--lr-factor",
-        default=0.0,
+        default=0.5,
         type=float,
-        help="Factor for reducing learning rate.",
+        help="Factor for reducing learning rate. Default: 0.5\n"
+        "If lr-patience is set to 0, this parameter will be ignored.",
     )
     # Advanced fine-tuning options
     parser.add_argument(
         "-r",
-        "--replace",
-        default=1,
-        type=int,
-        help="Replace the training layer to restart.",
+        "--reset",
+        action="store_true",
+        help="Whether to reset (reinitialize) the last fully connected layer or all the fully connected layers.\n"
+        "Not specified: Keep the last fully connected layer as is;\n"
+        "Specified: Reset the last fully connected layer.",
     )
     parser.add_argument(
         "-tlfc",
         "--train-last-fc",
         action="store_true",
-        help="Train on the last fully connected layer or all the fully connected layers. Default: False",
+        help="Whether to train on the last fully connected layer or all the fully connected layers.\n"
+        "Not specified: Train on all the fully connected layers;\n"
+        "Specified: Train on the last fully connected layer.",
+    )
+    parser.add_argument(
+        "--disable-cuda",
+        action="store_true",
+        help="Force disable CUDA, even if a compatible GPU is available. Default: False",
     )
     parser.add_argument(
         "-lrfc",
         "--lr-fc",
         default=0.01,
         type=float,
-        help="Learning rate for training the last fully connected layer. Default: 0.01",
+        help="Learning rate for the layers to be fine-tuned (fully connected layers). Default: 0.01",
     )
     parser.add_argument(
         "-lrnfc",
         "--lr-non-fc",
         default=0.001,
         type=float,
-        help="Learning rate for training the non-last fully connected layers. Default: 0.001",
+        help="Learning rate for the layers to be frozen (non-fully connected layers). Default: 0.001",
     )
     parser.add_argument(
         "-rs",
@@ -173,11 +173,6 @@ def parse_arguments(args=None):
         type=int,
         metavar="N",
         help="The number of subprocesses to use for data loading. Default: 0",
-    )
-    parser.add_argument(
-        "--disable-cuda",
-        action="store_true",
-        help="Force disable CUDA, even if a compatible GPU is available. Default: False",
     )
     parser.add_argument(
         "-bt",
