@@ -13,8 +13,6 @@ Usage:
     Use the Normalizer class to normalize your target properties during training.
 """
 
-from typing import Dict
-
 import torch
 import torch.nn as nn
 

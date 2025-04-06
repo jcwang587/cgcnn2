@@ -7,8 +7,9 @@ import warnings
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2 import (CIFData, CrystalGraphConvNet, Normalizer, cgcnn_test,
-                    collate_pool, get_lr, train_force_split)
+from cgcnn2.data import CIFData, collate_pool
+from cgcnn2.model import CrystalGraphConvNet, Normalizer
+from cgcnn2.utils import cgcnn_test, get_lr, train_force_split
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
