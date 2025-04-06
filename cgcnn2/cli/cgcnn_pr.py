@@ -1,27 +1,21 @@
 # Python Standard Library
-import os
-import sys
-import random
 import argparse
+import os
+import random
+import sys
 import warnings
 
 # Third-party Libraries
 import numpy as np
 import torch
-import torch.nn as nn
 from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
-
 
 # Local Application / Specific Library Imports
 from cgcnn2 import (
-    CrystalGraphConvNet,
-    Normalizer,
-    collate_pool,
     CIFData,
-    get_lr,
+    CrystalGraphConvNet,
     cgcnn_test,
-    train_force_split,
+    collate_pool,
 )
 
 

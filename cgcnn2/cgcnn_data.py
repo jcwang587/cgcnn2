@@ -3,15 +3,15 @@ import functools
 import json
 import os
 import random
-import warnings
 import shutil
 import tempfile
+import warnings
 
 import numpy as np
 import pandas as pd
 import torch
-from pymatgen.core.structure import Structure
 from pymatgen.analysis.structure_matcher import StructureMatcher
+from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset
 
 
