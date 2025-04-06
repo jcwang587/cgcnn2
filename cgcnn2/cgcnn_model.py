@@ -15,7 +15,6 @@ Usage:
 
 import torch
 import torch.nn as nn
-from typing import Dict
 
 
 class ConvLayer(nn.Module):
@@ -265,21 +264,21 @@ class Normalizer:
         """
         return normed_tensor * self.std + self.mean
 
-    def state_dict(self) -> Dict[str, torch.Tensor]:
+    def state_dict(self) -> dict[str, torch.Tensor]:
         """
         Returns the state dictionary containing the mean and standard deviation.
 
         Returns:
-            Dict[str, torch.Tensor]: State dictionary.
+            dict[str, torch.Tensor]: State dictionary.
         """
         return {"mean": self.mean, "std": self.std}
 
-    def load_state_dict(self, state_dict: Dict[str, torch.Tensor]):
+    def load_state_dict(self, state_dict: dict[str, torch.Tensor]):
         """
         Loads the mean and standard deviation from a state dictionary.
 
         Args:
-            state_dict (Dict[str, torch.Tensor]): State dictionary containing 'mean' and 'std'.
+            state_dict (dict[str, torch.Tensor]): State dictionary containing 'mean' and 'std'.
         """
         self.mean = state_dict["mean"]
         self.std = state_dict["std"]
