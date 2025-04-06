@@ -336,29 +336,28 @@ def main():
             "* Only the last fully connected layer will be trained (or with higher lr)."
         )
 
-        if args.replace:
-            print("* The last fully connected layer will be replaced to be cleaned.")
-            # Replace the fully connected layers after graph features were obtained
+        if args.reset:
+            print("* The last fully connected layer will be reset.")
+            # Reset the fully connected layers after graph features were obtained
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
             if args.cuda:
                 model.fc_out = model.fc_out.cuda()
 
-        # Define parameters to be trained
+        # Define parameters to be fine-tuned
         fc_parameters = [param for param in model.fc_out.parameters()]
 
     else:
         print("* All the fully connected layers will be trained (or with higher lr).")
 
-        if args.replace:
-            # Replace conv_to_fc layer
-            print("* All the fully connected layers will be replaced to be cleaned.")
+        if args.reset:
+            # Reset all the fully connected layers
+            print("* All the fully connected layers will be reset.")
             model.conv_to_fc = nn.Linear(
                 model.conv_to_fc.in_features, model.conv_to_fc.out_features
             )
             if args.cuda:
                 model.conv_to_fc = model.conv_to_fc.cuda()
 
-            # If present, replace the fcs layers
             if hasattr(model, "fcs"):
                 model.fcs = nn.ModuleList(
                     [
@@ -369,7 +368,6 @@ def main():
                 if args.cuda:
                     model.fcs = nn.ModuleList([layer.cuda() for layer in model.fcs])
 
-            # Replace fc_out layer
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
             if args.cuda:
                 model.fc_out = model.fc_out.cuda()
