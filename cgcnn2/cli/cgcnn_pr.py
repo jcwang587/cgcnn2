@@ -3,6 +3,7 @@ import os
 import random
 import sys
 import warnings
+
 import numpy as np
 import torch
 from cgcnn2 import CIFData, CrystalGraphConvNet, cgcnn_test, collate_pool
