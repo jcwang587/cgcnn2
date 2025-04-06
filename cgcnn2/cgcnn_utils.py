@@ -1,17 +1,16 @@
-import os
+import argparse
 import csv
 import glob
-import torch
-import argparse
-
-import pandas as pd
-import matplotlib.pyplot as plt
-
+import os
 from datetime import datetime
-from sklearn.metrics import mean_squared_error, r2_score
-from pymatviz import density_hexbin
 
+import matplotlib.pyplot as plt
+import pandas as pd
+import torch
+from pymatviz import density_hexbin
+from sklearn.metrics import mean_squared_error, r2_score
 from torch.utils.data import DataLoader
+
 from .cgcnn_data import CIFData_pred, collate_pool
 from .cgcnn_model import CrystalGraphConvNet, Normalizer
 

@@ -1,7 +1,6 @@
 # Python Standard Library
 import os
 import random
-import argparse
 import warnings
 from random import sample
 
@@ -9,22 +8,20 @@ from random import sample
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
-
+from torch.utils.data import DataLoader
 
 # Local Application / Specific Library Imports
 from cgcnn2 import (
+    CIFData,
     CrystalGraphConvNet,
     Normalizer,
+    cgcnn_test,
     collate_pool,
-    CIFData,
     get_lr,
     parse_arguments,
-    cgcnn_test,
     train_force_split,
 )
-
 
 # Suppress specific warnings from pymatgen
 warnings.filterwarnings("ignore", category=UserWarning, module="pymatgen.io.cif")
