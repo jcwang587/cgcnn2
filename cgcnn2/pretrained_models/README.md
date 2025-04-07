@@ -9,7 +9,7 @@ This directory includes several pre-trained CGCNN models that one can use to pre
 | File                        | Property         | Units    | Data Ref.                                                    | Model Ref.                                                   |
 | --------------------------- | ---------------- | -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | `formation-energy-per-atom` | Formation Energy | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://link.aps.org/doi/10.1103/PhysRevLett.120.145301) |
-| ` final-energy-per-atom`    | Absolute Energy  | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://link.aps.org/doi/10.1103/PhysRevLett.120.145301) |
+| `final-energy-per-atom`     | Absolute Energy  | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://link.aps.org/doi/10.1103/PhysRevLett.120.145301) |
 | `band-gap`                  | Band Gap         | eV       | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://link.aps.org/doi/10.1103/PhysRevLett.120.145301) |
 | `efermi`                    | Fermi Energy     | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://link.aps.org/doi/10.1103/PhysRevLett.120.145301) |
 | `bulk-moduli`               | Bulk Moduli      | log(GPa) | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://link.aps.org/doi/10.1103/PhysRevLett.120.145301) |
@@ -33,7 +33,7 @@ If you used any pre-trained models, please cite both **Data Ref.** and **Model R
 
 ## How to share your pre-trained models
 
-Please send an email to txie@mit.edu if you want to share your own pre-trained models. Since we don't have time to check the validity of your model, we only accept **peer reviewed** works.
+Please open a Pull Request if you want to share your own pre-trained models. Since we don't have time to check the validity of your model, we only accept **peer reviewed** works.
 
 To submit, be sure to include:
 

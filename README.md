@@ -52,6 +52,6 @@ The original paper describes the details of the CGCNN framework:
   month = {Apr},
   publisher = {American Physical Society},
   doi = {10.1103/PhysRevLett.120.145301},
-  url = {https://link.aps.org/doi/10.1103/PhysRevLett.120.145301}
+  url = {https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301}
 }
 ```
