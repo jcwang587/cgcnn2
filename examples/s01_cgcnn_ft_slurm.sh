@@ -23,7 +23,7 @@ mkdir -p $OUTDIR
 
 cp $0 $OUTDIR
 
-MODELPATH=${1:-"../cgcnn2/models/formation-energy-per-atom.pth.tar"}
+MODELPATH=${1:-"../cgcnn2/pretrained_models/formation-energy-per-atom.pth.tar"}
 TOTALSET=${2:-"./data/sample-regression"}
 TRAINRATIO=${3:-"0.6"}
 VALIDRATIO=${4:-"0.2"}
