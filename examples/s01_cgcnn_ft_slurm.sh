@@ -23,8 +23,8 @@ mkdir -p $OUTDIR
 
 cp $0 $OUTDIR
 
-MODELPATH=${1:-"../../models/formation-energy-per-atom.pth.tar"}
-TOTALSET=${2:-"../data/sample-regression"}
+MODELPATH=${1:-"../cgcnn2/models/formation-energy-per-atom.pth.tar"}
+TOTALSET=${2:-"./data/sample-regression"}
 TRAINRATIO=${3:-"0.6"}
 VALIDRATIO=${4:-"0.2"}
 TESTRATIO=${5:-"0.2"}
@@ -36,9 +36,11 @@ srun --unbuffered cgcnn-ft \
 	--valid-ratio $VALIDRATIO \
 	--test-ratio $TESTRATIO \
 	--epoch 1e3 \
+	--stop-patience 1e2 \
 	--lr-fc 0.01 \
 	--lr-non-fc 0.001 \
-	--replace 1 \
+	--reset \
+	--train-last-fc \
 	--job-id $SLURM_JOB_ID \
 	--random-seed 42
 
