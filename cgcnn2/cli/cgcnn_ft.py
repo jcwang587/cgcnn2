@@ -16,12 +16,21 @@ from torch.utils.data import DataLoader
 
 def parse_arguments(args=None):
     """
-    Parses command-line arguments for the fine-tuning script.
-
-    Parameters
-    ----------
-    args : list, optional
-        List of command line arguments to parse. If None, sys.argv[1:] is used.
+    Parse command-line arguments for fine-tuning a CGCNN model.
+    
+    This function sets up an argparse parser to extract configuration options including
+    paths for the pre-trained model and dataset directories, dataset split ratios,
+    training hyperparameters (e.g., epochs, learning rates, batch size), early stopping
+    and learning rate scheduling parameters, and fine-tuning options for fully connected layers.
+    It also determines CUDA availability based on the '--disable-cuda' flag and system support.
+    A warning is issued if the training, validation, and test set ratios do not sum to 1.
+    If no argument list is provided, the system arguments (sys.argv[1:]) are used.
+    
+    Parameters:
+        args (list, optional): A list of command-line arguments; defaults to sys.argv[1:].
+    
+    Returns:
+        argparse.Namespace: The namespace containing the parsed command-line options.
     """
     parser = argparse.ArgumentParser(
         description="Command-line interface for the CGCNN fine-tuning script."
@@ -228,6 +237,23 @@ def parse_arguments(args=None):
 
 def main():
     # Parse command-line arguments
+    """
+    Fine-tunes and tests a CGCNN model using command-line options.
+    
+    This function orchestrates the fine-tuning of a Crystal Graph Convolutional Neural
+    Network (CGCNN) by parsing command-line arguments to configure model checkpoints,
+    dataset paths, training ratios, and hyperparameters. It sets random seeds for reproducibility,
+    validates the existence of the specified model file, and prepares datasets either by loading
+    pre-split training, validation, and test data or by partitioning a total dataset. The model
+    is instantiated with checkpoint parameters and, if specified, its fully connected layers are
+    reset accordingly. Differential learning rates are applied to designated layers during training.
+    A training loop with early stopping based on validation loss saves the best model, which is then
+    evaluated on the test set with results and plots saved to an output folder.
+    
+    Raises:
+        FileNotFoundError: If the specified model checkpoint file does not exist.
+        ValueError: If required dataset configuration is missing.
+    """
     args = parse_arguments()
     print(args)
 

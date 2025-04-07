@@ -14,12 +14,19 @@ from torch.utils.data import DataLoader
 
 def parse_arguments(args=None):
     """
-    Parses command-line arguments for the script.
-
-    Parameters
-    ----------
-    args : list, optional
-        List of command line arguments to parse. If None, sys.argv[1:] is used.
+    Parse command-line arguments for the CGCNN model.
+    
+    Sets up and returns an argparse.Namespace with configuration options including paths for model
+    and dataset files, training parameters, learning rate settings, and other advanced options. In
+    addition to parsing arguments, the function computes a 'cuda' flag based on the '--disable-cuda'
+    option and the availability of a CUDA-enabled device, and it warns if the specified train, valid,
+    and test ratios do not sum to 1.
+    
+    Parameters:
+        args (list, optional): List of command-line arguments. Defaults to sys.argv[1:].
+    
+    Returns:
+        argparse.Namespace: An object containing the parsed arguments and computed attributes.
     """
     parser = argparse.ArgumentParser(
         description="Command-line interface for the Crystal Graph Convolutional Neural Network (CGCNN) model."
