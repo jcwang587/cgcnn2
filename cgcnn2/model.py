@@ -29,8 +29,8 @@ class ConvLayer(nn.Module):
         Initialize the ConvLayer.
 
         Args:
-            atom_feature_len (int): Number of atom hidden features.
-            neighbor_feature_len (int): Number of bond (neighbor) features.
+            atom_fea_len (int): Number of atom hidden features.
+            nbr_fea_len (int): Number of bond (neighbor) features.
         """
         super(ConvLayer, self).__init__()
         self.atom_fea_len = atom_fea_len
