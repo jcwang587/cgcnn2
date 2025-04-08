@@ -34,7 +34,7 @@ def parse_arguments(args=None):
     )
     parser.add_argument(
         "-as",
-        "--total-set",
+        "--full-set",
         type=str,
         help="Path to the directory containing all CIF files for the whole dataset.\n"
         "Training, validation and test ratios are mandatory when using this option.",
@@ -68,7 +68,7 @@ def parse_arguments(args=None):
         "-trrfs",
         "--train-ratio-force-set",
         type=str,
-        help="When using the total-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
+        help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
         "The train : valid : test ratio will be kept as is.",
     )
     parser.add_argument(
@@ -91,7 +91,7 @@ def parse_arguments(args=None):
         "--epoch",
         default=1000,
         type=float,
-        help="Total epochs for training the model. Default: 1000",
+        help="Epochs for training the model. Default: 1000",
     )
     parser.add_argument(
         "-sp",
@@ -244,20 +244,20 @@ def main():
     if not os.path.isfile(args.model_path):
         raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
 
-    # Depending on the arguments, either load the separate datasets or split the total data
+    # Depending on the arguments, either load the separate datasets or split the full data
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(args.train_set)
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
-    elif args.total_set:
+    elif args.full_set:
         if args.train_ratio_force_set:
             train_dataset, valid_test_dataset = train_force_split(
-                args.total_set, args.train_ratio_force_set, args.train_ratio
+                args.full_set, args.train_ratio_force_set, args.train_ratio
             )
         else:
-            total_dataset = CIFData(args.total_set)
+            full_dataset = CIFData(args.full_set)
             train_dataset, valid_test_dataset = train_test_split(
-                total_dataset, test_size=(1 - args.train_ratio)
+                full_dataset, test_size=(1 - args.train_ratio)
             )
 
         valid_ratio_adjusted = args.valid_ratio / (1 - args.train_ratio)
@@ -267,7 +267,7 @@ def main():
 
     else:
         raise ValueError(
-            "Either train, valid, and test datasets or a total data directory must be provided."
+            "Either train, valid, and test datasets or a full data directory must be provided."
         )
 
     # Instantiate the CrystalGraphConvNet model using parameters from the checkpoint

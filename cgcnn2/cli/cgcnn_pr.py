@@ -114,15 +114,15 @@ def main():
     # Load checkpoint (only once), set up model
     checkpoint = torch.load(
         args.model_path,
-        map_location=lambda storage, loc: storage if not args.cuda else None
+        map_location=lambda storage, loc: storage if not args.cuda else None,
     )
     # Extract model hyperparameters from the checkpoint
     model_args = argparse.Namespace(**checkpoint["args"])
 
     # Take the first entry to retrieve the shapes
     structures, _, _ = full_dataset[0]
-    orig_atom_fea_len = structures[0].shape[-1]  
-    nbr_fea_len = structures[1].shape[-1]    
+    orig_atom_fea_len = structures[0].shape[-1]
+    nbr_fea_len = structures[1].shape[-1]
 
     # Instantiate the model
     model = CrystalGraphConvNet(
