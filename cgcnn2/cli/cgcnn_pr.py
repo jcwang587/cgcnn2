@@ -96,28 +96,35 @@ def main():
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    # Create the output folder
-    output_folder = "output_" + args.job_id
-
     # Validate the existence of the model file
     if not os.path.isfile(args.model_path):
         raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
 
-    if args.full_set:
-        full_dataset = CIFData(args.full_set)
-    else:
+    # Full dataset must be specified
+    if not args.full_set:
         raise ValueError("Full dataset must be provided in prediction mode.")
 
-    # Instantiate the CrystalGraphConvNet model using parameters from the checkpoint
+    # Create the output folder
+    output_folder = "output_" + args.job_id
+    os.makedirs(output_folder, exist_ok=True)
+
+    # Load the dataset
+    full_dataset = CIFData(args.full_set)
+
+    # Load checkpoint (only once), set up model
     checkpoint = torch.load(
         args.model_path,
-        map_location=lambda storage, loc: storage if not args.cuda else None,
-        weights_only=False,
+        map_location=lambda storage, loc: storage if not args.cuda else None
     )
-    structures, _, _ = full_dataset[0]
-    orig_atom_fea_len = structures[0].shape[-1]
-    nbr_fea_len = structures[1].shape[-1]
+    # Extract model hyperparameters from the checkpoint
     model_args = argparse.Namespace(**checkpoint["args"])
+
+    # Take the first entry to retrieve the shapes
+    structures, _, _ = full_dataset[0]
+    orig_atom_fea_len = structures[0].shape[-1]  
+    nbr_fea_len = structures[1].shape[-1]    
+
+    # Instantiate the model
     model = CrystalGraphConvNet(
         orig_atom_fea_len,
         nbr_fea_len,
@@ -126,12 +133,15 @@ def main():
         h_fea_len=model_args.h_fea_len,
         n_h=model_args.n_h,
     )
-    if args.cuda:
-        model.cuda()
 
+    # Load model weights
+    model.load_state_dict(checkpoint["state_dict"])
+
+    # Move model to device
     device = "cuda" if args.cuda else "cpu"
     model.to(device).eval()
 
+    # Prepare the loader
     full_loader = DataLoader(
         dataset=full_dataset,
         batch_size=args.batch_size,
@@ -141,11 +151,7 @@ def main():
         pin_memory=args.cuda,
     )
 
-    # In predict mode, make predictions
-    checkpoint = torch.load(args.model_path, weights_only=False)
-    model.load_state_dict(checkpoint["state_dict"])
-
-    # Test the model
+    # Make predictions
     cgcnn_test(
         model,
         full_loader,
@@ -156,3 +162,7 @@ def main():
         ylabel="Predicted (eV)",
         axis_limits=args.axis_limits,
     )
+
+
+if __name__ == "__main__":
+    main()
