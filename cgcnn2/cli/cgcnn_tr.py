@@ -85,14 +85,14 @@ def parse_arguments(args=None):
         "-e",
         "--epoch",
         default=1000,
-        type=int,
+        type=float,
         help="Number of epochs for training. Default: 1000",
     )
     parser.add_argument(
         "-sp",
         "--stop-patience",
         default=100,
-        type=int,
+        type=float,
         help="Number of epochs for early stopping patience. Default: 100",
     )
 
@@ -341,10 +341,13 @@ def main():
         )
         print(f"[Scheduler] factor={args.lr_factor}, patience={int(args.lr_patience)}")
 
-    # Loss function
-    criterion = nn.MSELoss(reduction="none")  # We'll handle the mean manually
-    num_epochs = int(args.epoch)
+    # Training epochs
+    num_epochs = int(float(args.epoch))
     best_valid_loss = float("inf")
+    criterion = nn.MSELoss(reduction="none")  
+    
+    # Set the patience for early stopping
+    stop_patience = int(float(args.stop_patience))
     epochs_without_improvement = 0
 
     for epoch in range(num_epochs):
@@ -441,8 +444,8 @@ def main():
             epochs_without_improvement += 1
 
         # Early stopping
-        if epochs_without_improvement >= args.stop_patience:
-            print(f"Early stopping after {args.stop_patience} epochs without improvement.")
+        if epochs_without_improvement >= stop_patience:
+            print(f"Early stopping after {stop_patience} epochs without improvement.")
             break
 
     print("Training complete.")

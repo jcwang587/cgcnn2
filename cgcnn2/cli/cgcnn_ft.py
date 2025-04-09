@@ -90,14 +90,14 @@ def parse_arguments(args=None):
         "-e",
         "--epoch",
         default=1000,
-        type=int,
+        type=float,
         help="Epochs for training the model. Default: 1000",
     )
     parser.add_argument(
         "-sp",
         "--stop-patience",
         default=100,
-        type=int,
+        type=float,
         help="Epochs for early stopping. Default: 100",
     )
     # Learning rate scheduler
@@ -105,7 +105,7 @@ def parse_arguments(args=None):
         "-lrp",
         "--lr-patience",
         default=0,
-        type=int,
+        type=float,
         help="Epochs for reducing learning rate. Default: 0\n"
         "If set to 0, the learning rate scheduler will not be used.",
     )
@@ -401,7 +401,7 @@ def main():
     scheduler = None
 
     # Define the loss function
-    criterion = nn.MSELoss(reduction="none")  # Returns a per-sample loss vector
+    criterion = nn.MSELoss(reduction="none")
 
     # Define a learning rate scheduler
     if args.lr_patience:
