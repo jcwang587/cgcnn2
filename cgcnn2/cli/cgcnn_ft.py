@@ -90,14 +90,14 @@ def parse_arguments(args=None):
         "-e",
         "--epoch",
         default=1000,
-        type=float,
+        type=int,
         help="Epochs for training the model. Default: 1000",
     )
     parser.add_argument(
         "-sp",
         "--stop-patience",
         default=100,
-        type=float,
+        type=int,
         help="Epochs for early stopping. Default: 100",
     )
     # Learning rate scheduler
@@ -105,7 +105,7 @@ def parse_arguments(args=None):
         "-lrp",
         "--lr-patience",
         default=0,
-        type=float,
+        type=int,
         help="Epochs for reducing learning rate. Default: 0\n"
         "If set to 0, the learning rate scheduler will not be used.",
     )

@@ -35,7 +35,7 @@ srun --unbuffered cgcnn-tr \
 	--test-ratio $TESTRATIO \
 	--epoch 1e3 \
 	--stop-patience 1e2 \
-	--lr 1e-2 \
+	--learning-rate 1e-2 \
 	--job-id $SLURM_JOB_ID \
 	--random-seed 42
 
