@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "cgcnn2"
-version = "0.3.5"
+version = "0.4.0"
 description = "Reproduction of Crystal Graph Convolutional Neural Networks"
 authors = ["Jiacheng Wang <jiachengwang@umass.edu>"]
 maintainers = ["Jiacheng Wang"]
@@ -37,6 +37,7 @@ pytest-cov = "^6.0.0"
 [tool.poetry.scripts]
 cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
+cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 
 [build-system]
 requires = ["poetry-core==2.1.1"]
