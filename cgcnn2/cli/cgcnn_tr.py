@@ -367,7 +367,7 @@ def main():
             loss = criterion(outputs, targets)
 
             if args.bias_temperature > 0.0:
-                # Apply exponential weighting
+                # Boltzmann factor weighting
                 bias = torch.exp(-targets / args.bias_temperature).to(device)
                 loss = (loss * bias).mean()
             else:
@@ -398,6 +398,7 @@ def main():
                 loss = criterion(outputs, targets)
 
                 if args.bias_temperature > 0.0:
+                    # Boltzmann factor weighting
                     bias = torch.exp(-targets / args.bias_temperature).to(device)
                     loss = (loss * bias).mean()
                 else:
@@ -452,7 +453,6 @@ def main():
     best_checkpoint = torch.load(os.path.join(output_folder, "best_model.ckpt"))
     model.load_state_dict(best_checkpoint["state_dict"])
     normalizer.load_state_dict(best_checkpoint["normalizer"])
-    print("Loaded best model from this run for final testing...")
 
     cgcnn_test(
         model,

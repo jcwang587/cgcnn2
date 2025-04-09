@@ -428,6 +428,9 @@ def main():
     epochs_without_improvement = 0
 
     for epoch in range(num_epochs):
+        # --------------------
+        # TRAIN
+        # --------------------
         model.train()
         train_loss = 0.0
         for i, (input, targets, _) in enumerate(train_loader):
@@ -442,15 +445,12 @@ def main():
             outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
             loss = criterion(outputs, targets)
             if args.bias_temperature > 0.0:
-                # shape [batch_size], each sample has its own bias weight
+                # Boltzmann factor weighting
                 bias = torch.exp(-targets / args.bias_temperature).to(device)
-                # Weighted average across the batch
                 loss = (loss * bias).mean()
             else:
-                # Unweighted average across the batch
                 loss = loss.mean()
 
-            # Backward and optimize
             optimizer.zero_grad()
             loss.backward()
             optimizer.step()
@@ -458,7 +458,9 @@ def main():
             # Add the loss to the training loss
             train_loss += loss.item()
 
-        # Start of the validation loop
+        # --------------------
+        # VALIDATION
+        # --------------------
         model.eval()
         valid_loss = 0.0
         with torch.no_grad():
@@ -470,16 +472,14 @@ def main():
                 crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
                 targets = targets.to(device)
 
-                # Forward pass
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                 loss = criterion(outputs, targets)
 
                 if args.bias_temperature > 0.0:
-                    # Per-sample Boltzmann factor weighting
+                    # Boltzmann factor weighting
                     bias = torch.exp(-targets / args.bias_temperature).to(device)
                     loss = (loss * bias).mean()
                 else:
-                    # Just average the per-sample losses
                     loss = loss.mean()
 
                 valid_loss += loss.item()
@@ -496,9 +496,11 @@ def main():
             f"Epoch [{epoch + 1}/{num_epochs}] - Train Loss: {avg_train_loss:.5f}, Valid Loss: {avg_valid_loss:.5f}, LR: {str(lr)}"
         )
 
-        # Check if the validation loss improved
+        # --------------------
+        # CHECKPOINTING
+        # --------------------
         if avg_valid_loss < best_valid_loss:
-            # Create a dictionary to save all necessary information
+
             savepoint = {
                 "epoch": epoch + 1,
                 "state_dict": model.state_dict(),
@@ -520,7 +522,9 @@ def main():
 
     print("Training completed.")
 
-    # Load the best model
+    # --------------------
+    # TEST WITH BEST MODEL
+    # --------------------
     checkpoint = torch.load(
         os.path.join(output_folder, "best_model.ckpt"), weights_only=False
     )
