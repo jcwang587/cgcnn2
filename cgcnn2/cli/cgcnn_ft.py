@@ -227,24 +227,27 @@ def parse_arguments(args=None):
 
 
 def main():
-    # Parse command-line arguments
     args = parse_arguments()
     print(args)
 
-    # Set the seed for reproducibility
+    # Set reproducibility
     seed = args.random_seed
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    # Create the output folder
-    output_folder = "output_" + args.job_id
+    # Prepare output folder
+    if args.job_id is not None:
+        output_folder = "output_" + args.job_id
+    else:
+        output_folder = "output"
+    os.makedirs(output_folder, exist_ok=True)
 
-    # Validate the existence of the model file
+    # Check model_path if specified
     if not os.path.isfile(args.model_path):
         raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
 
-    # Depending on the arguments, either load the separate datasets or split the full data
+    # Either load separate sets or split from a full set
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(args.train_set)
         valid_dataset = CIFData(args.valid_set)
@@ -490,7 +493,7 @@ def main():
 
         lr = get_lr(optimizer)
         print(
-            f"| Epoch [{epoch + 1}/{num_epochs}], Training Loss: {avg_train_loss:.5f}, Validation Loss: {avg_valid_loss:.5f}, Learning Rates: {str(lr)}"
+            f"Epoch [{epoch + 1}/{num_epochs}] - Train Loss: {avg_train_loss:.5f}, Valid Loss: {avg_valid_loss:.5f}, LR: {str(lr)}"
         )
 
         # Check if the validation loss improved
@@ -506,7 +509,7 @@ def main():
             torch.save(savepoint, os.path.join(output_folder, "best_model.ckpt"))
             best_valid_loss = avg_valid_loss
             epochs_without_improvement = 0
-            print(f"✔️ New best model saved for epoch {epoch + 1}")
+            print(f" [SAVE] Best model at epoch {epoch + 1}")
         else:
             epochs_without_improvement += 1
 
@@ -515,7 +518,7 @@ def main():
             print(f"Early stopping after {stop_patience} epochs without improvement.")
             break
 
-    print("✔️ Training completed.")
+    print("Training completed.")
 
     # Load the best model
     checkpoint = torch.load(
