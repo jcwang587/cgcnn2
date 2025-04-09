@@ -331,7 +331,7 @@ def main():
     )
 
     # Single LR optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
 
     # Optional LR scheduler
     scheduler = None
