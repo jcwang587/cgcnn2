@@ -16,6 +16,5 @@ def atom_init():
         with resources.path("cgcnn2.asset", "atom_init.json") as src_path:
             dest_path = os.path.join(os.getcwd(), "atom_init.json")
             shutil.copy(src_path, dest_path)
-            print(f"'atom_init.json' successfully copied to {os.getcwd()}")
     except Exception as e:
-        print(f"An error occurred while copying 'atom_init.json': {e}")
+        raise e
