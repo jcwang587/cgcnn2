@@ -37,7 +37,7 @@ def output_id_gen():
 def id_prop_gen(cif_dir):
     """
     This function generates a CSV file containing the IDs and properties of the CIF files in the given directory.
-    The property is set to 0 for all data points.
+    The property is set to 0 for all entries.
 
     Parameters:
         - cif_dir (str): The directory containing the CIF files.

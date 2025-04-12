@@ -1,3 +1,4 @@
+import glob
 import importlib.resources as resources
 import os
 import shutil
@@ -31,14 +32,15 @@ def atom_gen():
             dest_path = os.path.join(os.getcwd(), "atom_init.json")
             shutil.copy(src_path, dest_path)
     except Exception as e:
-        raise e
+        raise RuntimeError(f"Failed to copy atom_init.json: {e}")
 
 
 def id_gen():
     """
     Generates an 'id_prop.csv' file in the current working directory.
 
-    This function creates a CSV file with a single column 'id' set to 0.
+    This function creates a CSV file with two columns: 'id' (derived from CIF filenames)
+    and 'prop' (set to 0 for all entries).
     """
 
     if os.path.exists("id_prop.csv"):
@@ -52,7 +54,7 @@ def id_gen():
         if answer not in ("y", "yes"):
             return
 
-    if not os.path.exists("*.cif"):
+    if not glob.glob("*.cif"):
         raise FileNotFoundError("No CIF files found in the current directory.")
 
     dest_path = os.path.join(os.getcwd())
