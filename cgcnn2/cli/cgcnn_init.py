@@ -5,7 +5,7 @@ import shutil
 from cgcnn2.util import id_prop_gen
 
 
-def atom_init():
+def atom_gen():
     """
     Copies the 'atom_init.json' asset from the cgcnn2 package's asset folder to
     the current working directory.
@@ -34,7 +34,7 @@ def atom_init():
         raise e
 
 
-def id_prop():
+def id_gen():
     """
     Generates an 'id_prop.csv' file in the current working directory.
 
