@@ -39,6 +39,7 @@ cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
 cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 atom-init = "cgcnn2.cli.cgcnn_init:atom_init"
+id-prop = "cgcnn2.cli.cgcnn_init:id_prop"
 
 [build-system]
 requires = ["poetry-core==2.1.1"]
