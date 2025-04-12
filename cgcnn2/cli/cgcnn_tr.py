@@ -31,7 +31,7 @@ def parse_arguments(args=None):
         "--full-set",
         type=str,
         help="Path to the directory containing all CIF files for the entire dataset.\n"
-             "Training, validation, and test ratios are mandatory when using this option.",
+        "Training, validation, and test ratios are mandatory when using this option.",
     )
     parser.add_argument(
         "-trs",
@@ -63,7 +63,7 @@ def parse_arguments(args=None):
         "--train-ratio-force-set",
         type=str,
         help="When using the --full-set / ratio option, force a specific set of CIF files to be used for training.\n"
-             "The train : valid : test ratio is preserved.",
+        "The train : valid : test ratio is preserved.",
     )
     parser.add_argument(
         "-vr",
@@ -117,7 +117,7 @@ def parse_arguments(args=None):
         default=0.5,
         type=float,
         help="Factor by which LR is reduced when LR scheduler is triggered. Default: 0.5.\n"
-             "Ignored if lr-patience=0.",
+        "Ignored if lr-patience=0.",
     )
 
     # Advanced training options
@@ -153,7 +153,7 @@ def parse_arguments(args=None):
         default=0.0,
         type=float,
         help="If set > 0, apply a Boltzmann-like factor weighting in the loss.\n"
-             "Smaller values favor low-energy structures more strongly.",
+        "Smaller values favor low-energy structures more strongly.",
     )
     parser.add_argument(
         "-al",
@@ -207,7 +207,9 @@ def parse_arguments(args=None):
     parsed_args.cuda = not parsed_args.disable_cuda and torch.cuda.is_available()
 
     # Warn if dataset ratios don't sum to 1
-    total_ratio = parsed_args.train_ratio + parsed_args.valid_ratio + parsed_args.test_ratio
+    total_ratio = (
+        parsed_args.train_ratio + parsed_args.valid_ratio + parsed_args.test_ratio
+    )
     if abs(total_ratio - 1.0) > 1e-6:
         warnings.warn(
             "Train ratio + Valid ratio + Test ratio != 1.0",
@@ -344,8 +346,8 @@ def main():
     # Training epochs
     num_epochs = int(float(args.epoch))
     best_valid_loss = float("inf")
-    criterion = nn.MSELoss(reduction="none")  
-    
+    criterion = nn.MSELoss(reduction="none")
+
     # Set the patience for early stopping
     stop_patience = int(float(args.stop_patience))
     epochs_without_improvement = 0
