@@ -25,6 +25,7 @@ The package requires the following dependencies:
 - NumPy
 - Matplotlib
 - Pandas
+- Pymatgen
 
 These will be automatically installed when you install the package.
 
