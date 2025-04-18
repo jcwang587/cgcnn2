@@ -16,7 +16,6 @@ import cgcnn2
 - Crystal graph representation
 - Deep learning for materials science
 - High-performance computing
-- Easy-to-use API
 
 ## Getting Started
 
