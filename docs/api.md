@@ -2,6 +2,10 @@
 
 ## Data Module
 
+::: cgcnn2.data
+    options:
+      heading_level: 2
+
 ### `CIFData`
 ```python
 class CIFData(root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2)
@@ -16,6 +20,10 @@ Parameters:
 - `step`: Step size for distance grid
 
 ## Model Module
+
+::: cgcnn2.model
+    options:
+      heading_level: 2
 
 ### `CrystalGraphConvNet`
 ```python
@@ -33,6 +41,10 @@ Parameters:
 - `n_h`: Number of hidden layers
 
 ## Utility Functions
+
+::: cgcnn2.utils
+    options:
+      heading_level: 2
 
 ### `collate_pool`
 ```python

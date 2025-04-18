@@ -2,4 +2,5 @@ mkdocs-material>=9.0.0
 mkdocs>=1.4.0
 pymdown-extensions>=10.0
 markdown>=3.4.0
-mkdocs-git-revision-date-localized-plugin>=1.2.0 
+mkdocs-git-revision-date-localized-plugin>=1.2.0
+mkdocstrings[python]>=0.24.0 

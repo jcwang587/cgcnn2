@@ -38,15 +38,22 @@ markdown_extensions:
 plugins:
   - search
   - git-revision-date-localized
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            docstring_style: google
+            show_root_heading: true
+            show_source: true
 
 nav:
   - Home: index.md
+  - CGCNN2: cgcnn2.md
   - Installation: installation.md
   - Usage: usage.md
-  - API Reference: api.md
   - Examples: examples.md
-  - Contributing: contributing.md
-
+  - API Reference: api.md
+  
 extra:
   social:
     - icon: fontawesome/brands/github
