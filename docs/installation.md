@@ -27,7 +27,7 @@ The package requires the following dependencies:
 - Pandas
 - Pymatgen
 - Ase
-
+- Pymatviz
 These will be automatically installed when you install the package.
 
 ## Verifying Installation
