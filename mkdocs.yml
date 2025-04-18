@@ -1,5 +1,5 @@
 site_name: cgcnn2
-site_url: https://jcwang.github.io/cgcnn2
+site_url: https://jcwang587.github.io/cgcnn2
 repo_url: https://github.com/jcwang587/cgcnn2
 repo_name: cgcnn2
 
@@ -41,4 +41,15 @@ nav:
   - Usage: usage.md
   - API Reference: api.md
   - Examples: examples.md
-  - Contributing: contributing.md 
+  - Contributing: contributing.md
+
+# GitHub Pages specific settings
+plugins:
+  - search
+  - mkdocs-material
+  - mkdocs-git-revision-date-localized-plugin
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/jcwang587/cgcnn2 
