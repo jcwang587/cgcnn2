@@ -35,6 +35,10 @@ markdown_extensions:
   - toc:
       permalink: true
 
+plugins:
+  - search
+  - git-revision-date-localized
+
 nav:
   - Home: index.md
   - Installation: installation.md
@@ -42,12 +46,6 @@ nav:
   - API Reference: api.md
   - Examples: examples.md
   - Contributing: contributing.md
-
-# GitHub Pages specific settings
-plugins:
-  - search
-  - mkdocs-material
-  - mkdocs-git-revision-date-localized-plugin
 
 extra:
   social:

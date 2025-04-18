@@ -34,7 +34,6 @@ pip install git+https://github.com/jcwang587/cgcnn2
 cgcnn-ft --help
 ```
 
-
 ## References
 
 The original paper describes the details of the CGCNN framework:
