@@ -26,6 +26,7 @@ The package requires the following dependencies:
 - Matplotlib
 - Pandas
 - Pymatgen
+- Ase
 
 These will be automatically installed when you install the package.
 
