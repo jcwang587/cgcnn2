@@ -30,9 +30,13 @@ pip install git+https://github.com/jcwang587/cgcnn2
 
 ## Get Started
 
+There are entry points for training, predicting, and fine-tuning CGCNN models. For example, to explore the usage of the provided training script `cgcnn-tr`, you can use the help option of the command:
+
 ```bash
-cgcnn-ft --help
+cgcnn-tr --help
 ```
+
+A detailed user guide documentation is available at [https://jcwang.org/cgcnn2/](https://jcwang.org/cgcnn2/).
 
 ## References
 
