@@ -17,12 +17,10 @@ from .model import CrystalGraphConvNet, Normalizer
 
 def output_id_gen():
     """
-    This function obtains the current date and time, formats it as 'mmdd_HHMM',
-    and prepends 'output_' to form a unique identifier. This can be useful
-    for creating distinct output folder names or filenames at runtime.
+    Generates a unique output identifier based on current date and time.
 
     Returns:
-        - str: A string that represents the current date and time in the format of 'output_mmdd_HHMM'.
+        str: A string in the format 'output_mmdd_HHMM' representing the current date and time.
     """
 
     now = datetime.now()
@@ -35,12 +33,10 @@ def output_id_gen():
 
 
 def id_prop_gen(cif_dir):
-    """
-    This function generates a CSV file containing the IDs and properties of the CIF files in the given directory.
-    The property is set to 0 for all entries.
+    """Generates a CSV file containing IDs and properties of CIF files.
 
-    Parameters:
-        - cif_dir (str): The directory containing the CIF files.
+    Args:
+        cif_dir (str): Directory containing the CIF files.
     """
 
     cif_list = glob.glob(f"{cif_dir}/*.cif")
@@ -61,14 +57,13 @@ def id_prop_gen(cif_dir):
 
 def get_lr(optimizer):
     """
-    This function iterates over the parameter groups of a given PyTorch optimizer,
-    extracting the learning rate from each group. The learning rates are then returned in a list.
+    Extracts learning rates from a PyTorch optimizer.
 
-    Parameters:
-        - optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
+    Args:
+        optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
 
     Returns:
-        - list: A list of learning rates, one for each parameter group in the optimizer.
+        list: A list of learning rates, one for each parameter group in the optimizer.
     """
 
     return [param_group["lr"] for param_group in optimizer.param_groups]
@@ -76,18 +71,18 @@ def get_lr(optimizer):
 
 def extract_fea(model, loader, device):
     """
-    Applies a trained model to a dataset to extract learned feature
-    representations, targets, and CIF IDs, returning these as tensors.
+    Extracts learned feature representations from a trained model.
 
-    Parameters:
-        - model (torch.nn.Module): The trained model.
-        - loader (torch.utils.data.DataLoader): DataLoader for the dataset.
-        - device (str): The device ('cuda' or 'cpu') to send tensors to.
+    Args:
+        model (torch.nn.Module): The trained model.
+        loader (torch.utils.data.DataLoader): DataLoader for the dataset.
+        device (str): The device ('cuda' or 'cpu') to send tensors to.
 
     Returns:
-        - tuple (torch.Tensor, torch.Tensor, list): A tuple where the first element is
-        the tensor of extracted features, the second element is the tensor of targets,
-        and the third is a list of CIF IDs.
+        tuple: A tuple containing:
+            - torch.Tensor: Extracted features
+            - torch.Tensor: Targets
+            - list: CIF IDs
     """
 
     crys_fea_list, target_list, cif_id_list = [], [], []
@@ -121,22 +116,18 @@ def cgcnn_test(
     **kwargs,
 ):
     """
-    This function tests a trained CGCNN model on a provided dataset, calculates the Mean Squared Error
-    (MSE) and R2 score, and prints these results. It also saves the prediction results as a CSV file and
-    generates a parity plot as an SVG file. The plot displays the model's predictions versus the actual values,
-    color-coded by the point density.
+    Tests a trained CGCNN model and generates evaluation plots.
 
-    Parameters:
-        - model (torch.nn.Module): The trained CGCNN model.
-        - loader (torch.utils.data.DataLoader): DataLoader for the dataset.
-        - device (str): The device ('cuda' or 'cpu') where the model will be run.
-        - plot_file (str, optional): The file path where the parity plot will be saved. Defaults to 'parity_plot.svg'.
-        - results_file (str, optional): The file path where the results will be saved as a CSV file. Defaults to 'results.csv'.
-        - axis_limits (list, optional): The limits for the x and y axes of the parity plot. Defaults to None.
-        - **kwargs:
-            - xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
-            - ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
-            - Any other extra keyword arguments you want to pass in.
+    Args:
+        model (torch.nn.Module): The trained CGCNN model.
+        loader (torch.utils.data.DataLoader): DataLoader for the dataset.
+        device (str): The device ('cuda' or 'cpu') where the model will be run.
+        plot_file (str, optional): File path for saving the parity plot. Defaults to 'parity_plot.svg'.
+        results_file (str, optional): File path for saving results as CSV. Defaults to 'results.csv'.
+        axis_limits (list, optional): Limits for x and y axes of the parity plot. Defaults to None.
+        **kwargs: Additional keyword arguments:
+            xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
+            ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
     """
 
     # Extract optional plot labels from kwargs, with defaults
@@ -254,13 +245,18 @@ def cgcnn_calculator(
     verbose,
 ):
     """
-    This function applies a trained model to a dataset, returning the model's predictions and the last layer's output.
+    Calculates predictions and features using a CGCNN model.
 
-    Parameters:
-        - model (torch.nn.Module): The trained model.
-        - loader (torch.utils.data.DataLoader): DataLoader for the dataset.
-        - device (str): The device ('cuda' or 'cpu') where the model will be run.
-        - verbose (int): The verbosity level of the output.
+    Args:
+        model (torch.nn.Module): The trained CGCNN model.
+        loader (torch.utils.data.DataLoader): DataLoader for the dataset.
+        device (str): The device ('cuda' or 'cpu') where the model will be run.
+        verbose (int): The verbosity level of the output.
+
+    Returns:
+        tuple: A tuple containing:
+            - list: Model predictions
+            - list: Crystal features from the last layer
     """
 
     model.eval()
@@ -305,15 +301,22 @@ def cgcnn_calculator(
 
 def cgcnn_pred(model_path, all_set, verbose=3, cuda=False, num_workers=0):
     """
-    This function loads a trained CGCNN model from a file, applies it to a dataset, and returns the model's predictions
-    and the last layer's output.
+    Loads a trained CGCNN model and generates predictions.
 
-    Parameters:
-        - model_path (str): The path to the file containing the trained model parameters.
-        - all_set (str): The path to the directory containing all CIF files for the dataset.
-        - verbose (int): The verbosity level of the output.
-        - cuda (bool): Set to True to use CUDA, False to use CPU.
-        - num_workers (int): The number of subprocesses to use for data loading.
+    Args:
+        model_path (str): Path to the file containing the trained model parameters.
+        all_set (str): Path to the directory containing all CIF files for the dataset.
+        verbose (int, optional): Verbosity level of the output. Defaults to 3.
+        cuda (bool, optional): Whether to use CUDA. Defaults to False.
+        num_workers (int, optional): Number of subprocesses for data loading. Defaults to 0.
+
+    Returns:
+        tuple: A tuple containing:
+            - list: Model predictions
+            - list: Features from the last layer
+
+    Raises:
+        FileNotFoundError: If the model file is not found.
     """
     if not os.path.isfile(model_path):
         raise FileNotFoundError(f"=> No model params found at '{model_path}'")

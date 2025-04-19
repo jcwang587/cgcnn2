@@ -42,7 +42,7 @@ Parameters:
 
 ## Utility Functions
 
-::: cgcnn2.utils
+::: cgcnn2.util
     options:
       heading_level: 2
 

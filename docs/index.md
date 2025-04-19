@@ -26,5 +26,4 @@ import cgcnn2
 ## Need Help?
 
 - Check out our [API Reference](api.md)
-- Look at the [Examples](examples.md)
-- [Contribute](contributing.md) to the project 
+- Look at the [Examples](examples.md) 
