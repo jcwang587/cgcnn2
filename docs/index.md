@@ -7,10 +7,10 @@ CGCNN2 is a reproduction of CGCNN with fine-tuning for predicting material prope
 - Crystal graph representation
 - Deep learning for materials science
 - High-performance computing
-- [Documentation on the model architecture and training process](cgcnn.md)
+- [Documentation on the model architecture and training process](1_cgcnn.md)
 
 ## Getting Started
 
 1. [Installation](2_installation.md)
-2. [User Guide](3_user_guide.md)
+2. [Usage](3_usage.md)
 3. [Examples](4_examples.md)

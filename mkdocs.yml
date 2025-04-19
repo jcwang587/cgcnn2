@@ -57,7 +57,7 @@ nav:
   - Home: index.md
   - CGCNN2: 1_cgcnn.md
   - Installation: 2_installation.md
-  - User Guide: 3_user_guide.md
+  - Usage: 3_usage.md
   - Examples: 4_examples.md
   - API Reference: 5_api_reference.md
   

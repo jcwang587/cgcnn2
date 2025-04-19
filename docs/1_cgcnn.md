@@ -8,7 +8,11 @@ The Crystal Graph Convolutional Neural Network (CGCNN) is a deep learning framew
 
 The CGCNN model consists of several key components:
 
-1. **Graph Representation**: Crystal structures are represented as graphs where:
+1. **Graph Representation**: 
+
+The main idea in CGCNN is to represent the crystal structure by a crystal graph that encodes both atomic information and bonding interactions between atoms.
+
+Crystal structures are represented as graphs where:
    - Nodes represent atoms
    - Edges represent bonds between atoms
    - Node features encode atom types
@@ -19,7 +23,7 @@ The CGCNN model consists of several key components:
 ### Architecture Overview
 
 ```mermaid
-graph TD
+graph LR
     A[Input Crystal Structure] --> B[Graph Construction]
     B --> C[Atom Feature Embedding<br/>orig_atom_fea_len → atom_fea_len]
     C --> D[Convolutional Layers<br/>n_conv layers]
@@ -203,16 +207,7 @@ def forward(self, atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx):
 5. **Batch Normalization**: Stabilizes training
 6. **Softplus Activation**: Ensures positive feature values
 
-## Applications
-
-CGCNN has been successfully applied to predict various material properties:
-- Formation energy
-- Band gap
-- Elastic properties
-- Thermal properties
-- Electronic properties
-
 ## References
 
-1. [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://arxiv.org/pdf/1710.10324)
+1. [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301)
 2. [CGCNN GitHub Repository](https://github.com/txie-93/cgcnn) 
