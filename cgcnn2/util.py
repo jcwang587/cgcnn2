@@ -3,6 +3,7 @@ import csv
 import glob
 import os
 from datetime import datetime
+from typing import Any
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -15,7 +16,7 @@ from .data import CIFData_pred, collate_pool
 from .model import CrystalGraphConvNet, Normalizer
 
 
-def output_id_gen():
+def output_id_gen() -> str:
     """
     Generates a unique output identifier based on current date and time.
 
@@ -32,7 +33,7 @@ def output_id_gen():
     return folder_name
 
 
-def id_prop_gen(cif_dir):
+def id_prop_gen(cif_dir: str) -> None:
     """Generates a CSV file containing IDs and properties of CIF files.
 
     Args:
@@ -55,7 +56,7 @@ def id_prop_gen(cif_dir):
     )
 
 
-def get_lr(optimizer):
+def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
     """
     Extracts learning rates from a PyTorch optimizer.
 
@@ -63,13 +64,17 @@ def get_lr(optimizer):
         optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
 
     Returns:
-        list: A list of learning rates, one for each parameter group in the optimizer.
+        list[float]: A list of learning rates, one for each parameter group in the optimizer.
     """
 
     return [param_group["lr"] for param_group in optimizer.param_groups]
 
 
-def extract_fea(model, loader, device):
+def extract_fea(
+    model: torch.nn.Module,
+    loader: torch.utils.data.DataLoader,
+    device: str
+) -> tuple[torch.Tensor, torch.Tensor, list[str]]:
     """
     Extracts learned feature representations from a trained model.
 
@@ -79,10 +84,10 @@ def extract_fea(model, loader, device):
         device (str): The device ('cuda' or 'cpu') to send tensors to.
 
     Returns:
-        tuple: A tuple containing:
+        tuple[torch.Tensor, torch.Tensor, list[str]]: A tuple containing:
             - torch.Tensor: Extracted features
             - torch.Tensor: Targets
-            - list: CIF IDs
+            - list[str]: CIF IDs
     """
 
     crys_fea_list, target_list, cif_id_list = [], [], []
@@ -107,14 +112,14 @@ def extract_fea(model, loader, device):
 
 
 def cgcnn_test(
-    model,
-    loader,
-    device,
-    plot_file="parity_plot.svg",
-    results_file="results.csv",
-    axis_limits=None,
-    **kwargs,
-):
+    model: torch.nn.Module,
+    loader: torch.utils.data.DataLoader,
+    device: str,
+    plot_file: str = "parity_plot.svg",
+    results_file: str = "results.csv",
+    axis_limits: list[float] | None = None,
+    **kwargs: Any,
+) -> None:
     """
     Tests a trained CGCNN model and generates evaluation plots.
 
@@ -239,11 +244,11 @@ def cgcnn_test(
 
 
 def cgcnn_calculator(
-    model,
-    loader,
-    device,
-    verbose,
-):
+    model: torch.nn.Module,
+    loader: torch.utils.data.DataLoader,
+    device: str,
+    verbose: int,
+) -> tuple[list[float], list[torch.Tensor]]:
     """
     Calculates predictions and features using a CGCNN model.
 
@@ -299,7 +304,13 @@ def cgcnn_calculator(
     return outputs_list, crys_feas_list
 
 
-def cgcnn_pred(model_path, all_set, verbose=3, cuda=False, num_workers=0):
+def cgcnn_pred(
+    model_path: str, 
+    all_set: str, 
+    verbose: int = 3, 
+    cuda: bool = False, 
+    num_workers: int = 0
+) -> tuple[list[float], list[torch.Tensor]]:
     """
     Loads a trained CGCNN model and generates predictions.
 
