@@ -1,6 +1,6 @@
 mkdocs-material
 mkdocs
-pymdown-extension
+pymdown-extensions
 markdown
 mkdocs-git-revision-date-localized-plugin
 mkdocstrings[python]
