@@ -52,7 +52,7 @@ nav:
   - Installation: installation.md
   - Usage: usage.md
   - Examples: examples.md
-  - API Reference: api.md
+  - API Reference: api_reference.md
   
 extra:
   social:
