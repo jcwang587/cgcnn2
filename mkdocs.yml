@@ -32,6 +32,13 @@ markdown_extensions:
   - pymdownx.tabbed
   - pymdownx.tasklist
   - pymdownx.emoji
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
   - toc:
       permalink: true
 
@@ -48,13 +55,17 @@ plugins:
 
 nav:
   - Home: index.md
-  - CGCNN2: cgcnn.md
-  - Installation: installation.md
-  - Usage: usage.md
-  - Examples: examples.md
-  - API Reference: api_reference.md
+  - CGCNN2: 1_cgcnn.md
+  - Installation: 2_installation.md
+  - User Guide: 3_user_guide.md
+  - Examples: 4_examples.md
+  - API Reference: 5_api_reference.md
   
 extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/jcwang587/cgcnn2 
+
+extra_javascript:
+  - javascripts/mathjax.js
+  - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
