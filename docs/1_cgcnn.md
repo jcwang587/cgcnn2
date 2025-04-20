@@ -8,6 +8,12 @@ The Crystal Graph Convolutional Neural Network (CGCNN) is a deep learning framew
 
 The main idea in CGCNN is to represent the crystal structure by a crystal graph that encodes both atomic information and bonding interactions between atoms. A crystal graph $\mathcal{G}$ is an udirected multigraph which is defined by nodes representing atoms and edges representing connections between atoms in a crystal.
 
+Each node $i$ is represented by a feature vector $v_i$, encoding the property of the atom corresponding to node $i$. Similarly, each edge $(i,j)_k$ is represented by a feature vector $u_{(i,j)_k}$ corresponding to the $k$th bond connecting atom $i$ and atom $j$.
+
+The crystal graph is unlike normal graphs since it allows multiple edges between the same pair of end nodes, a characteristic for crystal graphs due to their periodicity, in contrast to molecular graphs. 
+
+
+
 ## Model Architecture
 
 The convolutional neural networks built on top of the crystal graph consist of two major components: convolutional layers and pooling layers. The convolutional layers iteratively update the atom feature vector $v_i$ by "convolution" with surrounding atoms and bonds with a nonlinear graph convolution function,
