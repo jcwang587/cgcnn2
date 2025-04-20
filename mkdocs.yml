@@ -55,7 +55,7 @@ plugins:
 
 nav:
   - Home: index.md
-  - CGCNN2: 1_cgcnn.md
+  - CGCNN: 1_cgcnn.md
   - Installation: 2_installation.md
   - Usage: 3_usage.md
   - Examples: 4_examples.md

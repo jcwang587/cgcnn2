@@ -2,34 +2,36 @@
 
 ## Introduction
 
-The Crystal Graph Convolutional Neural Network (CGCNN) is a deep learning framework designed for predicting material properties based on their crystal structures. It was introduced in the paper ["Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties"](https://arxiv.org/pdf/1710.10324).
+The Crystal Graph Convolutional Neural Network (CGCNN) is a deep learning framework designed for predicting material properties based on their crystal structures. It was introduced in the paper ["Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties"](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301).
+
+## Graph Representation
+
+The main idea in CGCNN is to represent the crystal structure by a crystal graph that encodes both atomic information and bonding interactions between atoms. A crystal graph $\mathcal{G}$ is an udirected multigraph which is defined by nodes representing atoms and edges representing connections between atoms in a crystal.
 
 ## Model Architecture
 
-The CGCNN model consists of several key components:
+The convolutional neural networks built on top of the crystal graph consist of two major components: convolutional layers and pooling layers. The convolutional layers iteratively update the atom feature vector $v_i$ by "convolution" with surrounding atoms and bonds with a nonlinear graph convolution function,
 
-1. **Graph Representation**: 
+$$
+v_i^{(t+1)} = \text{Conv}\left(v_i^{(t)}, v_j^{(t)}, \mathbf{u}_{(i,j)_k}\right), \quad (i,j)_k \in \mathcal{G}. \tag{1}
+$$
 
-The main idea in CGCNN is to represent the crystal structure by a crystal graph that encodes both atomic information and bonding interactions between atoms.
+After R convolutions, the network automatically learns the  feature vector $v_i^(R)$ for each atom by iteratively including its surrounding environment. The pooling layer is then used for producing an overall feature vector $v_c$ for the crystal, which can be represented by a pooling function,
 
-Crystal structures are represented as graphs where:
-   - Nodes represent atoms
-   - Edges represent bonds between atoms
-   - Node features encode atom types
-   - Edge features encode bond information
+$$
+v_c = \text{Pool}(v_0^{(0)}, v_1^{(0)}, \ldots, v_N^{(0)}, \ldots, v_N^{(R)}) \tag{2}
+$$
 
-2. **Convolutional Layers**: The core of CGCNN is its convolutional layers that update atom features based on their neighbors.
-
-### Architecture Overview
+that satisfies permutational invariance with respect to atom indexing and size invariance with respect to unit cell choice. In this work, a normalized summation is used as the pooling function for simplicity, but other functions can also be used. In addition to the convolutional and pooling layers, two fully connected hidden layers with the depths of L1 and L2 are added to capture the complex mapping between crystal structure and property. Finally, an output layer is used to connect the L2 hidden layer to predict the target property $\hat{y}$.
 
 ```mermaid
 graph LR
-    A[Input Crystal Structure] --> B[Graph Construction]
-    B --> C[Atom Feature Embedding<br/>orig_atom_fea_len → atom_fea_len]
-    C --> D[Convolutional Layers<br/>n_conv layers]
-    D --> E[Pooling Layer<br/>atom_fea_len → h_fea_len]
-    E --> F[Fully Connected Layers<br/>n_h layers]
-    F --> G[Output Layer<br/>h_fea_len → 1/2]
+    subgraph Crystal Processing
+    A[Structure] --> B[Graph] --> C[Embedding] --> D[Conv x R]
+    end
+    subgraph Neural Network
+    D --> E[Pool] --> F[L1] --> G[L2] --> H[Out]
+    end
 ```
 
 ### Model Parameters
