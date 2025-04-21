@@ -21,7 +21,7 @@ classifiers = [
 keywords = ["python", "gnn", "vasp", "crystal"]
 
 [tool.poetry.dependencies]
-python = ">=3.10,<3.13"
+python = ">=3.10"
 ase = "^3.24.0"
 numpy = "*"
 pandas = "*"
