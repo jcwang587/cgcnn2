@@ -36,7 +36,7 @@ There are entry points for training, predicting, and fine-tuning CGCNN models. F
 cgcnn-tr --help
 ```
 
-A detailed user guide documentation is available at [https://jcwang.org/cgcnn2/](https://jcwang.org/cgcnn2/).
+A detailed user guide documentation is available at: [https://jcwang.org/cgcnn2/](https://jcwang.org/cgcnn2/)
 
 ## References
 
