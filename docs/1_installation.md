@@ -24,7 +24,7 @@ pip install git+https://github.com/jcwang587/cgcnn2
 
 The package requires the following dependencies:
 
-* [Ase](https://gitlab.com/ase/ase)
+* [Ase](https://wiki.fysik.dtu.dk/ase/)
 * [Matplotlib](https://matplotlib.org/)
 * [NumPy](https://numpy.org/)
 * [Pandas](https://pandas.pydata.org/)

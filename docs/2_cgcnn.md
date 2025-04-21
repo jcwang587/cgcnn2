@@ -34,8 +34,8 @@ that satisfies permutational invariance with respect to atom indexing and size i
 
 ```mermaid
 graph LR
-    A[Embed] --> B[Conv] --> C[Pool] --> D[L1] --> |softplus| E[L2] --> F[Out - Reg]
-    E --> |softmax| G[Out - Class]
+    A[Embed] --> B[Conv] --> C[Pool] --> D[L1] --> |softplus| E[L2] --> F[Out - Regression]
+    E --> |softmax| G[Out - Classification]
 ```
 
 ### Convolutional Layer
