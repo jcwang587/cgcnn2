@@ -1,6 +1,6 @@
 # Home
 
-`cgcnn2` is a reproduction of crystal graph convolutional neural network (CGCNN) for predicting material properties. This documentation will help you get started with using `cgcnn2` for your materials science research.
+`cgcnn2` is a reproduction of crystal graph convolutional neural network (CGCNN) for predicting material properties. This documentation will help you get started with using CGCNN for your materials science research.
 
 ## Features
 
