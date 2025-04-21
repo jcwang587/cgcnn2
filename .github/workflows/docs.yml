@@ -3,14 +3,13 @@ name: Deploy Documentation
 on:
   push:
     branches:
-      - main
       - pages
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
   pull_request:
     branches:
-      - main
+      - pages
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
