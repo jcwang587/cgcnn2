@@ -12,7 +12,14 @@ Each node $i$ is represented by a feature vector $v_i$, encoding the property of
 
 The crystal graph is unlike normal graphs since it allows multiple edges between the same pair of end nodes, a characteristic for crystal graphs due to their periodicity, in contrast to molecular graphs. 
 
-
+<model-viewer 
+    src="assets/nacl.glb"
+    alt="A 3D model of an astronaut"
+    auto-rotate
+    camera-controls
+    ar
+    style="width: 100%; height: 500px;">
+</model-viewer>
 
 ## Model Architecture
 
@@ -61,9 +68,7 @@ where:
 * $W_f^{(t)}$ and $b_f^{(t)}$ are the learnable weights and biases for the sigmoid function
 * $W_s^{(t)}$ and $b_s^{(t)}$ are the learnable weights and biases for the softplus function
 
-
-
 ## References
 
 1. [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301)
-2. [CGCNN GitHub Repository](https://github.com/txie-93/cgcnn) 
+2. [CGCNN GitHub Repository](https://github.com/txie-93/cgcnn)
