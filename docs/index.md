@@ -4,13 +4,14 @@
 
 ## Features
 
-- Crystal graph representation
-- Deep learning for materials science
-- High-performance computing
-- [Documentation on the graph representation and model architecture](1_cgcnn.md)
+- Training a CGCNN model with a customized dataset.
+- Predicting material properties with a pre-trained CGCNN model.
+- Fine-tuning a pre-trained CGCNN model on a new dataset.
+- Extracting atomic features as descriptors for the downstream task.
 
 ## Getting Started
 
-1. [Installation](2_installation.md)
-2. [Usage](3_usage.md)
-3. [Examples](4_examples.md)
+1. [Installation](1_installation.md)
+2. [CGCNN Method](2_cgcnn.md)
+<!-- 2. [Usage](3_usage.md)
+3. [Examples](4_examples.md) -->
