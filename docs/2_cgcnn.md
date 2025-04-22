@@ -1,3 +1,5 @@
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+
 # Crystal Graph Convolutional Neural Network (CGCNN)
 
 ## Introduction
@@ -12,14 +14,47 @@ Each node $i$ is represented by a feature vector $v_i$, encoding the property of
 
 The crystal graph is unlike normal graphs since it allows multiple edges between the same pair of end nodes, a characteristic for crystal graphs due to their periodicity, in contrast to molecular graphs. 
 
+<div class="grid" markdown>
 <model-viewer 
-    src="assets/nacl.glb"
-    alt="A 3D model of an astronaut"
+    src="../assets/nacl.glb"
+    alt="NaCl Crystal Structure"
     auto-rotate
     camera-controls
     ar
-    style="width: 100%; height: 500px;">
+    style="width: 100%; height: 250px;">
 </model-viewer>
+
+
+```mermaid
+graph LR
+    A[Na1] --- B[Cl1]
+    A --- B
+    A --- C[Cl2]
+    A --- C
+    A --- E[Cl3]
+    A --- E
+    B --- D[Na2]
+    B --- D
+    B --- F[Na3]
+    B --- F
+    C --- D
+    C --- D
+    C --- G[Na4]
+    C --- G
+    D --- H[Cl4]
+    D --- H
+    E --- F
+    E --- F
+    E --- G
+    E --- G
+    F --- H
+    F --- H
+    G --- H
+    G --- H
+```
+</div>
+
+
 
 ## Model Architecture
 
