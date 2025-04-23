@@ -21,7 +21,7 @@ The crystal graph is unlike normal graphs since it allows multiple edges between
     auto-rotate
     camera-controls
     ar
-    style="width: 100%; height: 280px;">
+    style="width: 100%; height: 300px;">
 </model-viewer>
 
 
