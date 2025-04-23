@@ -24,14 +24,14 @@ pip install git+https://github.com/jcwang587/cgcnn2
 
 The package requires the following dependencies:
 
-* [Ase](https://wiki.fysik.dtu.dk/ase/)
-* [Matplotlib](https://matplotlib.org/)
+* [ASE](https://wiki.fysik.dtu.dk/ase/)
+* [matplotlib](https://matplotlib.org/)
 * [NumPy](https://numpy.org/)
-* [Pandas](https://pandas.pydata.org/)
-* [Pymatgen](https://pymatgen.org/)
-* [Pymatviz](https://pymatviz.janosh.dev/)
+* [pandas](https://pandas.pydata.org/)
+* [pymatgen](https://pymatgen.org/)
+* [pymatviz](https://pymatviz.janosh.dev/)
 * [PyTorch](https://pytorch.org/)
-* [Scikit-learn](https://scikit-learn.org/)
+* [scikit-learn](https://scikit-learn.org/)
 
 These will be automatically installed when you install the package.
 

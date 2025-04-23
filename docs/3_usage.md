@@ -4,6 +4,8 @@
 
 Here's a basic example of how to use CGCNN2:
 
+Let's first try to import a NaCl crystal structure from a CIF file.
+
 ```python
 import cgcnn2
 from cgcnn2.data import CIFData
