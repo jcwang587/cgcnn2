@@ -140,7 +140,7 @@ def cgcnn_test(
     Notes:
         This function is intended for use in a command-line interface, providing
         direct output of results. For programmatic downstream analysis, consider
-        using the underlying API functions instead.
+        using the API functions instead, i.e. cgcnn_pred and cgcnn_descriptor.
     """
 
     # Extract optional plot labels from kwargs, with defaults
@@ -251,7 +251,7 @@ def cgcnn_test(
         plt.close()
 
 
-def cgcnn_calculator(
+def cgcnn_descriptor(
     model: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: str,
@@ -383,7 +383,7 @@ def cgcnn_pred(
         pin_memory=cuda,
     )
 
-    pred, last_layer = cgcnn_calculator(model, full_loader, device, verbose)
+    pred, last_layer = cgcnn_descriptor(model, full_loader, device, verbose)
 
     return pred, last_layer
 
