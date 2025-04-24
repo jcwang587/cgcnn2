@@ -8,9 +8,9 @@ from random import sample
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import CIFData, collate_pool, train_force_split
+from cgcnn2.data import CIFData, collate_pool_e3, train_force_split
 from cgcnn2.model_e3 import CrystalGraphE3ConvNet
-from cgcnn2.util import cgcnn_test, get_lr, Normalizer
+from cgcnn2.util import cgcnn_test_e3, get_lr, Normalizer
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
@@ -282,7 +282,7 @@ def main():
             sample_indices = sample(range(len(total_dataset)), 500)
             sample_data_list = [total_dataset[i] for i in sample_indices]
 
-        _, sample_target, _ = collate_pool(sample_data_list)
+        _, sample_target, _ = collate_pool_e3(sample_data_list)
         normalizer = Normalizer(sample_target)
 
     # Build model
@@ -312,7 +312,7 @@ def main():
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.workers,
-        collate_fn=collate_pool,
+        collate_fn=collate_pool_e3,
         pin_memory=args.cuda,
     )
     valid_loader = DataLoader(
@@ -320,7 +320,7 @@ def main():
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.workers,
-        collate_fn=collate_pool,
+        collate_fn=collate_pool_e3,
         pin_memory=args.cuda,
     )
     test_loader = DataLoader(
@@ -328,7 +328,7 @@ def main():
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.workers,
-        collate_fn=collate_pool,
+        collate_fn=collate_pool_e3,
         pin_memory=args.cuda,
     )
 
@@ -359,16 +359,17 @@ def main():
         model.train()
         train_loss_sum = 0.0
         for input_data, targets, _ in train_loader:
-            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
+            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx, pos = input_data
             atom_fea = atom_fea.to(device)
             nbr_fea = nbr_fea.to(device)
             nbr_fea_idx = nbr_fea_idx.to(device)
             crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
+            pos = pos.to(device)
             targets = targets.to(device)
 
             optimizer.zero_grad()
 
-            outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+            outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx, pos)
             loss = criterion(outputs, targets)
 
             if args.bias_temperature > 0.0:
@@ -392,14 +393,15 @@ def main():
         valid_loss_sum = 0.0
         with torch.no_grad():
             for input_data, targets, _ in valid_loader:
-                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
+                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx, pos = input_data
                 atom_fea = atom_fea.to(device)
                 nbr_fea = nbr_fea.to(device)
                 nbr_fea_idx = nbr_fea_idx.to(device)
                 crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
+                pos = pos.to(device)
                 targets = targets.to(device)
 
-                outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+                outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx, pos)
                 loss = criterion(outputs, targets)
 
                 if args.bias_temperature > 0.0:
@@ -459,7 +461,7 @@ def main():
     model.load_state_dict(best_checkpoint["state_dict"])
     normalizer.load_state_dict(best_checkpoint["normalizer"])
 
-    cgcnn_test(
+    cgcnn_test_e3(
         model,
         test_loader,
         device,

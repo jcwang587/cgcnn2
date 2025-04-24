@@ -1,9 +1,12 @@
-"""E3CGCNN model (pair‑wise) built with e3nn.
-Fixed compatibility: `pos` is optional; if coordinates are missing, the layer
-falls back to invariant messages (Y=1) so the original CGCNN dataloader keeps
-working, though without true equivariance.
-"""
+"""Equivariant CGCNN (E3CGCNN) using e3nn.
 
+This module defines:
+- `E3ConvLayer`: pair‑wise E(3)‑equivariant convolution with residual skip,
+  batch‑norm and Softplus, closely matching the original CGCNN behaviour.
+- `CrystalGraphE3ConvNet`: CGCNN backbone where every convolution is replaced
+  by `E3ConvLayer`.  If `pos` (Cartesian coordinates) are not supplied the
+  network gracefully falls back to invariant messages (behaves like CGCNN).
+"""
 from __future__ import annotations
 
 import torch
@@ -13,64 +16,72 @@ from e3nn.o3 import Irreps, FullyConnectedTensorProduct, SphericalHarmonics
 
 
 class E3ConvLayer(nn.Module):
-    """Single pair‑wise equivariant (or invariant) convolution using e3nn."""
+    """Single equivariant convolutional layer with residual connection."""
 
     def __init__(self, atom_fea_len: int, nbr_fea_len: int, lmax: int = 2):
         super().__init__()
-        # input features are scalars (0e) repeated `atom_fea_len` times
-        self.irreps_in = Irreps(f"{atom_fea_len}x0e")
-        # real spherical harmonics basis up to degree `lmax`
+        # scalar irreps for node features
+        self.irreps_scalar = Irreps(f"{atom_fea_len}x0e")
+        # real spherical harmonics basis Y_lm up to lmax
         self.sh = SphericalHarmonics(lmax, normalize=True)
-        sh_dim = self.sh.irreps_out.dim  # number of Y_lm components
+        sh_dim = self.sh.irreps_out.dim
 
-        # radial network maps neighbor radial features → coefficients for each Y_lm
+        # radial MLP: neighbour radial features → coefficient per Y_lm
         self.radial_mlp = nn.Sequential(
             nn.Linear(nbr_fea_len, nbr_fea_len),
             nn.Softplus(),
             nn.Linear(nbr_fea_len, sh_dim),
         )
 
-        # tensor product combines neighbour features and geometric tensor, projecting
-        # back to scalar irreps (0e)
+        # tensor product: (scalar ⊗ Y_lm) → scalar
         self.tp = FullyConnectedTensorProduct(
-            self.irreps_in,        # h_j irreps
-            self.sh.irreps_out,    # W_ij irreps
-            self.irreps_in,        # result 0e
+            self.irreps_scalar,      # h_j
+            self.sh.irreps_out,      # W_ij
+            self.irreps_scalar,      # output scalars
         )
+
+        # post‑aggregation normalisation + non‑linearity
+        self.bn = nn.BatchNorm1d(atom_fea_len)
+        self.act = nn.Softplus()
 
     def forward(
         self,
-        atom_fea: torch.Tensor,          # shape (N, C)
-        nbr_fea: torch.Tensor,           # shape (N, M, F_r)
-        nbr_idx: torch.LongTensor,       # shape (N, M)
-        pos: torch.Tensor | None = None, # shape (N, 3) (optional)
+        atom_fea: torch.Tensor,            # (N, C)
+        nbr_fea: torch.Tensor,             # (N, M, F_r)
+        nbr_idx: torch.LongTensor,         # (N, M)
+        pos: torch.Tensor | None = None,   # (N, 3) optional
     ) -> torch.Tensor:
         N, M, _ = nbr_fea.shape
-        # flatten neighbour list indices j and i (dst)
-        src = nbr_idx.view(-1)                                    # (N*M,)
-        dst = torch.arange(N, device=atom_fea.device).unsqueeze(1).expand(N, M).reshape(-1)
+        src = nbr_idx.view(-1)  # neighbour indices j
+        dst = (
+            torch.arange(N, device=atom_fea.device)
+            .view(-1, 1)
+            .expand(N, M)
+            .reshape(-1)
+        )  # central atom indices i
 
-        # gather neighbour features h_j and flatten radial features
-        h_j = atom_fea[src]
-        R = self.radial_mlp(nbr_fea.view(N * M, -1))              # (N*M, sh_dim)
+        h_j = atom_fea[src]  # (N*M, C)
+        R = self.radial_mlp(nbr_fea.view(N * M, -1))  # (N*M, sh_dim)
 
-        # geometry tensor Y_lm
+        # geometric tensor Y_lm
         if pos is not None:
-            Y = self.sh(pos[src] - pos[dst])                      # (N*M, sh_dim)
+            Y = self.sh(pos[src] - pos[dst])  # (N*M, sh_dim)
         else:
-            # no coordinates provided ⇒ revert to invariant (CGCNN‑style) messages
-            Y = torch.ones_like(R)
+            Y = torch.ones_like(R)            # invariant fallback
 
-        W = R * Y                                                 # (N*M, sh_dim)
-        msg = self.tp(h_j, W)                                     # (N*M, C)
+        W = R * Y
+        msg = self.tp(h_j, W)                # (N*M, C)
 
-        # scatter aggregate messages back to central atom i (=dst)
-        out = scatter(msg, dst, dim=0, dim_size=N, reduce="mean")
+        # scatter mean aggregation to central atoms
+        agg = scatter(msg, dst, dim=0, dim_size=N, reduce="mean")
+
+        # residual + BN + non‑linearity
+        out = self.act(self.bn(atom_fea + agg))
         return out
 
 
 class CrystalGraphE3ConvNet(nn.Module):
-    """CGCNN architecture where each conv is e3nn‑based (falls back if `pos` missing)."""
+    """CGCNN architecture with E(3)‑equivariant convolutions."""
 
     def __init__(
         self,
@@ -85,12 +96,15 @@ class CrystalGraphE3ConvNet(nn.Module):
         super().__init__()
         self.classification = classification
 
-        # initial embedding from element one‑hot/hand‑crafted features → hidden scalars
+        # input embedding to hidden scalar space
         self.embedding = nn.Linear(orig_atom_fea_len, atom_fea_len)
+
+        # stack of equivariant conv layers
         self.convs = nn.ModuleList(
             [E3ConvLayer(atom_fea_len, nbr_fea_len) for _ in range(n_conv)]
         )
 
+        # crystal‑level pooling → fully connected
         self.conv_to_fc = nn.Linear(atom_fea_len, h_fea_len)
         self.softplus = nn.Softplus()
 
@@ -105,25 +119,28 @@ class CrystalGraphE3ConvNet(nn.Module):
 
     def forward(
         self,
-        atom_fea: torch.Tensor,                   # (N, C0)
-        nbr_fea: torch.Tensor,                    # (N, M, F_r)
-        nbr_idx: torch.LongTensor,                # (N, M)
-        crystal_atom_idx: list[torch.LongTensor], # list of len N_crystals
-        pos: torch.Tensor | None = None,          # (N, 3) optional
+        atom_fea: torch.Tensor,                    # (N, C0)
+        nbr_fea: torch.Tensor,                     # (N, M, F_r)
+        nbr_idx: torch.LongTensor,                 # (N, M)
+        crystal_atom_idx: list[torch.LongTensor],  # length = n_crystals
+        pos: torch.Tensor | None = None,           # (N, 3) optional
     ):
         x = self.embedding(atom_fea)
         for conv in self.convs:
             x = conv(x, nbr_fea, nbr_idx, pos)
 
-        # average pooling over atoms belonging to each crystal structure
-        crys = torch.stack([x[idx].mean(dim=0) for idx in crystal_atom_idx], dim=0)
-        h = self.softplus(self.conv_to_fc(crys))
+        # average pooling per crystal structure
+        crys_fea = torch.stack([x[idx].mean(dim=0) for idx in crystal_atom_idx], dim=0)
+        h = self.softplus(self.conv_to_fc(crys_fea))
 
         if hasattr(self, "fcs"):
             for fc, sp in zip(self.fcs, self.softpluses):
                 h = sp(fc(h))
 
-        out = self.fc_out(h)
         if self.classification:
-            out = self.logsoftmax(out)
+            h = self.dropout(h)
+            out = self.logsoftmax(self.fc_out(h))
+        else:
+            out = self.fc_out(h)
+
         return out, h

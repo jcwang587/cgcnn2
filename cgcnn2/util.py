@@ -111,7 +111,7 @@ def extract_fea(
     return crys_fea, target, cif_id_list
 
 
-def cgcnn_test(
+def cgcnn_test_e3(
     model: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: str,
@@ -146,13 +146,14 @@ def cgcnn_test(
 
     with torch.no_grad():
         for input_batch, target, cif_id in loader:
-            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_batch
+            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx, pos = input_batch
             atom_fea = atom_fea.to(device)
             nbr_fea = nbr_fea.to(device)
             nbr_fea_idx = nbr_fea_idx.to(device)
             crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
+            pos = pos.to(device)
             target = target.to(device)
-            output, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+            output, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx, pos)
 
             targets_list.extend(target.cpu().numpy().ravel().tolist())
             outputs_list.extend(output.cpu().numpy().ravel().tolist())

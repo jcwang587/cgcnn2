@@ -521,3 +521,175 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
                     os.remove(os.path.join(dataset_dir, structure.filename))
 
     return grouped
+
+
+def collate_pool_e3(dataset_list):
+    """
+    Collate a list of data points into one batch, including atomic positions
+    for E(3)-equivariant message passing.
+
+    Each data point is expected to be:
+      ((atom_fea, nbr_fea, nbr_fea_idx, atom_pos), target, cif_id)
+
+      atom_fea   : (n_i, atom_fea_len)  float
+      nbr_fea    : (n_i, M, nbr_fea_len) float
+      nbr_fea_idx: (n_i, M)             long
+      atom_pos   : (n_i, 3)             float   <-- NEW
+      target     : (1,)                 float / long
+      cif_id     : str
+
+    Returns
+    -------
+    (input_tuple, target_tensor, cif_id_list)
+
+    input_tuple  : (
+                     batch_atom_fea   (N , atom_fea_len),
+                     batch_nbr_fea    (N , M , nbr_fea_len),
+                     batch_nbr_fea_idx(N , M),
+                     crystal_atom_idx list[LongTensor] len=N_crystals,
+                     batch_pos        (N , 3)          <-- NEW
+                   )
+    target_tensor: (N_crystals , 1)
+    cif_id_list  : list[str]
+    """
+    batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx, batch_pos = [], [], [], []
+    crystal_atom_idx, batch_target, batch_cif_ids = [], [], []
+
+    base_idx = 0
+    for (atom_fea, nbr_fea, nbr_fea_idx, atom_pos), target, cif_id in dataset_list:
+        n_i = atom_fea.shape[0]                      # atoms in this crystal
+
+        batch_atom_fea.append(atom_fea)
+        batch_nbr_fea.append(nbr_fea)
+        batch_nbr_fea_idx.append(nbr_fea_idx + base_idx)
+        batch_pos.append(atom_pos)
+
+        crystal_atom_idx.append(torch.arange(n_i, dtype=torch.long) + base_idx)
+
+        batch_target.append(target)
+        batch_cif_ids.append(cif_id)
+
+        base_idx += n_i
+
+    return (
+        (
+            torch.cat(batch_atom_fea, dim=0),
+            torch.cat(batch_nbr_fea, dim=0),
+            torch.cat(batch_nbr_fea_idx, dim=0),
+            crystal_atom_idx,
+            torch.cat(batch_pos, dim=0),          # <-- positions!
+        ),
+        torch.stack(batch_target, dim=0),
+        batch_cif_ids,
+    )
+    
+
+class CIFData(Dataset):
+    """
+    The CIFData dataset is a wrapper for a dataset where the crystal structures
+    are stored in the form of CIF files. The dataset should have the following
+    directory structure:
+
+    root_dir
+    ├── id_prop.csv
+    ├── atom_init.json
+    ├── id0.cif
+    ├── id1.cif
+    ├── ...
+
+    id_prop.csv: a CSV file with two columns. The first column recodes a
+    unique ID for each crystal, and the second column recodes the value of
+    target property.
+
+    atom_init.json: a JSON file that stores the initialization vector for each
+    element.
+
+    ID.cif: a CIF file that recodes the crystal structure, where ID is the
+    unique ID for the crystal.
+
+    Parameters
+    ----------
+
+    root_dir: str
+        The path to the root directory of the dataset
+    max_num_nbr: int
+        The maximum number of neighbors while constructing the crystal graph
+    radius: float
+        The cutoff radius for searching neighbors
+    dmin: float
+        The minimum distance for constructing GaussianDistance
+    step: float
+        The step size for constructing GaussianDistance
+    random_seed: int
+        Random seed for shuffling the dataset
+
+    Returns
+    -------
+
+    atom_fea: torch.Tensor shape (n_i, atom_fea_len)
+    nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
+    nbr_fea_idx: torch.LongTensor shape (n_i, M)
+    target: torch.Tensor shape (1, )
+    cif_id: str or int
+    """
+
+    def __init__(
+        self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123
+    ):
+        self.root_dir = root_dir
+        self.max_num_nbr, self.radius = max_num_nbr, radius
+        assert os.path.exists(root_dir), "root_dir does not exist!"
+        id_prop_file = os.path.join(self.root_dir, "id_prop.csv")
+        assert os.path.exists(id_prop_file), "id_prop.csv does not exist!"
+        with open(id_prop_file) as f:
+            reader = csv.reader(f)
+            self.id_prop_data = [row for row in reader]
+        random.seed(random_seed)
+        random.shuffle(self.id_prop_data)
+        atom_init_file = os.path.join(self.root_dir, "atom_init.json")
+        assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
+        self.ari = AtomCustomJSONInitializer(atom_init_file)
+        self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+
+    def __len__(self):
+        return len(self.id_prop_data)
+
+    @functools.lru_cache(maxsize=None)  # Cache loaded structures
+    def __getitem__(self, idx):
+        cif_id, target = self.id_prop_data[idx]
+        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+
+        # ---------- atom feature tensor ----------
+        atom_fea = torch.tensor(
+            [self.ari.get_atom_fea(site.specie.number) for site in crystal],
+            dtype=torch.float,
+        )
+
+        # ---------- neighbour list ----------
+        all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
+        all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
+
+        nbr_fea_idx, nbr_fea = [], []
+        for nbr in all_nbrs:
+            if len(nbr) < self.max_num_nbr:
+                warnings.warn(
+                    f"{cif_id} has fewer than {self.max_num_nbr} neighbours; "
+                    "consider a larger radius."
+                )
+                pad = self.max_num_nbr - len(nbr)
+                nbr_fea_idx.append([x[2] for x in nbr] + [0] * pad)
+                nbr_fea.append([x[1] for x in nbr] + [self.radius + 1.0] * pad)
+            else:
+                nbr_fea_idx.append([x[2] for x in nbr[: self.max_num_nbr]])
+                nbr_fea.append([x[1] for x in nbr[: self.max_num_nbr]])
+
+        nbr_fea_idx = torch.tensor(nbr_fea_idx, dtype=torch.long)
+        nbr_fea = torch.tensor(self.gdf.expand(np.array(nbr_fea)), dtype=torch.float)
+
+        # ---------- Cartesian coordinates ----------
+        atom_pos = torch.tensor(crystal.cart_coords, dtype=torch.float)  # (n_i, 3)
+
+        target = torch.tensor([float(target)], dtype=torch.float)
+
+        # Return 4-tuple instead of 3-tuple
+        return (atom_fea, nbr_fea, nbr_fea_idx, atom_pos), target, cif_id
