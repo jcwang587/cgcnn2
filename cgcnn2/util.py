@@ -94,10 +94,10 @@ def cgcnn_test(
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
             ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
-    
+
     Returns:
         None
-        
+
     Notes:
         This function is intended for use in a command-line interface, providing
         direct output of results. For programmatic downstream analysis, consider
