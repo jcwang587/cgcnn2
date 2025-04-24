@@ -14,7 +14,7 @@ from pymatviz import density_hexbin
 from sklearn.metrics import mean_squared_error, r2_score
 from torch.utils.data import DataLoader
 
-from .data import CIFData, collate_pool
+from .data import CIFData, CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
 
@@ -315,7 +315,7 @@ def cgcnn_pred(
     if not os.path.isfile(model_path):
         raise FileNotFoundError(f"=> No model params found at '{model_path}'")
 
-    total_dataset = CIFData(full_set)
+    total_dataset = CIFData_NoTarget(full_set)
 
     checkpoint = torch.load(
         model_path,
