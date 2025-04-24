@@ -245,7 +245,7 @@ class CIFData(Dataset):
     def __len__(self):
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
+    @functools.lru_cache(maxsize=1024)  # Cache loaded structures
     def __getitem__(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
@@ -264,7 +264,8 @@ class CIFData(Dataset):
                 warnings.warn(
                     "{} not find enough neighbors to build graph. "
                     "If it happens frequently, consider increase "
-                    "radius.".format(cif_id)
+                    "radius.".format(cif_id),
+                    stacklevel=2
                 )
                 nbr_fea_idx.append(
                     list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
@@ -350,7 +351,7 @@ class CIFData_NoTarget(Dataset):
     def __len__(self):
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
+    @functools.lru_cache(maxsize=1024)  # Cache loaded structures
     def __getitem__(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
@@ -369,7 +370,8 @@ class CIFData_NoTarget(Dataset):
                 warnings.warn(
                     "{} not find enough neighbors to build graph. "
                     "If it happens frequently, consider increase "
-                    "radius.".format(cif_id)
+                    "radius.".format(cif_id),
+                    stacklevel=2
                 )
                 nbr_fea_idx.append(
                     list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
