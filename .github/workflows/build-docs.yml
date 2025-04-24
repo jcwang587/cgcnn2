@@ -1,4 +1,4 @@
-name: Deploy Documentation
+name: build docs
 
 on:
   workflow_dispatch:
@@ -7,18 +7,7 @@ on:
         description: 'Force deploy documentation?'
         required: true
         default: 'no'
-  push:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
-  pull_request:
-    branches:
-      - main
-    paths:
-      - 'docs/**'
-      - 'mkdocs.yml'
+  push: {branches: ["main", "docs"]}
 
 permissions:
   contents: write
