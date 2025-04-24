@@ -14,7 +14,7 @@ from pymatviz import density_hexbin
 from sklearn.metrics import mean_squared_error, r2_score
 from torch.utils.data import DataLoader
 
-from .data import CIFData, CIFData_NoTarget, collate_pool
+from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
 

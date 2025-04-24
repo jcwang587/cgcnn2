@@ -5,7 +5,7 @@ import sys
 
 import numpy as np
 import torch
-from cgcnn2.data import CIFData, collate_pool
+from cgcnn2.data import CIFData_NoTarget, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import cgcnn_test
 from torch.utils.data import DataLoader
@@ -109,7 +109,7 @@ def main():
     os.makedirs(output_folder, exist_ok=True)
 
     # Load the dataset
-    full_dataset = CIFData(args.full_set)
+    full_dataset = CIFData_NoTarget(args.full_set)
 
     # Load checkpoint (only once), set up model
     checkpoint = torch.load(
