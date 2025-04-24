@@ -7,7 +7,7 @@ on:
         description: 'Force deploy documentation?'
         required: true
         default: 'no'
-  push: {branches: ["master", "main"]}
+  push: {branches: ["main", "docs"]}
 
 permissions:
   contents: write
