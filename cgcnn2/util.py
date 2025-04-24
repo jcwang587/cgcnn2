@@ -121,7 +121,7 @@ def cgcnn_test(
     **kwargs: Any,
 ) -> None:
     """
-    Tests a trained CGCNN model and generates evaluation plots.
+    Load a trained CGCNN model and test it on a dataset.
 
     Args:
         model (torch.nn.Module): The trained CGCNN model.
@@ -250,7 +250,7 @@ def cgcnn_calculator(
     verbose: int,
 ) -> tuple[list[float], list[torch.Tensor]]:
     """
-    Calculates predictions and features using a CGCNN model.
+    Load a trained CGCNN model and generate predictions and features from the last layer.
 
     Args:
         model (torch.nn.Module): The trained CGCNN model.
@@ -312,7 +312,7 @@ def cgcnn_pred(
     num_workers: int = 0,
 ) -> tuple[list[float], list[torch.Tensor]]:
     """
-    Loads a trained CGCNN model and generates predictions.
+    Load a trained CGCNN model and generate predictions.
 
     Args:
         model_path (str): Path to the file containing the trained model parameters.
