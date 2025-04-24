@@ -10,7 +10,6 @@ import warnings
 import numpy as np
 import pandas as pd
 import torch
-from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset
 
@@ -184,121 +183,11 @@ class CIFData(Dataset):
     directory structure:
 
     root_dir
-    ├── id_prop.csv
-    ├── atom_init.json
-    ├── id0.cif
-    ├── id1.cif
-    ├── ...
-
-    id_prop.csv: a CSV file with two columns. The first column recodes a
-    unique ID for each crystal, and the second column recodes the value of
-    target property.
-
-    atom_init.json: a JSON file that stores the initialization vector for each
-    element.
-
-    ID.cif: a CIF file that recodes the crystal structure, where ID is the
-    unique ID for the crystal.
-
-    Parameters
-    ----------
-
-    root_dir: str
-        The path to the root directory of the dataset
-    max_num_nbr: int
-        The maximum number of neighbors while constructing the crystal graph
-    radius: float
-        The cutoff radius for searching neighbors
-    dmin: float
-        The minimum distance for constructing GaussianDistance
-    step: float
-        The step size for constructing GaussianDistance
-    random_seed: int
-        Random seed for shuffling the dataset
-
-    Returns
-    -------
-
-    atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-    nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-    nbr_fea_idx: torch.LongTensor shape (n_i, M)
-    target: torch.Tensor shape (1, )
-    cif_id: str or int
-    """
-
-    def __init__(
-        self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123
-    ):
-        self.root_dir = root_dir
-        self.max_num_nbr, self.radius = max_num_nbr, radius
-        assert os.path.exists(root_dir), "root_dir does not exist!"
-        id_prop_file = os.path.join(self.root_dir, "id_prop.csv")
-        assert os.path.exists(id_prop_file), "id_prop.csv does not exist!"
-        with open(id_prop_file) as f:
-            reader = csv.reader(f)
-            self.id_prop_data = [row for row in reader]
-        random.seed(random_seed)
-        random.shuffle(self.id_prop_data)
-        atom_init_file = os.path.join(self.root_dir, "atom_init.json")
-        assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
-        self.ari = AtomCustomJSONInitializer(atom_init_file)
-        self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
-
-    def __len__(self):
-        return len(self.id_prop_data)
-
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(self, idx):
-        cif_id, target = self.id_prop_data[idx]
-        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        atom_fea = np.vstack(
-            [
-                self.ari.get_atom_fea(crystal[i].specie.number)
-                for i in range(len(crystal))
-            ]
-        )
-        atom_fea = torch.Tensor(atom_fea)
-        all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
-        all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
-        nbr_fea_idx, nbr_fea = [], []
-        for nbr in all_nbrs:
-            if len(nbr) < self.max_num_nbr:
-                warnings.warn(
-                    "{} not find enough neighbors to build graph. "
-                    "If it happens frequently, consider increase "
-                    "radius.".format(cif_id)
-                )
-                nbr_fea_idx.append(
-                    list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
-                )
-                nbr_fea.append(
-                    list(map(lambda x: x[1], nbr))
-                    + [self.radius + 1.0] * (self.max_num_nbr - len(nbr))
-                )
-            else:
-                nbr_fea_idx.append(list(map(lambda x: x[2], nbr[: self.max_num_nbr])))
-                nbr_fea.append(list(map(lambda x: x[1], nbr[: self.max_num_nbr])))
-        nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
-        nbr_fea = self.gdf.expand(nbr_fea)
-        atom_fea = torch.Tensor(atom_fea)
-        nbr_fea = torch.Tensor(nbr_fea)
-        nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
-        target = torch.Tensor([float(target)])
-        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
-
-
-class CIFData_pred(Dataset):
-    """
-    The CIFData dataset is a wrapper for a dataset where the crystal structures
-    are stored in the form of CIF files. The dataset should have the following
-    directory structure:
-
-    root_dir
-    ├── id_prop.csv
-    ├── atom_init.json
-    ├── id0.cif
-    ├── id1.cif
-    ├── ...
+    |-- id_prop.csv
+    |-- atom_init.json
+    |-- id0.cif
+    |-- id1.cif
+    |-- ...
 
     id_prop.csv: a CSV file with two columns. The first column recodes a
     unique ID for each crystal, and the second column recodes the value of
@@ -394,6 +283,115 @@ class CIFData_pred(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+
+
+# class CIFData_pred(Dataset):
+#     """
+#     The CIFData dataset is a wrapper for a dataset where the crystal structures
+#     are stored in the form of CIF files. The dataset should have the following
+#     directory structure:
+
+#     root_dir
+#     |-- id_prop.csv
+#     |-- atom_init.json
+#     |-- id0.cif
+#     |-- id1.cif
+#     |-- ...
+
+#     id_prop.csv: a CSV file with two columns. The first column recodes a
+#     unique ID for each crystal, and the second column recodes the value of
+#     target property.
+
+#     atom_init.json: a JSON file that stores the initialization vector for each
+#     element.
+
+#     ID.cif: a CIF file that recodes the crystal structure, where ID is the
+#     unique ID for the crystal.
+
+#     Parameters
+#     ----------
+
+#     root_dir: str
+#         The path to the root directory of the dataset
+#     max_num_nbr: int
+#         The maximum number of neighbors while constructing the crystal graph
+#     radius: float
+#         The cutoff radius for searching neighbors
+#     dmin: float
+#         The minimum distance for constructing GaussianDistance
+#     step: float
+#         The step size for constructing GaussianDistance
+#     random_seed: int
+#         Random seed for shuffling the dataset
+
+#     Returns
+#     -------
+
+#     atom_fea: torch.Tensor shape (n_i, atom_fea_len)
+#     nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
+#     nbr_fea_idx: torch.LongTensor shape (n_i, M)
+#     target: torch.Tensor shape (1, )
+#     cif_id: str or int
+#     """
+
+#     def __init__(
+#         self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123
+#     ):
+#         self.root_dir = root_dir
+#         self.max_num_nbr, self.radius = max_num_nbr, radius
+#         assert os.path.exists(root_dir), "root_dir does not exist!"
+#         id_prop_file = os.path.join(self.root_dir, "id_prop.csv")
+#         assert os.path.exists(id_prop_file), "id_prop.csv does not exist!"
+#         with open(id_prop_file) as f:
+#             reader = csv.reader(f)
+#             self.id_prop_data = [row for row in reader]
+#         random.seed(random_seed)
+#         atom_init_file = os.path.join(self.root_dir, "atom_init.json")
+#         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
+#         self.ari = AtomCustomJSONInitializer(atom_init_file)
+#         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+
+#     def __len__(self):
+#         return len(self.id_prop_data)
+
+#     @functools.lru_cache(maxsize=None)  # Cache loaded structures
+#     def __getitem__(self, idx):
+#         cif_id, target = self.id_prop_data[idx]
+#         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+#         atom_fea = np.vstack(
+#             [
+#                 self.ari.get_atom_fea(crystal[i].specie.number)
+#                 for i in range(len(crystal))
+#             ]
+#         )
+#         atom_fea = torch.Tensor(atom_fea)
+#         all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
+#         all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
+#         nbr_fea_idx, nbr_fea = [], []
+#         for nbr in all_nbrs:
+#             if len(nbr) < self.max_num_nbr:
+#                 warnings.warn(
+#                     "{} not find enough neighbors to build graph. "
+#                     "If it happens frequently, consider increase "
+#                     "radius.".format(cif_id)
+#                 )
+#                 nbr_fea_idx.append(
+#                     list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
+#                 )
+#                 nbr_fea.append(
+#                     list(map(lambda x: x[1], nbr))
+#                     + [self.radius + 1.0] * (self.max_num_nbr - len(nbr))
+#                 )
+#             else:
+#                 nbr_fea_idx.append(list(map(lambda x: x[2], nbr[: self.max_num_nbr])))
+#                 nbr_fea.append(list(map(lambda x: x[1], nbr[: self.max_num_nbr])))
+#         nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
+#         nbr_fea = self.gdf.expand(nbr_fea)
+#         atom_fea = torch.Tensor(atom_fea)
+#         nbr_fea = torch.Tensor(nbr_fea)
+#         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
+#         target = torch.Tensor([float(target)])
+#         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
 def train_force_split(total_set, train_ratio_force_set, train_ratio):
@@ -482,42 +480,3 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         raise ValueError(
             f"Forced training set is larger than expected training set. Expected: {train_size}, Forced: {train_force_size}"
         )
-
-
-def unique_structures_clean(dataset_dir, delete_duplicates=False):
-    """
-    Checks for duplicate (structurally equivalent) structures in a directory
-    of CIF files using pymatgen's StructureMatcher and returns the count
-    of unique structures.
-
-    Parameters
-    ----------
-    dataset_dir: str
-        The path to the dataset containing CIF files.
-    delete_duplicates: bool
-        Whether to delete the duplicate structures, default is False.
-
-    Returns
-    -------
-    grouped: list
-        A list of lists, where each sublist contains structurally equivalent
-        structures.
-    """
-    cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
-
-    structures = []
-    for filename in cif_files:
-        full_path = os.path.join(dataset_dir, filename)
-        structure = Structure.from_file(full_path)
-        structures.append(structure)
-
-    matcher = StructureMatcher()
-    grouped = matcher.group_structures(structures)
-
-    if delete_duplicates:
-        for group in grouped:
-            if len(group) > 1:
-                for structure in group[1:]:
-                    os.remove(os.path.join(dataset_dir, structure.filename))
-
-    return grouped
