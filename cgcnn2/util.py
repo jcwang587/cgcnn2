@@ -221,7 +221,8 @@ def cgcnn_descriptor(
     """
     This function takes a pre-trained CGCNN model and a dataset, runs inference
     to generate predictions and features from the last layer, and returns the
-    predictions and features.
+    predictions and features. It is not necessary to have target values for the
+    predicted set.
 
     Args:
         model (torch.nn.Module): The trained CGCNN model.
@@ -290,7 +291,8 @@ def cgcnn_pred(
 ) -> tuple[list[float], list[torch.Tensor]]:
     """
     This function takes the path to a pre-trained CGCNN model and a dataset,
-    runs inference to generate predictions, and returns the predictions.
+    runs inference to generate predictions, and returns the predictions. It is
+    not necessary to have target values for the predicted set.
 
     Args:
         model_path (str): Path to the file containing the pre-trained model parameters.
