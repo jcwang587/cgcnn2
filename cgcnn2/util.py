@@ -70,45 +70,6 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
     return [param_group["lr"] for param_group in optimizer.param_groups]
 
 
-def extract_fea(
-    model: torch.nn.Module, loader: torch.utils.data.DataLoader, device: str
-) -> tuple[torch.Tensor, torch.Tensor, list[str]]:
-    """
-    Extracts learned feature representations from a trained model.
-
-    Args:
-        model (torch.nn.Module): The trained model.
-        loader (torch.utils.data.DataLoader): DataLoader for the dataset.
-        device (str): The device ('cuda' or 'cpu') to send tensors to.
-
-    Returns:
-        tuple[torch.Tensor, torch.Tensor, list[str]]: A tuple containing:
-            - torch.Tensor: Extracted features
-            - torch.Tensor: Targets
-            - list[str]: CIF IDs
-    """
-
-    crys_fea_list, target_list, cif_id_list = [], [], []
-
-    with torch.no_grad():
-        for inputs, target, cif_id in loader:
-            inputs = [
-                item.to(device) if torch.is_tensor(item) else item for item in inputs
-            ]
-            target = target.to(device)
-
-            _, crys_fea = model(*inputs)
-
-            crys_fea_list.append(crys_fea)
-            target_list.append(target)
-            cif_id_list.append(cif_id)
-
-    crys_fea = torch.cat(crys_fea_list, dim=0)
-    target = torch.cat(target_list, dim=0)
-
-    return crys_fea, target, cif_id_list
-
-
 def cgcnn_test(
     model: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
