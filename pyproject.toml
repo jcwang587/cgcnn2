@@ -23,14 +23,14 @@ keywords = ["python", "gnn", "vasp", "crystal"]
 [tool.poetry.dependencies]
 python = ">=3.10"
 ase = "^3.24.0"
-e3nn = "^0.6.0"
+e3nn = "^0.5.0"
 numpy = "*"
 pandas = "*"
 pymatgen = "^2025.1.9"
 pymatviz = "^0.15.0"
 scikit-learn = "*"
 torch = "^2.0.0"
-torch-scatter = "^2.1.0"
+torch-scatter
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
@@ -40,6 +40,7 @@ pytest-cov = "^6.0.0"
 cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
 cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
+cgcnne3-tr = "cgcnn2.cli.cgcnne3_tr:main"
 atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 
