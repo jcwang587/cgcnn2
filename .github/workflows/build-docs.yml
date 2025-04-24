@@ -1,15 +1,21 @@
 name: Deploy Documentation
 
 on:
+  workflow_dispatch:
+    inputs:
+      forceDeploy:
+        description: 'Force deploy documentation?'
+        required: true
+        default: 'no'
   push:
     branches:
-      - pages
+      - main
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
   pull_request:
     branches:
-      - pages
+      - main
     paths:
       - 'docs/**'
       - 'mkdocs.yml'
