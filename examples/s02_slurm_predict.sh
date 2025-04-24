@@ -20,7 +20,6 @@ conda activate cgcnn2-env
 
 OUTDIR="output_${SLURM_JOB_ID}"
 mkdir -p $OUTDIR
-
 cp $0 $OUTDIR
 
 MODELPATH=${1:-"../cgcnn2/pretrained_models/formation-energy-per-atom.pth.tar"}
