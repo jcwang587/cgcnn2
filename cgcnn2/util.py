@@ -119,7 +119,9 @@ def cgcnn_test(
     **kwargs: Any,
 ) -> None:
     """
-    Load a trained CGCNN model and test it on a dataset.
+    This function takes the path to a trained CGCNN model and a test dataset,
+    runs inference to generate predictions, creates a parity plot comparing
+    predicted versus actual values, and writes the results to a CSV file.
 
     Args:
         model (torch.nn.Module): The trained CGCNN model.
@@ -131,6 +133,14 @@ def cgcnn_test(
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
             ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
+    
+    Returns:
+        None
+        
+    Notes:
+        This function is intended for use in a command-line interface, providing
+        direct output of results. For programmatic downstream analysis, consider
+        using the underlying API functions instead.
     """
 
     # Extract optional plot labels from kwargs, with defaults
