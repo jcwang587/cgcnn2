@@ -1,5 +1,5 @@
-import warnings
 import importlib.metadata
+import warnings
 
 __version__ = importlib.metadata.version("cgcnn2")
 

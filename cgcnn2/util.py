@@ -8,12 +8,14 @@ from typing import Any
 import matplotlib.pyplot as plt
 import pandas as pd
 import torch
+from pymatgen.analysis.structure_matcher import StructureMatcher
+from pymatgen.core.structure import Structure
 from pymatviz import density_hexbin
 from sklearn.metrics import mean_squared_error, r2_score
 from torch.utils.data import DataLoader
 
 from .data import CIFData_pred, collate_pool
-from .model import CrystalGraphConvNet, Normalizer
+from .model import CrystalGraphConvNet
 
 
 def output_id_gen() -> str:
@@ -71,9 +73,7 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
 
 
 def extract_fea(
-    model: torch.nn.Module,
-    loader: torch.utils.data.DataLoader,
-    device: str
+    model: torch.nn.Module, loader: torch.utils.data.DataLoader, device: str
 ) -> tuple[torch.Tensor, torch.Tensor, list[str]]:
     """
     Extracts learned feature representations from a trained model.
@@ -305,11 +305,11 @@ def cgcnn_calculator(
 
 
 def cgcnn_pred(
-    model_path: str, 
-    all_set: str, 
-    verbose: int = 3, 
-    cuda: bool = False, 
-    num_workers: int = 0
+    model_path: str,
+    all_set: str,
+    verbose: int = 3,
+    cuda: bool = False,
+    num_workers: int = 0,
 ) -> tuple[list[float], list[torch.Tensor]]:
     """
     Loads a trained CGCNN model and generates predictions.
@@ -378,3 +378,104 @@ def cgcnn_pred(
     pred, last_layer = cgcnn_calculator(model, full_loader, device, verbose)
 
     return pred, last_layer
+
+
+def unique_structures_clean(dataset_dir, delete_duplicates=False):
+    """
+    Checks for duplicate (structurally equivalent) structures in a directory
+    of CIF files using pymatgen's StructureMatcher and returns the count
+    of unique structures.
+
+    Parameters
+    ----------
+    dataset_dir: str
+        The path to the dataset containing CIF files.
+    delete_duplicates: bool
+        Whether to delete the duplicate structures, default is False.
+
+    Returns
+    -------
+    grouped: list
+        A list of lists, where each sublist contains structurally equivalent
+        structures.
+    """
+    cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
+
+    structures = []
+    for filename in cif_files:
+        full_path = os.path.join(dataset_dir, filename)
+        structure = Structure.from_file(full_path)
+        structures.append(structure)
+
+    matcher = StructureMatcher()
+    grouped = matcher.group_structures(structures)
+
+    if delete_duplicates:
+        for group in grouped:
+            if len(group) > 1:
+                for structure in group[1:]:
+                    os.remove(os.path.join(dataset_dir, structure.filename))
+
+    return grouped
+
+
+class Normalizer:
+    """
+    Normalizes a PyTorch tensor and allows restoring it later.
+
+    This class keeps track of the mean and standard deviation of a tensor and provides methods
+    to normalize and denormalize tensors using these statistics.
+    """
+
+    def __init__(self, tensor: torch.Tensor) -> None:
+        """
+        Initialize the Normalizer with a sample tensor to calculate mean and standard deviation.
+
+        Args:
+            tensor (torch.Tensor): Sample tensor to compute mean and standard deviation.
+        """
+        self.mean: torch.Tensor = torch.mean(tensor)
+        self.std: torch.Tensor = torch.std(tensor)
+
+    def norm(self, tensor: torch.Tensor) -> torch.Tensor:
+        """
+        Normalize a tensor using the stored mean and standard deviation.
+
+        Args:
+            tensor (torch.Tensor): Tensor to normalize.
+
+        Returns:
+            torch.Tensor: Normalized tensor.
+        """
+        return (tensor - self.mean) / self.std
+
+    def denorm(self, normed_tensor: torch.Tensor) -> torch.Tensor:
+        """
+        Denormalize a tensor using the stored mean and standard deviation.
+
+        Args:
+            normed_tensor (torch.Tensor): Normalized tensor to denormalize.
+
+        Returns:
+            torch.Tensor: Denormalized tensor.
+        """
+        return normed_tensor * self.std + self.mean
+
+    def state_dict(self) -> dict[str, torch.Tensor]:
+        """
+        Returns the state dictionary containing the mean and standard deviation.
+
+        Returns:
+            dict[str, torch.Tensor]: State dictionary.
+        """
+        return {"mean": self.mean, "std": self.std}
+
+    def load_state_dict(self, state_dict: dict[str, torch.Tensor]) -> None:
+        """
+        Loads the mean and standard deviation from a state dictionary.
+
+        Args:
+            state_dict (dict[str, torch.Tensor]): State dictionary containing 'mean' and 'std'.
+        """
+        self.mean = state_dict["mean"]
+        self.std = state_dict["std"]

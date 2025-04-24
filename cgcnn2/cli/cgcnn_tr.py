@@ -9,8 +9,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 from cgcnn2.data import CIFData, collate_pool, train_force_split
-from cgcnn2.model import CrystalGraphConvNet, Normalizer
-from cgcnn2.util import cgcnn_test, get_lr
+from cgcnn2.model import CrystalGraphConvNet
+from cgcnn2.util import cgcnn_test, get_lr, Normalizer
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
