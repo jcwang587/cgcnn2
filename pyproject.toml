@@ -30,7 +30,7 @@ pymatgen = "^2025.1.9"
 pymatviz = "^0.15.0"
 scikit-learn = "*"
 torch = "^2.0.0"
-torch-scatter
+torch-scatter = "*"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"

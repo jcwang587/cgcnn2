@@ -1,18 +1,3 @@
-"""
-This module implements the Crystal Graph Convolutional Neural Network (CGCNN) for predicting
-material properties based on their crystal structures.
-
-Classes:
-    ConvLayer: Convolutional layer for graph data.
-    MaskedConvLayer: Convolutional layer with masking for padding indices.
-    CrystalGraphConvNet: CGCNN model for predicting material properties.
-    Normalizer: Utility class for normalizing tensors.
-
-Usage:
-    Define your model by creating an instance of CrystalGraphConvNet with the desired parameters.
-    Use the Normalizer class to normalize your target properties during training.
-"""
-
 import torch
 import torch.nn as nn
 

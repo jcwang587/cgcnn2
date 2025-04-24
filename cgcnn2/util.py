@@ -13,7 +13,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 from torch.utils.data import DataLoader
 
 from .data import CIFData_pred, collate_pool
-from .model import CrystalGraphConvNet, Normalizer
+from .model import CrystalGraphConvNet
 
 
 def output_id_gen() -> str:

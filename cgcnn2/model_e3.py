@@ -1,5 +1,3 @@
-""" e3cgcnn model using e3nn equivariant convolutions. """
-
 import torch
 import torch.nn as nn
 from torch_scatter import scatter
