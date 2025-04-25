@@ -216,6 +216,7 @@ def parse_arguments(args=None):
         warnings.warn(
             "Train ratio + Valid ratio + Test ratio != 1.0",
             UserWarning,
+            stacklevel=2
         )
 
     return parsed
