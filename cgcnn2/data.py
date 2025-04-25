@@ -245,7 +245,7 @@ class CIFData(Dataset):
                     "{} not find enough neighbors to build graph. "
                     "If it happens frequently, consider increase "
                     "radius.".format(cif_id),
-                    stacklevel=2
+                    stacklevel=2,
                 )
                 nbr_fea_idx.append(
                     list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
@@ -341,7 +341,7 @@ class CIFData_NoTarget(Dataset):
                     "{} not find enough neighbors to build graph. "
                     "If it happens frequently, consider increase "
                     "radius.".format(cif_id),
-                    stacklevel=2
+                    stacklevel=2,
                 )
                 nbr_fea_idx.append(
                     list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))

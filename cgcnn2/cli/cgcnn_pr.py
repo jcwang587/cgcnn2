@@ -23,54 +23,59 @@ def parse_arguments(args=None):
         description="CGCNN inference command-line interface"
     )
     parser.add_argument(
-        "-mp", "--model-path",
+        "-mp",
+        "--model-path",
         type=str,
         required=True,
-        help="Path to the trained model checkpoint file"
+        help="Path to the trained model checkpoint file",
     )
     parser.add_argument(
-        "-as", "--full-set",
+        "-as",
+        "--full-set",
         type=str,
         required=True,
-        help="Path to the directory containing CIF files for prediction"
+        help="Path to the directory containing CIF files for prediction",
     )
     parser.add_argument(
-        "-rs", "--random-seed",
+        "-rs",
+        "--random-seed",
         type=int,
         default=42,
-        help="Random seed for reproducibility (default: 42)"
+        help="Random seed for reproducibility (default: 42)",
     )
     parser.add_argument(
-        "-bs", "--batch-size",
+        "-bs",
+        "--batch-size",
         type=int,
         default=256,
         metavar="N",
-        help="Batch size for DataLoader (default: 256)"
+        help="Batch size for DataLoader (default: 256)",
     )
     parser.add_argument(
-        "-j", "--workers",
+        "-j",
+        "--workers",
         type=int,
         default=0,
         metavar="N",
-        help="Number of DataLoader workers (default: 0)"
+        help="Number of DataLoader workers (default: 0)",
     )
     parser.add_argument(
-        "--disable-cuda",
-        action="store_true",
-        help="Disable CUDA even if available"
+        "--disable-cuda", action="store_true", help="Disable CUDA even if available"
     )
     parser.add_argument(
-        "-al", "--axis-limits",
+        "-al",
+        "--axis-limits",
         type=float,
         nargs=4,
         metavar=("XMIN", "XMAX", "YMIN", "YMAX"),
-        help="Axis limits for the parity plot"
+        help="Axis limits for the parity plot",
     )
     parser.add_argument(
-        "-ji", "--job-id",
+        "-ji",
+        "--job-id",
         type=str,
         default="output",
-        help="Job ID for naming output folder"
+        help="Job ID for naming output folder",
     )
 
     parsed = parser.parse_args(args if args is not None else sys.argv[1:])
@@ -98,7 +103,7 @@ def main():
         raise ValueError(f"Dataset directory '{args.full_set}' does not exist")
 
     # Prepare output folder
-    output_folder = os.path.join("output", args.job_id)
+    output_folder = os.path.join("output_", args.job_id)
     os.makedirs(output_folder, exist_ok=True)
 
     # Load checkpoint onto device
