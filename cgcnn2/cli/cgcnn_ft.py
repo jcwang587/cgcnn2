@@ -331,7 +331,7 @@ def main():
             print("* The last fully connected layer will be reset.")
             # Reset the fully connected layers after graph features were obtained
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.cuda:
+            if args.device.type == "cuda":
                 model.fc_out = model.fc_out.cuda()
 
         # Define parameters to be fine-tuned
@@ -346,7 +346,7 @@ def main():
             model.conv_to_fc = nn.Linear(
                 model.conv_to_fc.in_features, model.conv_to_fc.out_features
             )
-            if args.cuda:
+            if args.device.type == "cuda":
                 model.conv_to_fc = model.conv_to_fc.cuda()
 
             if hasattr(model, "fcs"):
@@ -356,11 +356,11 @@ def main():
                         for layer in model.fcs
                     ]
                 )
-                if args.cuda:
+                if args.device.type == "cuda":
                     model.fcs = nn.ModuleList([layer.cuda() for layer in model.fcs])
 
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.cuda:
+            if args.device.type == "cuda":
                 model.fc_out = model.fc_out.cuda()
 
         # Define parameters to be trained
