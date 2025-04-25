@@ -27,15 +27,15 @@ To input material structures into CGCNN, you need to define a custom dataset. Be
 
 Organize these files in a directory (`root_dir`) with the following structure:
 
-1. `id_prop.csv` (optional for prediction)
+- `id_prop.csv` (optional for prediction)
 
 A CSV with two columns, the first column is a unique material ID, and the second column is the corresponding target property value.
 
-2. `atom_init.json`
+- `atom_init.json`
 
 A JSON file that provides the initialization vector for each element. You can use the example at `/cgcnn2/asset/atom_init.json` from the original CGCNN repository; it should work for most applications.
 
-3. `.cif` files
+- `.cif` files
 
 One `.cif` file per material, named `ID.cif`, where `ID` matches the entries in `id_prop.csv`.
 
