@@ -43,6 +43,8 @@ dataset = CIFData("/examples/data/sample_regression")
 This will prepare your crystal structures (and, if provided, their target properties) for use with CGCNN. Then, we can build a `torch.utils.data.DataLoader` object that can be used to load the dataset in a batch.
 
 ```python
+from torch.utils.data import DataLoader
+
 loader = DataLoader(
     dataset,
     batch_size=args.batch_size,
