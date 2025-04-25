@@ -168,9 +168,9 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-ji",
         "--job-id",
-        default=f"output_{os.getpid()}",
+        default=f"{os.getpid()}",
         type=str,
-        help="Job ID for naming output folder (default: output_<PID>)",
+        help="Job ID for naming output folder (default: <PID>)",
     )
 
     # Model hyperparameters
@@ -233,7 +233,7 @@ def main():
     torch.manual_seed(seed)
 
     # Create the output folder
-    output_folder = args.job_id
+    output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
     # Depending on arguments, load separate datasets or split from the --full-set

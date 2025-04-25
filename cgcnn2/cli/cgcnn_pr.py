@@ -73,8 +73,8 @@ def parse_arguments(args=None):
         "-ji",
         "--job-id",
         type=str,
-        default=f"output_{os.getpid()}",
-        help="Job ID for naming output folder (default: output_<PID>)",
+        default=f"{os.getpid()}",
+        help="Job ID for naming output folder (default: <PID>)",
     )
 
     parsed = parser.parse_args(args if args is not None else sys.argv[1:])
@@ -103,7 +103,7 @@ def main():
         raise ValueError(f"Dataset directory '{args.full_set}' does not exist")
 
     # Prepare output folder
-    output_folder = args.job_id
+    output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
     # Load checkpoint onto device
