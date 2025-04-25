@@ -11,7 +11,7 @@
 
 ## Getting Started
 
-1. [Installation](1_installation.md)
-2. [CGCNN Method](2_cgcnn.md)
-3. [Usage](3_usage.md)
+1. [Package Installation](1_installation.md)
+2. [CGCNN Preliminaries](2_cgcnn.md)
+3. [Function Usage](3_usage.md)
 <!-- 4. [Examples](4_examples.md) -->
