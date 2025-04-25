@@ -264,37 +264,35 @@ def main():
             "Either train, valid, and test datasets or a full data directory must be provided."
         )
 
-    # Instantiate the CrystalGraphConvNet model using parameters from the checkpoint
-    checkpoint = torch.load(
-        args.model_path,
-        map_location=lambda storage, loc: storage if not args.cuda else None,
-        weights_only=False,
-    )
-    structures, _, _ = train_dataset[0]
-    orig_atom_fea_len = structures[0].shape[-1]
-    nbr_fea_len = structures[1].shape[-1]
+    # Load checkpoint onto device
+    checkpoint = torch.load(args.model_path, map_location=args.device)
     model_args = argparse.Namespace(**checkpoint["args"])
+
+    # Prepare dataset and infer feature dimensions
+    dataset = CIFData(args.full_set)
+    atom_graph, _, _ = dataset[0]
+    orig_atom_fea_len = atom_graph[0].shape[-1]
+    nbr_fea_len = atom_graph[1].shape[-1]
+
+    # Initialize model
     model = CrystalGraphConvNet(
-        orig_atom_fea_len,
-        nbr_fea_len,
+        orig_atom_fea_len=orig_atom_fea_len,
+        nbr_fea_len=nbr_fea_len,
         atom_fea_len=model_args.atom_fea_len,
         n_conv=model_args.n_conv,
         h_fea_len=model_args.h_fea_len,
         n_h=model_args.n_h,
     )
-    if args.device.type == "cuda":
-        model.cuda()
+    model.load_state_dict(checkpoint["state_dict"])
+    model.to(args.device)
+    model.eval()
 
-    # Load the normalizer and model weights from the checkpoint
     normalizer = Normalizer(torch.zeros(3))
     normalizer.load_state_dict(checkpoint["normalizer"])
-    model.load_state_dict(checkpoint["state_dict"])
 
     print(
         f"=> Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
     )
-
-    model.to(args.device).eval()
 
     # Initialize DataLoader
     train_loader = DataLoader(

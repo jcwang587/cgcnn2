@@ -139,6 +139,10 @@ def main():
     model.to(args.device)
     model.eval()
 
+    print(
+        f"Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
+    )
+
     # Run inference and save results
     cgcnn_test(
         model=model,
