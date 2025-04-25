@@ -19,33 +19,35 @@ def collate_pool(dataset_list):
     Collate a list of data and return a batch for predicting crystal
     properties.
 
-    Parameters
-    ----------
+    Args:
+        dataset_list (list of tuples): List of tuples for each data point.
+          Each tuple contains:
+          - atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
+            Atom features for each atom in the crystal
+          - nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len)
+            Bond features for each atom's M neighbors
+          - nbr_fea_idx (torch.LongTensor): shape (n_i, M)
+            Indices of M neighbors of each atom
+          - target (torch.Tensor): shape (1, )
+            Target value for prediction
+          - cif_id (str or int)
+            Unique ID for the crystal
 
-    dataset_list: list of tuples for each data point.
-      (atom_fea, nbr_fea, nbr_fea_idx, target)
 
-      atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-      nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-      nbr_fea_idx: torch.LongTensor shape (n_i, M)
-      target: torch.Tensor shape (1, )
-      cif_id: str or int
+    Returns:
+        N = sum(n_i); N0 = sum(i)
 
-    Returns
-    -------
-    N = sum(n_i); N0 = sum(i)
-
-    batch_atom_fea: torch.Tensor shape (N, orig_atom_fea_len)
-      Atom features from atom type
-    batch_nbr_fea: torch.Tensor shape (N, M, nbr_fea_len)
-      Bond features of each atom's M neighbors
-    batch_nbr_fea_idx: torch.LongTensor shape (N, M)
-      Indices of M neighbors of each atom
-    crystal_atom_idx: list of torch.LongTensor of length N0
-      Mapping from the crystal idx to atom idx
-    target: torch.Tensor shape (N, 1)
-      Target value for prediction
-    batch_cif_ids: list
+        batch_atom_fea: torch.Tensor shape (N, orig_atom_fea_len)
+        Atom features from atom type
+        batch_nbr_fea: torch.Tensor shape (N, M, nbr_fea_len)
+        Bond features of each atom's M neighbors
+        batch_nbr_fea_idx: torch.LongTensor shape (N, M)
+        Indices of M neighbors of each atom
+        crystal_atom_idx: list of torch.LongTensor of length N0
+        Mapping from the crystal idx to atom idx
+        target: torch.Tensor shape (N, 1)
+        Target value for prediction
+        batch_cif_ids: list
     """
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
     crystal_atom_idx, batch_target = [], []
@@ -84,15 +86,10 @@ class GaussianDistance(object):
 
     def __init__(self, dmin, dmax, step, var=None):
         """
-        Parameters
-        ----------
-
-        dmin: float
-          Minimum interatomic distance
-        dmax: float
-          Maximum interatomic distance
-        step: float
-          Step size for the Gaussian filter
+        Args:
+            dmin (float): Minimum interatomic distance
+            dmax (float): Maximum interatomic distance
+            step (float): Step size for the Gaussian filter
         """
         assert dmin < dmax
         assert dmax - dmin > step
@@ -105,17 +102,13 @@ class GaussianDistance(object):
         """
         Apply Gaussian distance filter to a numpy distance array
 
-        Parameters
-        ----------
+        Args:
+            distances (np.ndarray): A distance matrix of any shape
 
-        distances: np.ndarray
-          A distance matrix of any shape
-
-        Returns
-        -------
-        expanded_distance: shape (n+1)-d array
-          Expanded distance matrix with the last dimension of length
-          len(self.filter)
+        Returns:
+            expanded_distance: shape (n+1)-d array
+              Expanded distance matrix with the last dimension of length
+              len(self.filter)
         """
         return np.exp(-((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2)
 
@@ -159,11 +152,8 @@ class AtomCustomJSONInitializer(AtomInitializer):
     dictionary mapping from element number to a list representing the
     feature vector of the element.
 
-    Parameters
-    ----------
-
-    elem_embedding_file: str
-        The path to the .json file
+    Args:
+        elem_embedding_file (str): The path to the .json file
     """
 
     def __init__(self, elem_embedding_file):
@@ -199,30 +189,20 @@ class CIFData(Dataset):
     ID.cif: a CIF file that recodes the crystal structure, where ID is the
     unique ID for the crystal.
 
-    Parameters
-    ----------
+    Args:
+        root_dir (str): The path to the root directory of the dataset
+        max_num_nbr (int): The maximum number of neighbors while constructing the crystal graph
+        radius (float): The cutoff radius for searching neighbors
+        dmin (float): The minimum distance for constructing GaussianDistance
+        step (float): The step size for constructing GaussianDistance
+        random_seed (int): Random seed for shuffling the dataset
 
-    root_dir: str
-        The path to the root directory of the dataset
-    max_num_nbr: int
-        The maximum number of neighbors while constructing the crystal graph
-    radius: float
-        The cutoff radius for searching neighbors
-    dmin: float
-        The minimum distance for constructing GaussianDistance
-    step: float
-        The step size for constructing GaussianDistance
-    random_seed: int
-        Random seed for shuffling the dataset
-
-    Returns
-    -------
-
-    atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-    nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-    nbr_fea_idx: torch.LongTensor shape (n_i, M)
-    target: torch.Tensor shape (1, )
-    cif_id: str or int
+    Returns:
+        atom_fea: torch.Tensor shape (n_i, atom_fea_len)
+        nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
+        nbr_fea_idx: torch.LongTensor shape (n_i, M)
+        target: torch.Tensor shape (1, )
+        cif_id: str or int
     """
 
     def __init__(
@@ -304,30 +284,20 @@ class CIFData_NoTarget(Dataset):
     ID.cif: a CIF file that recodes the crystal structure, where ID is the
     unique ID for the crystal.
 
-    Parameters
-    ----------
+    Args:
+        root_dir (str): The path to the root directory of the dataset
+        max_num_nbr (int): The maximum number of neighbors while constructing the crystal graph
+        radius (float): The cutoff radius for searching neighbors
+        dmin (float): The minimum distance for constructing GaussianDistance
+        step (float): The step size for constructing GaussianDistance
+        random_seed (int): Random seed for shuffling the dataset
 
-    root_dir: str
-        The path to the root directory of the dataset
-    max_num_nbr: int
-        The maximum number of neighbors while constructing the crystal graph
-    radius: float
-        The cutoff radius for searching neighbors
-    dmin: float
-        The minimum distance for constructing GaussianDistance
-    step: float
-        The step size for constructing GaussianDistance
-    random_seed: int
-        Random seed for shuffling the dataset
-
-    Returns
-    -------
-
-    atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-    nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-    nbr_fea_idx: torch.LongTensor shape (n_i, M)
-    target: torch.Tensor shape (1, )
-    cif_id: str or int
+    Returns:
+        atom_fea: torch.Tensor shape (n_i, atom_fea_len)
+        nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
+        nbr_fea_idx: torch.LongTensor shape (n_i, M)
+        target: torch.Tensor shape (1, )
+        cif_id: str or int
     """
 
     def __init__(
@@ -396,21 +366,16 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
     """
     Set up a training dataset with a forced training set.
 
-    Parameters
-    ----------
-    total_set: str
-        The path to the total set
-    train_ratio_force_set: str
-        The path to the forced training set
-    train_ratio: float
-        The ratio of the training set
+    Args:
+        total_set (str): The path to the total set
+        train_ratio_force_set (str): The path to the forced training set
+        train_ratio (float): The ratio of the training set
 
-    Returns
-    -------
-    train_dataset: CIFData
-        The training dataset
-    valid_test_dataset: CIFData
-        The validation set
+    Returns:
+        train_dataset: CIFData
+            The training dataset
+        valid_test_dataset: CIFData
+            The validation set
     """
     # create a new temporary directory for the training set
     temp_train_dir = tempfile.mkdtemp()

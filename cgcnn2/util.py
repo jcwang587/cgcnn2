@@ -369,17 +369,13 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
     of CIF files using pymatgen's StructureMatcher and returns the count
     of unique structures.
 
-    Parameters
-    ----------
-    dataset_dir: str
-        The path to the dataset containing CIF files.
-    delete_duplicates: bool
-        Whether to delete the duplicate structures, default is False.
+    Args:
+        dataset_dir (str): The path to the dataset containing CIF files.
+        delete_duplicates (bool): Whether to delete the duplicate structures, default is False.
 
-    Returns
-    -------
-    grouped: list
-        A list of lists, where each sublist contains structurally equivalent
+    Returns:
+        grouped: list
+            A list of lists, where each sublist contains structurally equivalent
         structures.
     """
     cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]

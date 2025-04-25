@@ -36,21 +36,17 @@ class ConvLayer(nn.Module):
         N: Total number of atoms in the batch
         M: Max number of neighbors
 
-        Parameters
-        ----------
+        Args:
+            atom_in_fea (torch.Tensor): Variable(torch.Tensor) shape (N, atom_fea_len)
+              Atom hidden features before convolution
+            nbr_fea (torch.Tensor): Variable(torch.Tensor) shape (N, M, nbr_fea_len)
+              Bond features of each atom's M neighbors
+            nbr_fea_idx (torch.LongTensor): shape (N, M)
+              Indices of M neighbors of each atom
 
-        atom_in_fea: Variable(torch.Tensor) shape (N, atom_fea_len)
-          Atom hidden features before convolution
-        nbr_fea: Variable(torch.Tensor) shape (N, M, nbr_fea_len)
-          Bond features of each atom's M neighbors
-        nbr_fea_idx: torch.LongTensor shape (N, M)
-          Indices of M neighbors of each atom
-
-        Returns
-        -------
-
-        atom_out_fea: nn.Variable shape (N, atom_fea_len)
-          Atom hidden features after convolution
+        Returns:
+            atom_out_fea (nn.Variable): shape (N, atom_fea_len)
+              Atom hidden features after convolution
 
         """
         N, M = nbr_fea_idx.shape
@@ -96,21 +92,14 @@ class CrystalGraphConvNet(nn.Module):
         """
         Initialize CrystalGraphConvNet.
 
-        Parameters
-        ----------
-
-        orig_atom_fea_len: int
-          Number of atom features in the input.
-        nbr_fea_len: int
-          Number of bond features.
-        atom_fea_len: int
-          Number of hidden atom features in the convolutional layers
-        n_conv: int
-          Number of convolutional layers
-        h_fea_len: int
-          Number of hidden features after pooling
-        n_h: int
-          Number of hidden layers after pooling
+        Args:
+            orig_atom_fea_len (int): Number of atom features in the input.
+            nbr_fea_len (int): Number of bond features.
+            atom_fea_len (int): Number of hidden atom features in the convolutional layers
+            n_conv (int): Number of convolutional layers
+            h_fea_len (int): Number of hidden features after pooling
+            n_h (int): Number of hidden layers after pooling
+            classification (bool): Whether to use classification or regression
         """
         super(CrystalGraphConvNet, self).__init__()
         self.classification = classification
@@ -152,23 +141,18 @@ class CrystalGraphConvNet(nn.Module):
         M: Max number of neighbors
         N0: Total number of crystals in the batch
 
-        Parameters
-        ----------
+        Args:
+            atom_fea (torch.Tensor): Variable(torch.Tensor) shape (N, orig_atom_fea_len)
+              Atom features from atom type
+            nbr_fea (torch.Tensor): Variable(torch.Tensor) shape (N, M, nbr_fea_len)
+              Bond features of each atom's M neighbors
+            nbr_fea_idx (torch.LongTensor): shape (N, M)
+              Indices of M neighbors of each atom
+            crystal_atom_idx (list of torch.LongTensor): Mapping from the crystal idx to atom idx
 
-        atom_fea: Variable(torch.Tensor) shape (N, orig_atom_fea_len)
-          Atom features from atom type
-        nbr_fea: Variable(torch.Tensor) shape (N, M, nbr_fea_len)
-          Bond features of each atom's M neighbors
-        nbr_fea_idx: torch.LongTensor shape (N, M)
-          Indices of M neighbors of each atom
-        crystal_atom_idx: list of torch.LongTensor of length N0
-          Mapping from the crystal idx to atom idx
-
-        Returns
-        -------
-
-        prediction: nn.Variable shape (N, )
-          Atom hidden features after convolution
+        Returns:
+            prediction (nn.Variable): shape (N, )
+              Atom hidden features after convolution
 
         """
         atom_fea = self.embedding(atom_fea)
@@ -196,13 +180,10 @@ class CrystalGraphConvNet(nn.Module):
         N: Total number of atoms in the batch
         N0: Total number of crystals in the batch
 
-        Parameters
-        ----------
-
-        atom_fea: Variable(torch.Tensor) shape (N, atom_fea_len)
-          Atom feature vectors of the batch
-        crystal_atom_idx: list of torch.LongTensor of length N0
-          Mapping from the crystal idx to atom idx
+        Args:
+            atom_fea (torch.Tensor): Variable(torch.Tensor) shape (N, atom_fea_len)
+              Atom feature vectors of the batch
+            crystal_atom_idx (list of torch.LongTensor): Mapping from the crystal idx to atom idx
         """
         assert (
             sum([len(idx_map) for idx_map in crystal_atom_idx])
