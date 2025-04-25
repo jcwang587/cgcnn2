@@ -5,159 +5,142 @@ import sys
 
 import numpy as np
 import torch
+from torch.utils.data import DataLoader
+
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import cgcnn_test
-from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):
     """
-    Parses command-line arguments for the prediction script.
+    Parses command-line arguments for the CGCNN inference script.
 
-    Parameters
-    ----------
-    args : list, optional
-        List of command line arguments to parse. If None, sys.argv[1:] is used.
+    Args:
+        args (list, optional): List of command-line arguments to parse. If None, sys.argv[1:] is used.
     """
     parser = argparse.ArgumentParser(
-        description="Command-line interface for the CGCNN prediction script."
+        description="CGCNN inference command-line interface"
     )
     parser.add_argument(
-        "-mp",
-        "--model-path",
+        "-mp", "--model-path",
         type=str,
-        help="Path to the file containing the pre-trained model parameters.",
+        required=True,
+        help="Path to the trained model checkpoint file"
     )
     parser.add_argument(
-        "-as",
-        "--full-set",
+        "-as", "--full-set",
         type=str,
-        help="Path to the directory containing all CIF files for the prediction dataset.",
+        required=True,
+        help="Path to the directory containing CIF files for prediction"
     )
     parser.add_argument(
-        "-rs",
-        "--random-seed",
+        "-rs", "--random-seed",
+        type=int,
         default=42,
-        type=int,
-        help="Random seed for reproducibility. Default: 42",
+        help="Random seed for reproducibility (default: 42)"
     )
     parser.add_argument(
-        "-bs",
-        "--batch-size",
+        "-bs", "--batch-size",
+        type=int,
         default=256,
-        type=int,
         metavar="N",
-        help="The size of each batch during training or testing. Default: 256",
+        help="Batch size for DataLoader (default: 256)"
     )
     parser.add_argument(
-        "-j",
-        "--workers",
-        default=0,
+        "-j", "--workers",
         type=int,
+        default=0,
         metavar="N",
-        help="The number of subprocesses to use for data loading. Default: 0",
+        help="Number of DataLoader workers (default: 0)"
     )
     parser.add_argument(
         "--disable-cuda",
         action="store_true",
-        help="Force disable CUDA, even if a compatible GPU is available. Default: False",
+        help="Disable CUDA even if available"
     )
     parser.add_argument(
-        "-al",
-        "--axis-limits",
-        nargs=2,
-        default=None,
+        "-al", "--axis-limits",
         type=float,
-        help="The limits for the x and y axes of the parity plot.",
+        nargs=4,
+        metavar=("XMIN", "XMAX", "YMIN", "YMAX"),
+        help="Axis limits for the parity plot"
     )
     parser.add_argument(
-        "-ji",
-        "--job-id",
-        default=None,
+        "-ji", "--job-id",
         type=str,
-        help="The id of the current job. stdout and stderr files will be saved to the output folder.",
+        default="output",
+        help="Job ID for naming output folder"
     )
 
-    parsed_args = parser.parse_args(args if args is not None else sys.argv[1:])
-    parsed_args.cuda = not parsed_args.disable_cuda and torch.cuda.is_available()
-
-    return parsed_args
+    parsed = parser.parse_args(args if args is not None else sys.argv[1:])
+    parsed.device = torch.device(
+        "cuda" if not parsed.disable_cuda and torch.cuda.is_available() else "cpu"
+    )
+    return parsed
 
 
 def main():
-    # Parse command-line arguments
     args = parse_arguments()
-    print(args)
+    print(f"Using device: {args.device}")
 
-    # Set the seed for reproducibility
-    seed = args.random_seed
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    # Set seeds for reproducibility
+    random.seed(args.random_seed)
+    np.random.seed(args.random_seed)
+    torch.manual_seed(args.random_seed)
+    if args.device.type == "cuda":
+        torch.cuda.manual_seed_all(args.random_seed)
 
-    # Validate the existence of the model file
+    # Validate paths
     if not os.path.isfile(args.model_path):
-        raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
+        raise FileNotFoundError(f"No model checkpoint found at '{args.model_path}'")
+    if not os.path.isdir(args.full_set):
+        raise ValueError(f"Dataset directory '{args.full_set}' does not exist")
 
-    # Full dataset must be specified
-    if not args.full_set:
-        raise ValueError("Full dataset must be provided in prediction mode.")
-
-    # Create the output folder
-    output_folder = "output_" + args.job_id
+    # Prepare output folder
+    output_folder = args.job_id
     os.makedirs(output_folder, exist_ok=True)
 
-    # Load the dataset
-    full_dataset = CIFData(args.full_set)
-
-    # Load checkpoint (only once), set up model
-    checkpoint = torch.load(
-        args.model_path,
-        map_location=lambda storage, loc: storage if not args.cuda else None,
-    )
-    # Extract model hyperparameters from the checkpoint
+    # Load checkpoint onto device
+    checkpoint = torch.load(args.model_path, map_location=args.device)
     model_args = argparse.Namespace(**checkpoint["args"])
 
-    # Take the first entry to retrieve the shapes
-    structures, _, _ = full_dataset[0]
-    orig_atom_fea_len = structures[0].shape[-1]
-    nbr_fea_len = structures[1].shape[-1]
+    # Prepare dataset and infer feature dimensions
+    dataset = CIFData(args.full_set)
+    atom_graph, _, _ = dataset[0]
+    orig_atom_fea_len = atom_graph[0].shape[-1]
+    nbr_fea_len = atom_graph[1].shape[-1]
 
-    # Instantiate the model
+    # Build DataLoader
+    loader = DataLoader(
+        dataset,
+        batch_size=args.batch_size,
+        shuffle=False,
+        num_workers=args.workers,
+        collate_fn=collate_pool,
+        pin_memory=(args.device.type == "cuda"),
+    )
+
+    # Initialize and load model
     model = CrystalGraphConvNet(
-        orig_atom_fea_len,
-        nbr_fea_len,
+        orig_atom_fea_len=orig_atom_fea_len,
+        nbr_fea_len=nbr_fea_len,
         atom_fea_len=model_args.atom_fea_len,
         n_conv=model_args.n_conv,
         h_fea_len=model_args.h_fea_len,
         n_h=model_args.n_h,
     )
-
-    # Load model weights
     model.load_state_dict(checkpoint["state_dict"])
+    model.to(args.device)
+    model.eval()
 
-    # Move model to device
-    device = "cuda" if args.cuda else "cpu"
-    model.to(device).eval()
-
-    # Prepare the loader
-    full_loader = DataLoader(
-        dataset=full_dataset,
-        batch_size=args.batch_size,
-        shuffle=True,
-        num_workers=args.workers,
-        collate_fn=collate_pool,
-        pin_memory=args.cuda,
-    )
-
-    # Make predictions
+    # Run inference and save results
     cgcnn_test(
-        model,
-        full_loader,
-        device,
-        plot_file=os.path.join(output_folder, "parity_plot_test_mode.svg"),
-        results_file=os.path.join(output_folder, "test_results_test_mode.csv"),
+        model=model,
+        loader=loader,
+        device=args.device,
+        plot_file=os.path.join(output_folder, "parity_plot.svg"),
+        results_file=os.path.join(output_folder, "results.csv"),
         xlabel="Actual (eV)",
         ylabel="Predicted (eV)",
         axis_limits=args.axis_limits,
