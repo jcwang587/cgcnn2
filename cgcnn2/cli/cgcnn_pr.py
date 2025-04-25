@@ -98,7 +98,7 @@ def main():
         raise ValueError(f"Dataset directory '{args.full_set}' does not exist")
 
     # Prepare output folder
-    output_folder = args.job_id
+    output_folder = os.path.join("output", args.job_id)
     os.makedirs(output_folder, exist_ok=True)
 
     # Load checkpoint onto device
