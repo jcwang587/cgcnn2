@@ -27,17 +27,12 @@ To input material structures into CGCNN, you need to define a custom dataset. Be
 
 Organize these files in a directory (`root_dir`) with the following structure:
 
-- `id_prop.csv` (optional for prediction)
-
-A CSV with two columns, the first column is a unique material ID, and the second column is the corresponding target property value.
-
-- `atom_init.json`
-
-A JSON file that provides the initialization vector for each element. You can use the example at `/cgcnn2/asset/atom_init.json` from the original CGCNN repository; it should work for most applications.
-
-- `.cif` files
-
-One `.cif` file per material, named `ID.cif`, where `ID` matches the entries in `id_prop.csv`.
+1. `id_prop.csv` (optional for prediction)
+    A CSV with two columns, the first column is a unique material ID, and the second column is the corresponding target property value.
+2. `atom_init.json`
+    A JSON file that provides the initialization vector for each element. You can use the example at `/cgcnn2/asset/atom_init.json` from the original CGCNN repository; it should work for most applications.
+3. `.cif` files
+    One `.cif` file per material, named `ID.cif`, where `ID` matches the entries in `id_prop.csv`.
 
 Once your `root_dir` (for example, `/examples/data/sample_regression`) contains these files, you can load the dataset using the `CIFData` class:
 
