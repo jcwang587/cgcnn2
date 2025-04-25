@@ -14,7 +14,7 @@ from cgcnn2.util import cgcnn_test
 
 def parse_arguments(args=None):
     """
-    Parses command-line arguments for the CGCNN inference script.
+    Parses command-line arguments for the CGCNN prediction script.
 
     Args:
         args (list, optional): List of command-line arguments to parse. If None, sys.argv[1:] is used.
@@ -86,6 +86,7 @@ def parse_arguments(args=None):
 
 
 def main():
+    # Parse command-line arguments
     args = parse_arguments()
     print(f"Using device: {args.device}")
 
