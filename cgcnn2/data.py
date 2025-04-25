@@ -117,7 +117,7 @@ class AtomInitializer(object):
     """
     Base class for initializing the vector representation for atoms.
 
-    !!! Use one AtomInitializer per dataset !!!
+    Use one `AtomInitializer` per dataset.
     """
 
     def __init__(self, atom_types):

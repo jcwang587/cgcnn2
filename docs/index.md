@@ -13,5 +13,5 @@
 
 1. [Installation](1_installation.md)
 2. [CGCNN Method](2_cgcnn.md)
-<!-- 2. [Usage](3_usage.md)
-3. [Examples](4_examples.md) -->
+3. [Usage](3_usage.md)
+<!-- 4. [Examples](4_examples.md) -->
