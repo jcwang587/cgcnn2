@@ -5,11 +5,10 @@ import sys
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
-
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import cgcnn_test
+from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):
