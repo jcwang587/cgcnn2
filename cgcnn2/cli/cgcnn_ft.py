@@ -18,10 +18,8 @@ def parse_arguments(args=None):
     """
     Parses command-line arguments for the fine-tuning script.
 
-    Parameters
-    ----------
-    args : list, optional
-        List of command line arguments to parse. If None, sys.argv[1:] is used.
+    Args:
+        args (list, optional): List of command line arguments to parse. If None, sys.argv[1:] is used.
     """
     parser = argparse.ArgumentParser(
         description="Command-line interface for the CGCNN fine-tuning script."
@@ -30,6 +28,7 @@ def parse_arguments(args=None):
         "-mp",
         "--model-path",
         type=str,
+        required=True,
         help="Path to the file containing the pre-trained model parameters.",
     )
     parser.add_argument(
@@ -137,7 +136,7 @@ def parse_arguments(args=None):
     parser.add_argument(
         "--disable-cuda",
         action="store_true",
-        help="Force disable CUDA, even if a compatible GPU is available. Default: False",
+        help="Disable CUDA even if available",
     )
     parser.add_argument(
         "-lrfc",
@@ -158,7 +157,7 @@ def parse_arguments(args=None):
         "--random-seed",
         default=42,
         type=int,
-        help="Random seed for reproducibility. Default: 42",
+        help="Random seed for reproducibility (default: 42)",
     )
     parser.add_argument(
         "-bs",
@@ -166,7 +165,7 @@ def parse_arguments(args=None):
         default=256,
         type=int,
         metavar="N",
-        help="The size of each batch during training or testing. Default: 256",
+        help="Batch size for DataLoader (default: 256)",
     )
     parser.add_argument(
         "-j",
@@ -174,7 +173,7 @@ def parse_arguments(args=None):
         default=0,
         type=int,
         metavar="N",
-        help="The number of subprocesses to use for data loading. Default: 0",
+        help="Number of DataLoader workers (default: 0)",
     )
     parser.add_argument(
         "-bt",
@@ -191,44 +190,40 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-al",
         "--axis-limits",
-        nargs=2,
-        default=None,
         type=float,
-        help="The limits for the x and y axes of the parity plot.",
+        nargs=4,
+        metavar=("XMIN", "XMAX", "YMIN", "YMAX"),
+        help="Axis limits for the parity plot",
     )
     parser.add_argument(
         "-ji",
         "--job-id",
-        default=None,
         type=str,
-        help="The id of the current job. stdout and stderr files will be saved to the output folder.",
+        default=f"{os.getpid()}",
+        help="Job ID for naming output folder (default: <PID>)",
     )
 
-    parsed_args = parser.parse_args(args if args is not None else sys.argv[1:])
-    parsed_args.cuda = not parsed_args.disable_cuda and torch.cuda.is_available()
+    parsed = parser.parse_args(args if args is not None else sys.argv[1:])
+    parsed.device = torch.device(
+        "cuda" if not parsed.disable_cuda and torch.cuda.is_available() else "cpu"
+    )
 
-    # Warning if train ratio and test ratio don't sum to 1
-    if (
-        abs(
-            parsed_args.train_ratio
-            + parsed_args.valid_ratio
-            + parsed_args.test_ratio
-            - 1
-        )
-        > 1e-6
-    ):
+    # Warn if dataset ratios don't sum to 1
+    total_ratio = parsed.train_ratio + parsed.valid_ratio + parsed.test_ratio
+    if abs(total_ratio - 1.0) > 1e-6:
         warnings.warn(
-            "Train ratio, Valid ratio and Test ratio do not sum up to 1",
+            "Train ratio + Valid ratio + Test ratio != 1.0",
             UserWarning,
-            stacklevel=2,
+            stacklevel=2
         )
 
-    return parsed_args
+    return parsed
 
 
 def main():
+    # Parse command-line arguments
     args = parse_arguments()
-    print(args)
+    print(f"Using device: {args.device}")
 
     # Set reproducibility
     seed = args.random_seed
@@ -237,10 +232,7 @@ def main():
     torch.manual_seed(seed)
 
     # Prepare output folder
-    if args.job_id is not None:
-        output_folder = "output_" + args.job_id
-    else:
-        output_folder = "output"
+    output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
     # Check model_path if specified
@@ -273,38 +265,35 @@ def main():
             "Either train, valid, and test datasets or a full data directory must be provided."
         )
 
-    # Instantiate the CrystalGraphConvNet model using parameters from the checkpoint
-    checkpoint = torch.load(
-        args.model_path,
-        map_location=lambda storage, loc: storage if not args.cuda else None,
-        weights_only=False,
-    )
-    structures, _, _ = train_dataset[0]
-    orig_atom_fea_len = structures[0].shape[-1]
-    nbr_fea_len = structures[1].shape[-1]
+    # Load checkpoint onto device
+    checkpoint = torch.load(args.model_path, map_location=args.device)
     model_args = argparse.Namespace(**checkpoint["args"])
+
+    # Prepare dataset and infer feature dimensions
+    dataset = CIFData(args.full_set)
+    atom_graph, _, _ = dataset[0]
+    orig_atom_fea_len = atom_graph[0].shape[-1]
+    nbr_fea_len = atom_graph[1].shape[-1]
+
+    # Initialize model
     model = CrystalGraphConvNet(
-        orig_atom_fea_len,
-        nbr_fea_len,
+        orig_atom_fea_len=orig_atom_fea_len,
+        nbr_fea_len=nbr_fea_len,
         atom_fea_len=model_args.atom_fea_len,
         n_conv=model_args.n_conv,
         h_fea_len=model_args.h_fea_len,
         n_h=model_args.n_h,
     )
-    if args.cuda:
-        model.cuda()
+    model.load_state_dict(checkpoint["state_dict"])
+    model.to(args.device)
+    model.eval()
 
-    # Load the normalizer and model weights from the checkpoint
     normalizer = Normalizer(torch.zeros(3))
     normalizer.load_state_dict(checkpoint["normalizer"])
-    model.load_state_dict(checkpoint["state_dict"])
 
     print(
         f"=> Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
     )
-
-    device = "cuda" if args.cuda else "cpu"
-    model.to(device).eval()
 
     # Initialize DataLoader
     train_loader = DataLoader(
@@ -313,7 +302,7 @@ def main():
         shuffle=True,
         num_workers=args.workers,
         collate_fn=collate_pool,
-        pin_memory=args.cuda,
+        pin_memory=args.device.type == "cuda",
     )
 
     valid_loader = DataLoader(
@@ -322,7 +311,7 @@ def main():
         shuffle=True,
         num_workers=args.workers,
         collate_fn=collate_pool,
-        pin_memory=args.cuda,
+        pin_memory=args.device.type == "cuda",
     )
 
     test_loader = DataLoader(
@@ -331,7 +320,7 @@ def main():
         shuffle=True,
         num_workers=args.workers,
         collate_fn=collate_pool,
-        pin_memory=args.cuda,
+        pin_memory=args.device.type == "cuda",
     )
 
     if args.train_last_fc:
@@ -343,7 +332,7 @@ def main():
             print("* The last fully connected layer will be reset.")
             # Reset the fully connected layers after graph features were obtained
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.cuda:
+            if args.device.type == "cuda":
                 model.fc_out = model.fc_out.cuda()
 
         # Define parameters to be fine-tuned
@@ -358,7 +347,7 @@ def main():
             model.conv_to_fc = nn.Linear(
                 model.conv_to_fc.in_features, model.conv_to_fc.out_features
             )
-            if args.cuda:
+            if args.device.type == "cuda":
                 model.conv_to_fc = model.conv_to_fc.cuda()
 
             if hasattr(model, "fcs"):
@@ -368,11 +357,11 @@ def main():
                         for layer in model.fcs
                     ]
                 )
-                if args.cuda:
+                if args.device.type == "cuda":
                     model.fcs = nn.ModuleList([layer.cuda() for layer in model.fcs])
 
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.cuda:
+            if args.device.type == "cuda":
                 model.fc_out = model.fc_out.cuda()
 
         # Define parameters to be trained
@@ -435,18 +424,18 @@ def main():
         train_loss = 0.0
         for i, (input, targets, _) in enumerate(train_loader):
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
-            atom_fea = atom_fea.to(device)
-            nbr_fea = nbr_fea.to(device)
-            nbr_fea_idx = nbr_fea_idx.to(device)
-            crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
-            targets = targets.to(device)
+            atom_fea = atom_fea.to(args.device)
+            nbr_fea = nbr_fea.to(args.device)
+            nbr_fea_idx = nbr_fea_idx.to(args.device)
+            crystal_atom_idx = [idx_map.to(args.device) for idx_map in crystal_atom_idx]
+            targets = targets.to(args.device)
 
             # Forward pass
             outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
             loss = criterion(outputs, targets)
             if args.bias_temperature > 0.0:
                 # Boltzmann factor weighting
-                bias = torch.exp(-targets / args.bias_temperature).to(device)
+                bias = torch.exp(-targets / args.bias_temperature).to(args.device)
                 loss = (loss * bias).mean()
             else:
                 loss = loss.mean()
@@ -466,18 +455,20 @@ def main():
         with torch.no_grad():
             for i, (input, targets, _) in enumerate(valid_loader):
                 atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
-                atom_fea = atom_fea.to(device)
-                nbr_fea = nbr_fea.to(device)
-                nbr_fea_idx = nbr_fea_idx.to(device)
-                crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
-                targets = targets.to(device)
+                atom_fea = atom_fea.to(args.device)
+                nbr_fea = nbr_fea.to(args.device)
+                nbr_fea_idx = nbr_fea_idx.to(args.device)
+                crystal_atom_idx = [
+                    idx_map.to(args.device) for idx_map in crystal_atom_idx
+                ]
+                targets = targets.to(args.device)
 
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                 loss = criterion(outputs, targets)
 
                 if args.bias_temperature > 0.0:
                     # Boltzmann factor weighting
-                    bias = torch.exp(-targets / args.bias_temperature).to(device)
+                    bias = torch.exp(-targets / args.bias_temperature).to(args.device)
                     loss = (loss * bias).mean()
                 else:
                     loss = loss.mean()
@@ -534,7 +525,7 @@ def main():
     cgcnn_test(
         model,
         test_loader,
-        device,
+        args.device,
         plot_file=os.path.join(output_folder, "parity_plot.svg"),
         results_file=os.path.join(output_folder, "test_results.csv"),
         xlabel="Actual (eV)",

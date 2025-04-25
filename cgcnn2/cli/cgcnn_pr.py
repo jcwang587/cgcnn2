@@ -5,22 +5,21 @@ import sys
 
 import numpy as np
 import torch
-from torch.utils.data import DataLoader
-
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import cgcnn_test
+from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):
     """
-    Parses command-line arguments for the CGCNN inference script.
+    Parses command-line arguments for the CGCNN prediction script.
 
     Args:
         args (list, optional): List of command-line arguments to parse. If None, sys.argv[1:] is used.
     """
     parser = argparse.ArgumentParser(
-        description="CGCNN inference command-line interface"
+        description="Command-line interface for the CGCNN prediction script."
     )
     parser.add_argument(
         "-mp",
@@ -74,8 +73,8 @@ def parse_arguments(args=None):
         "-ji",
         "--job-id",
         type=str,
-        default="output",
-        help="Job ID for naming output folder",
+        default=f"{os.getpid()}",
+        help="Job ID for naming output folder (default: <PID>)",
     )
 
     parsed = parser.parse_args(args if args is not None else sys.argv[1:])
@@ -86,6 +85,7 @@ def parse_arguments(args=None):
 
 
 def main():
+    # Parse command-line arguments
     args = parse_arguments()
     print(f"Using device: {args.device}")
 
@@ -138,6 +138,10 @@ def main():
     model.load_state_dict(checkpoint["state_dict"])
     model.to(args.device)
     model.eval()
+
+    print(
+        f"Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
+    )
 
     # Run inference and save results
     cgcnn_test(

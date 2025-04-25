@@ -20,10 +20,13 @@ warnings.filterwarnings("ignore", category=UserWarning, module="pymatgen.io.cif"
 
 def parse_arguments(args=None):
     """
-    Parses command-line arguments for the CGCNN training script (from scratch).
+    Parses command-line arguments for the CGCNN training script.
+
+    Args:
+        args (list, optional): List of command-line arguments to parse. If None, sys.argv[1:] is used.
     """
     parser = argparse.ArgumentParser(
-        description="Train a CGCNN model from scratch (no pre-trained weights)."
+        description="Command-line interface for the CGCNN training script."
     )
     # Dataset arguments
     parser.add_argument(
@@ -124,28 +127,28 @@ def parse_arguments(args=None):
     parser.add_argument(
         "--disable-cuda",
         action="store_true",
-        help="Force disable CUDA even if available. Default: False",
+        help="Disable CUDA even if available",
     )
     parser.add_argument(
         "-rs",
         "--random-seed",
         default=42,
         type=int,
-        help="Random seed for reproducibility. Default: 42",
+        help="Random seed for reproducibility (default: 42)",
     )
     parser.add_argument(
         "-bs",
         "--batch-size",
         default=256,
         type=int,
-        help="Batch size for training/testing. Default: 256",
+        help="Batch size for DataLoader (default: 256)",
     )
     parser.add_argument(
         "-j",
         "--workers",
         default=0,
         type=int,
-        help="Number of subprocesses for data loading. Default: 0",
+        help="Number of DataLoader workers (default: 0)",
     )
     parser.add_argument(
         "-bt",
@@ -158,20 +161,19 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-al",
         "--axis-limits",
-        nargs=2,
-        default=None,
-        type=float,
-        help="(min, max) limits for the x and y axes in the final parity plot.",
+        nargs=4,
+        metavar=("XMIN", "XMAX", "YMIN", "YMAX"),
+        help="Axis limits for the parity plot",
     )
     parser.add_argument(
         "-ji",
         "--job-id",
-        default=None,
+        default=f"{os.getpid()}",
         type=str,
-        help="Job identifier: output directory is named 'output_{job-id}' if given.",
+        help="Job ID for naming output folder (default: <PID>)",
     )
 
-    # Classification vs. regression + model hyperparameters
+    # Model hyperparameters
     parser.add_argument(
         "--task",
         default="regression",
@@ -203,20 +205,21 @@ def parse_arguments(args=None):
         help="Number of hidden layers after pooling crystal-wise. Default: 1",
     )
 
-    parsed_args = parser.parse_args(args if args is not None else sys.argv[1:])
-    parsed_args.cuda = not parsed_args.disable_cuda and torch.cuda.is_available()
+    parsed = parser.parse_args(args if args is not None else sys.argv[1:])
+    parsed.device = torch.device(
+        "cuda" if not parsed.disable_cuda and torch.cuda.is_available() else "cpu"
+    )
 
     # Warn if dataset ratios don't sum to 1
-    total_ratio = (
-        parsed_args.train_ratio + parsed_args.valid_ratio + parsed_args.test_ratio
-    )
+    total_ratio = parsed.train_ratio + parsed.valid_ratio + parsed.test_ratio
     if abs(total_ratio - 1.0) > 1e-6:
         warnings.warn(
             "Train ratio + Valid ratio + Test ratio != 1.0",
             UserWarning,
+            stacklevel=2
         )
 
-    return parsed_args
+    return parsed
 
 
 def main():
@@ -231,10 +234,7 @@ def main():
     torch.manual_seed(seed)
 
     # Create the output folder
-    if args.job_id is not None:
-        output_folder = f"output_{args.job_id}"
-    else:
-        output_folder = "output"
+    output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
     # Depending on arguments, load separate datasets or split from the --full-set
@@ -303,8 +303,7 @@ def main():
     )
 
     # Move to device
-    device = "cuda" if args.cuda else "cpu"
-    model.to(device)
+    model.to(args.device)
 
     # Dataloaders
     train_loader = DataLoader(
@@ -313,7 +312,7 @@ def main():
         shuffle=True,
         num_workers=args.workers,
         collate_fn=collate_pool,
-        pin_memory=args.cuda,
+        pin_memory=args.device.type == "cuda",
     )
     valid_loader = DataLoader(
         valid_dataset,
@@ -321,7 +320,7 @@ def main():
         shuffle=False,
         num_workers=args.workers,
         collate_fn=collate_pool,
-        pin_memory=args.cuda,
+        pin_memory=args.device.type == "cuda",
     )
     test_loader = DataLoader(
         test_dataset,
@@ -329,7 +328,7 @@ def main():
         shuffle=False,
         num_workers=args.workers,
         collate_fn=collate_pool,
-        pin_memory=args.cuda,
+        pin_memory=args.device.type == "cuda",
     )
 
     # Single LR optimizer
@@ -360,11 +359,11 @@ def main():
         train_loss_sum = 0.0
         for input_data, targets, _ in train_loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-            atom_fea = atom_fea.to(device)
-            nbr_fea = nbr_fea.to(device)
-            nbr_fea_idx = nbr_fea_idx.to(device)
-            crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
-            targets = targets.to(device)
+            atom_fea = atom_fea.to(args.device)
+            nbr_fea = nbr_fea.to(args.device)
+            nbr_fea_idx = nbr_fea_idx.to(args.device)
+            crystal_atom_idx = [idx_map.to(args.device) for idx_map in crystal_atom_idx]
+            targets = targets.to(args.device)
 
             optimizer.zero_grad()
 
@@ -373,7 +372,7 @@ def main():
 
             if args.bias_temperature > 0.0:
                 # Boltzmann factor weighting
-                bias = torch.exp(-targets / args.bias_temperature).to(device)
+                bias = torch.exp(-targets / args.bias_temperature).to(args.device)
                 loss = (loss * bias).mean()
             else:
                 loss = loss.mean()
@@ -393,18 +392,20 @@ def main():
         with torch.no_grad():
             for input_data, targets, _ in valid_loader:
                 atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-                atom_fea = atom_fea.to(device)
-                nbr_fea = nbr_fea.to(device)
-                nbr_fea_idx = nbr_fea_idx.to(device)
-                crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
-                targets = targets.to(device)
+                atom_fea = atom_fea.to(args.device)
+                nbr_fea = nbr_fea.to(args.device)
+                nbr_fea_idx = nbr_fea_idx.to(args.device)
+                crystal_atom_idx = [
+                    idx_map.to(args.device) for idx_map in crystal_atom_idx
+                ]
+                targets = targets.to(args.device)
 
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
                 loss = criterion(outputs, targets)
 
                 if args.bias_temperature > 0.0:
                     # Boltzmann factor weighting
-                    bias = torch.exp(-targets / args.bias_temperature).to(device)
+                    bias = torch.exp(-targets / args.bias_temperature).to(args.device)
                     loss = (loss * bias).mean()
                 else:
                     loss = loss.mean()
@@ -462,7 +463,7 @@ def main():
     cgcnn_test(
         model,
         test_loader,
-        device,
+        args.device,
         plot_file=os.path.join(output_folder, "parity_plot.svg"),
         results_file=os.path.join(output_folder, "test_results.csv"),
         xlabel="Actual (eV)",
