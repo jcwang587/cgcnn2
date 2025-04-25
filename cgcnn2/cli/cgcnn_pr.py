@@ -20,7 +20,7 @@ def parse_arguments(args=None):
         args (list, optional): List of command-line arguments to parse. If None, sys.argv[1:] is used.
     """
     parser = argparse.ArgumentParser(
-        description="CGCNN inference command-line interface"
+        description="Command-line interface for the CGCNN prediction script."
     )
     parser.add_argument(
         "-mp",
@@ -74,8 +74,8 @@ def parse_arguments(args=None):
         "-ji",
         "--job-id",
         type=str,
-        default="output",
-        help="Job ID for naming output folder",
+        default=f"output_{os.getpid()}",
+        help="Job ID for naming output folder (default: output_<PID>)",
     )
 
     parsed = parser.parse_args(args if args is not None else sys.argv[1:])
@@ -103,7 +103,7 @@ def main():
         raise ValueError(f"Dataset directory '{args.full_set}' does not exist")
 
     # Prepare output folder
-    output_folder = f"output_{args.job_id}"
+    output_folder = args.job_id
     os.makedirs(output_folder, exist_ok=True)
 
     # Load checkpoint onto device

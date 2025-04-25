@@ -18,10 +18,8 @@ def parse_arguments(args=None):
     """
     Parses command-line arguments for the fine-tuning script.
 
-    Parameters
-    ----------
-    args : list, optional
-        List of command line arguments to parse. If None, sys.argv[1:] is used.
+    Args:
+        args (list, optional): List of command line arguments to parse. If None, sys.argv[1:] is used.
     """
     parser = argparse.ArgumentParser(
         description="Command-line interface for the CGCNN fine-tuning script."
@@ -30,6 +28,7 @@ def parse_arguments(args=None):
         "-mp",
         "--model-path",
         type=str,
+        required=True,
         help="Path to the file containing the pre-trained model parameters.",
     )
     parser.add_argument(
@@ -137,7 +136,7 @@ def parse_arguments(args=None):
     parser.add_argument(
         "--disable-cuda",
         action="store_true",
-        help="Force disable CUDA, even if a compatible GPU is available. Default: False",
+        help="Disable CUDA even if available",
     )
     parser.add_argument(
         "-lrfc",
@@ -158,7 +157,7 @@ def parse_arguments(args=None):
         "--random-seed",
         default=42,
         type=int,
-        help="Random seed for reproducibility. Default: 42",
+        help="Random seed for reproducibility (default: 42)",
     )
     parser.add_argument(
         "-bs",
@@ -166,7 +165,7 @@ def parse_arguments(args=None):
         default=256,
         type=int,
         metavar="N",
-        help="The size of each batch during training or testing. Default: 256",
+        help="Batch size for DataLoader (default: 256)",
     )
     parser.add_argument(
         "-j",
@@ -174,7 +173,7 @@ def parse_arguments(args=None):
         default=0,
         type=int,
         metavar="N",
-        help="The number of subprocesses to use for data loading. Default: 0",
+        help="Number of DataLoader workers (default: 0)",
     )
     parser.add_argument(
         "-bt",
@@ -191,17 +190,17 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-al",
         "--axis-limits",
-        nargs=2,
-        default=None,
         type=float,
-        help="The limits for the x and y axes of the parity plot.",
+        nargs=4,
+        metavar=("XMIN", "XMAX", "YMIN", "YMAX"),
+        help="Axis limits for the parity plot",
     )
     parser.add_argument(
         "-ji",
         "--job-id",
-        default=None,
         type=str,
-        help="The id of the current job. stdout and stderr files will be saved to the output folder.",
+        default=f"output_{os.getpid()}",
+        help="Job ID for naming output folder (default: output_<PID>)",
     )
 
     parsed_args = parser.parse_args(args if args is not None else sys.argv[1:])
@@ -237,10 +236,7 @@ def main():
     torch.manual_seed(seed)
 
     # Prepare output folder
-    if args.job_id is not None:
-        output_folder = "output_" + args.job_id
-    else:
-        output_folder = "output"
+    output_folder = args.job_id
     os.makedirs(output_folder, exist_ok=True)
 
     # Check model_path if specified
