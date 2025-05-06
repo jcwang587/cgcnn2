@@ -22,13 +22,14 @@ keywords = ["python", "graph-model", "fine-tuning", "computational-materials"]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-ase = "^3.24.0"
+ase = "^3.25.0"
 numpy = "*"
 pandas = "*"
+pymatgen = "^2025.1.9"
+pymatviz = "~0.15.0"
 scikit-learn = "*"
 torch = "^2.0.0"
-pymatgen = "^2025.1.9"
-pymatviz = "^0.16.0"
+# ASE and Pymatgen track the first release of the current year, and Pymatviz tracks the latest minor version
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^8.3.0"
