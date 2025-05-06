@@ -378,24 +378,29 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
             A list of lists, where each sublist contains structurally equivalent
         structures.
     """
-    cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
+    cif_files   = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
+    structures  = []
+    filenames   = []
 
-    structures = []
-    for filename in cif_files:
-        full_path = os.path.join(dataset_dir, filename)
-        structure = Structure.from_file(full_path)
-        structures.append(structure)
-
-    matcher = StructureMatcher()
-    grouped = matcher.group_structures(structures)
-
+    for fname in cif_files:
+        full_path   = os.path.join(dataset_dir, fname)
+        structures.append(Structure.from_file(full_path))
+        filenames.append(fname)
+        
+    id_to_fname = {id(s): fn for s, fn in zip(structures, filenames)}
+    
+    matcher  = StructureMatcher()
+    grouped  = matcher.group_structures(structures)
+    
+    grouped_fnames = [[id_to_fname[id(s)] for s in group] for group in grouped]
+        
     if delete_duplicates:
-        for group in grouped:
-            if len(group) > 1:
-                for structure in group[1:]:
-                    os.remove(os.path.join(dataset_dir, structure.filename))
+        for file_group in grouped_fnames:
+            # keep the first file, delete the rest
+            for dup_fname in file_group[1:]:
+                os.remove(os.path.join(dataset_dir, dup_fname))
 
-    return grouped
+    return grouped_fnames
 
 
 class Normalizer:

@@ -70,6 +70,20 @@ def parse_arguments(args=None):
         help="Axis limits for the parity plot",
     )
     parser.add_argument(
+        "-x",
+        "--xlabel",
+        type=str,
+        default="Actual",
+        help="X-axis label for the parity plot",
+    )
+    parser.add_argument(
+        "-y",
+        "--ylabel",
+        type=str,
+        default="Predicted",
+        help="Y-axis label for the parity plot",
+    )
+    parser.add_argument(
         "-ji",
         "--job-id",
         type=str,
@@ -150,8 +164,8 @@ def main():
         device=args.device,
         plot_file=os.path.join(output_folder, "parity_plot.svg"),
         results_file=os.path.join(output_folder, "results.csv"),
-        xlabel="Actual (eV)",
-        ylabel="Predicted (eV)",
+        xlabel=args.xlabel,
+        ylabel=args.ylabel,
         axis_limits=args.axis_limits,
     )
 
