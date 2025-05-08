@@ -311,6 +311,7 @@ class CIFData_NoTarget(Dataset):
             if file.endswith(".cif"):
                 id_prop_data.append(file[:-4])
         id_prop_data = [(cif_id, 0) for cif_id in id_prop_data]
+        id_prop_data.sort(key=lambda x: x[0])
         self.id_prop_data = id_prop_data
         random.seed(random_seed)
         atom_init_file = os.path.join(self.root_dir, "atom_init.json")
