@@ -46,3 +46,6 @@ id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 [build-system]
 requires = ["poetry-core==2.1.2"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+target-version = "py310"
