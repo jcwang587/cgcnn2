@@ -1,0 +1,13 @@
+ci:
+  autoupdate_schedule: monthly
+  autofix_commit_msg: pre-commit auto-fixes
+  autoupdate_commit_msg: pre-commit autoupdate
+
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.11.9
+    hooks:
+      - id: ruff
+        args: [--fix, --unsafe-fixes]
+        language_version: python3.10
+      - id: ruff-format
