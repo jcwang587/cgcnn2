@@ -284,7 +284,12 @@ def main():
     model_args = argparse.Namespace(**checkpoint["args"])
 
     # Prepare dataset and infer feature dimensions
-    dataset = CIFData(args.full_set)
+    if args.full_set:
+        sample_set = args.full_set
+    else:
+        sample_set = args.train_set
+        
+    dataset = CIFData(sample_set)
     atom_graph, _, _ = dataset[0]
     orig_atom_fea_len = atom_graph[0].shape[-1]
     nbr_fea_len = atom_graph[1].shape[-1]
