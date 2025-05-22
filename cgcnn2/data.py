@@ -169,15 +169,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
 class CIFData(Dataset):
     """
     The CIFData dataset is a wrapper for a dataset where the crystal structures
-    are stored in the form of CIF files. The dataset should have the following
-    directory structure:
-
-    root_dir
-    |-- id_prop.csv
-    |-- atom_init.json
-    |-- id0.cif
-    |-- id1.cif
-    |-- ...
+    are stored in the form of CIF files.
 
     id_prop.csv: a CSV file with two columns. The first column recodes a
     unique ID for each crystal, and the second column recodes the value of
@@ -269,14 +261,7 @@ class CIFData(Dataset):
 class CIFData_NoTarget(Dataset):
     """
     The CIFData_NoTarget dataset is a wrapper for a dataset where the crystal
-    structures are stored in the form of CIF files. The dataset should have the
-    following directory structure:
-
-    root_dir
-    |-- atom_init.json
-    |-- id0.cif
-    |-- id1.cif
-    |-- ...
+    structures are stored in the form of CIF files.
 
     atom_init.json: a JSON file that stores the initialization vector for each
     element.

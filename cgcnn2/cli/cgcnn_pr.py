@@ -154,7 +154,7 @@ def main():
     model.eval()
 
     print(
-        f"Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
+        f"Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mse_error']})"
     )
 
     # Run inference and save results

@@ -311,7 +311,7 @@ def main():
     normalizer.load_state_dict(checkpoint["normalizer"])
 
     print(
-        f"=> Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
+        f"=> Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mse_error']})"
     )
 
     # Initialize DataLoader
@@ -515,7 +515,7 @@ def main():
                 "epoch": epoch + 1,
                 "state_dict": model.state_dict(),
                 "normalizer": normalizer.state_dict(),
-                "best_mae_error": avg_valid_loss,
+                "best_mse_error": avg_valid_loss,
                 "args": vars(model_args),
             }
             torch.save(savepoint, os.path.join(output_folder, "best_model.ckpt"))
