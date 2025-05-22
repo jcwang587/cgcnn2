@@ -451,7 +451,7 @@ def main():
                 "epoch": epoch + 1,
                 "state_dict": model.state_dict(),
                 "normalizer": normalizer.state_dict(),
-                "best_mae_error": avg_valid_loss,
+                "best_mse_error": avg_valid_loss,
                 "args": vars(args),
             }
             ckpt_path = os.path.join(output_folder, "best_model.ckpt")
