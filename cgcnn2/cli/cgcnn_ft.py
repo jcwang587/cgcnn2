@@ -71,6 +71,13 @@ def parse_arguments(args=None):
         "The train : valid : test ratio will be kept as is.",
     )
     parser.add_argument(
+        "-trfs",
+        "--train-force-set",
+        type=str,
+        help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
+        "The train : valid : test ratio will not be kept as is.",
+    )
+    parser.add_argument(
         "-vr",
         "--valid-ratio",
         default=0.2,
