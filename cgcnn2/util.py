@@ -343,7 +343,7 @@ def cgcnn_pred(
 
     if verbose >= 3:
         print(
-            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
+            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mse_error']})"
         )
 
     device = "cuda" if cuda else "cpu"
