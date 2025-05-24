@@ -471,7 +471,7 @@ def main():
         # --------------------
         model.eval()
         valid_loss = 0.0
-        with torch.no_grad():
+        with torch.inference_mode():
             for i, (input, targets, _) in enumerate(valid_loader):
                 atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
                 atom_fea = atom_fea.to(args.device)

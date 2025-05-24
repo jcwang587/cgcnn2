@@ -113,7 +113,7 @@ def cgcnn_test(
     outputs_list = []
     cif_ids = []
 
-    with torch.no_grad():
+    with torch.inference_mode():
         for input_batch, target, cif_id in loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_batch
             atom_fea = atom_fea.to(device)
@@ -248,7 +248,7 @@ def cgcnn_descriptor(
     crys_feas_list = []
     index = 0
 
-    with torch.no_grad():
+    with torch.inference_mode():
         for input, target, cif_id in loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
             atom_fea = atom_fea.to(device)
