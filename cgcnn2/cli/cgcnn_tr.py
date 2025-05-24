@@ -403,7 +403,7 @@ def main():
         # --------------------
         model.eval()
         valid_loss_sum = 0.0
-        with torch.no_grad():
+        with torch.inference_mode():
             for input_data, targets, _ in valid_loader:
                 atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
                 atom_fea = atom_fea.to(args.device)

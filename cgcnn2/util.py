@@ -113,7 +113,7 @@ def cgcnn_test(
     outputs_list = []
     cif_ids = []
 
-    with torch.no_grad():
+    with torch.inference_mode():
         for input_batch, target, cif_id in loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_batch
             atom_fea = atom_fea.to(device)
@@ -248,7 +248,7 @@ def cgcnn_descriptor(
     crys_feas_list = []
     index = 0
 
-    with torch.no_grad():
+    with torch.inference_mode():
         for input, target, cif_id in loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
             atom_fea = atom_fea.to(device)
@@ -343,7 +343,7 @@ def cgcnn_pred(
 
     if verbose >= 3:
         print(
-            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mae_error']})"
+            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint.get('best_mse_error', checkpoint.get('best_mae_error', 'N/A'))})"
         )
 
     device = "cuda" if cuda else "cpu"
@@ -378,22 +378,22 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
             A list of lists, where each sublist contains structurally equivalent
         structures.
     """
-    cif_files   = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
-    structures  = []
-    filenames   = []
+    cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
+    structures = []
+    filenames = []
 
     for fname in cif_files:
-        full_path   = os.path.join(dataset_dir, fname)
+        full_path = os.path.join(dataset_dir, fname)
         structures.append(Structure.from_file(full_path))
         filenames.append(fname)
-        
+
     id_to_fname = {id(s): fn for s, fn in zip(structures, filenames)}
-    
-    matcher  = StructureMatcher()
-    grouped  = matcher.group_structures(structures)
-    
+
+    matcher = StructureMatcher()
+    grouped = matcher.group_structures(structures)
+
     grouped_fnames = [[id_to_fname[id(s)] for s in group] for group in grouped]
-        
+
     if delete_duplicates:
         for file_group in grouped_fnames:
             # keep the first file, delete the rest
