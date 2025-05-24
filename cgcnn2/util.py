@@ -343,7 +343,7 @@ def cgcnn_pred(
 
     if verbose >= 3:
         print(
-            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mse_error']})"
+            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint.get('best_mse_error', checkpoint.get('best_mae_error', 'N/A'))})"
         )
 
     device = "cuda" if cuda else "cpu"
@@ -378,22 +378,22 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
             A list of lists, where each sublist contains structurally equivalent
         structures.
     """
-    cif_files   = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
-    structures  = []
-    filenames   = []
+    cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
+    structures = []
+    filenames = []
 
     for fname in cif_files:
-        full_path   = os.path.join(dataset_dir, fname)
+        full_path = os.path.join(dataset_dir, fname)
         structures.append(Structure.from_file(full_path))
         filenames.append(fname)
-        
+
     id_to_fname = {id(s): fn for s, fn in zip(structures, filenames)}
-    
-    matcher  = StructureMatcher()
-    grouped  = matcher.group_structures(structures)
-    
+
+    matcher = StructureMatcher()
+    grouped = matcher.group_structures(structures)
+
     grouped_fnames = [[id_to_fname[id(s)] for s in group] for group in grouped]
-        
+
     if delete_duplicates:
         for file_group in grouped_fnames:
             # keep the first file, delete the rest
