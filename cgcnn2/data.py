@@ -1,4 +1,5 @@
 import csv
+import atexit
 import functools
 import json
 import os
@@ -348,13 +349,14 @@ class CIFData_NoTarget(Dataset):
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
-def train_force_split(total_set, train_ratio_force_set, train_ratio):
+def train_force_ratio(total_set, force_set, train_ratio):
     """
-    Set up a training dataset with a forced training set.
+    Set up a training dataset with a forced training set,
+    and keep the same input splitting ratio of the training set.
 
     Args:
         total_set (str): The path to the total set
-        train_ratio_force_set (str): The path to the forced training set
+        force_set (str): The path to the forced training set
         train_ratio (float): The ratio of the training set
 
     Returns:
@@ -369,20 +371,22 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
 
     shutil.copy(f"{total_set}/atom_init.json", temp_train_dir)
     shutil.copy(f"{total_set}/atom_init.json", temp_valid_test_dir)
+    
+    # Register cleanup functions
+    atexit.register(lambda: shutil.rmtree(temp_train_dir, ignore_errors=True))
+    atexit.register(lambda: shutil.rmtree(temp_valid_test_dir, ignore_errors=True))
 
     # concatenate the two csv files in the temp_train_dir
-    train_force_csv = pd.read_csv(f"{train_ratio_force_set}/id_prop.csv", header=None)
+    train_force_csv = pd.read_csv(f"{force_set}/id_prop.csv", header=None)
     split_csv = pd.read_csv(f"{total_set}/id_prop.csv", header=None)
     total_csv = pd.concat([train_force_csv, split_csv])
 
-    train_force_cif_files = [
-        f for f in os.listdir(train_ratio_force_set) if f.endswith(".cif")
-    ]
+    train_force_cif_files = [f for f in os.listdir(force_set) if f.endswith(".cif")]
     total_cif_files = [f for f in os.listdir(total_set) if f.endswith(".cif")]
 
     for file in train_force_cif_files:
         shutil.copy(
-            os.path.join(train_ratio_force_set, file),
+            os.path.join(force_set, file),
             os.path.join(temp_train_dir, file),
         )
 
@@ -429,3 +433,87 @@ def train_force_split(total_set, train_ratio_force_set, train_ratio):
         raise ValueError(
             f"Forced training set is larger than expected training set. Expected: {train_size}, Forced: {train_force_size}"
         )
+
+
+def train_force_set(total_set: str, force_set: str, train_ratio: float, random_seed: int = 0):
+    """
+    Split a *full* data directory into train/valid+test **and** make sure every
+    structure in `force_set` ends up in the training subset *without*
+    shrinking the random portion to keep the original ratio.
+
+    Args:
+        total_set (str): Directory that contains the full candidate pool
+        force_set (str): Directory whose *.cif files must be included in training
+        train_ratio (float): Fraction of `total_set` that should be assigned to the training split before the forced set is added.
+            E.g. 0.8 ⇒ 80 % of `total_set` + 100 % of `force_set`.
+        random_seed (int): Random seed for shuffling the dataset
+    Returns:
+        train_dataset (CIFData): The training dataset
+        valid_test_dataset (CIFData): The validation and test dataset
+    """
+    # Validate inputs
+    if not os.path.exists(total_set):
+        raise ValueError(f"Total set directory does not exist: {total_set}")
+    if not os.path.exists(force_set):
+        raise ValueError(f"Force set directory does not exist: {force_set}")
+    
+    # Create temporary directories
+    temp_train_dir = tempfile.mkdtemp()
+    temp_valid_test_dir = tempfile.mkdtemp()
+    
+    # Register cleanup functions
+    atexit.register(lambda: shutil.rmtree(temp_train_dir, ignore_errors=True))
+    atexit.register(lambda: shutil.rmtree(temp_valid_test_dir, ignore_errors=True))
+
+    shutil.copy(f"{total_set}/atom_init.json", temp_train_dir)
+    shutil.copy(f"{total_set}/atom_init.json", temp_valid_test_dir)
+
+    force_csv = pd.read_csv(f"{force_set}/id_prop.csv", header=None)
+    total_csv = pd.read_csv(f"{total_set}/id_prop.csv", header=None)
+    merged_csv = pd.concat([force_csv, total_csv]).drop_duplicates()
+
+    force_cifs = [f for f in os.listdir(force_set) if f.endswith(".cif")]
+    total_cifs = [f for f in os.listdir(total_set) if f.endswith(".cif")]
+
+    for fname in force_cifs:
+        shutil.copy(os.path.join(force_set, fname), os.path.join(temp_train_dir, fname))
+
+    total_size = len(total_cifs)
+    train_random_size = int(total_size * train_ratio)
+
+    # Ensure no overlap between force and total sets to prevent data leakage
+    force_ids = {f[:-4] for f in force_cifs}
+    total_ids = {f[:-4] for f in total_cifs}
+    overlap = force_ids.intersection(total_ids)
+    if overlap:
+        warnings.warn(f"Found {len(overlap)} overlapping files between force set and total set. "
+                     f"These will only appear in training set to prevent data leakage.")
+    
+    pool_cifs = [f for f in total_cifs if f[:-4] not in force_ids]
+    
+    random.seed(random_seed)
+    random_train_cifs = random.sample(pool_cifs, min(train_random_size, len(pool_cifs)))
+    valid_test_cifs = [f for f in pool_cifs if f not in random_train_cifs]
+
+    for fname in random_train_cifs:
+        shutil.copy(os.path.join(total_set, fname), os.path.join(temp_train_dir, fname))
+
+    for fname in valid_test_cifs:
+        shutil.copy(
+            os.path.join(total_set, fname), os.path.join(temp_valid_test_dir, fname)
+        )
+
+    valid_test_ids = [f[:-4] for f in valid_test_cifs]
+
+    merged_csv.loc[~merged_csv[0].isin(valid_test_ids)].to_csv(
+        f"{temp_train_dir}/id_prop.csv", index=False, header=False
+    )
+
+    merged_csv.loc[merged_csv[0].isin(valid_test_ids)].to_csv(
+        f"{temp_valid_test_dir}/id_prop.csv", index=False, header=False
+    )
+
+    train_dataset = CIFData(temp_train_dir)
+    valid_test_dataset = CIFData(temp_valid_test_dir)
+
+    return train_dataset, valid_test_dataset

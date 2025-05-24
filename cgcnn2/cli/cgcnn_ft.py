@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import CIFData, collate_pool, train_force_split
+from cgcnn2.data import CIFData, collate_pool, train_force_ratio, train_force_set
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import Normalizer, cgcnn_test, get_lr
 from sklearn.model_selection import train_test_split
@@ -64,11 +64,18 @@ def parse_arguments(args=None):
         help="The ratio of the dataset to be used for training. Default: 0.6",
     )
     parser.add_argument(
-        "-trrfs",
-        "--train-ratio-force-set",
+        "-trfr",
+        "--train-force-ratio",
         type=str,
         help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
         "The train : valid : test ratio will be kept as is.",
+    )
+    parser.add_argument(
+        "-trfs",
+        "--train-force-set",
+        type=str,
+        help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
+        "The train : valid : test ratio will not be kept as is.",
     )
     parser.add_argument(
         "-vr",
@@ -226,9 +233,7 @@ def parse_arguments(args=None):
     total_ratio = parsed.train_ratio + parsed.valid_ratio + parsed.test_ratio
     if abs(total_ratio - 1.0) > 1e-6:
         warnings.warn(
-            "Train ratio + Valid ratio + Test ratio != 1.0",
-            UserWarning,
-            stacklevel=2
+            "Train ratio + Valid ratio + Test ratio != 1.0", UserWarning, stacklevel=2
         )
 
     return parsed
@@ -259,9 +264,13 @@ def main():
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
-        if args.train_ratio_force_set:
-            train_dataset, valid_test_dataset = train_force_split(
-                args.full_set, args.train_ratio_force_set, args.train_ratio
+        if args.train_force_set:
+            train_dataset, valid_test_dataset = train_force_set(
+                args.full_set, args.train_force_set, args.train_ratio, args.random_seed
+            )
+        elif args.train_force_ratio:
+            train_dataset, valid_test_dataset = train_force_ratio(
+                args.full_set, args.train_force_ratio, args.train_ratio
             )
         else:
             full_dataset = CIFData(args.full_set)
@@ -288,7 +297,7 @@ def main():
         sample_set = args.full_set
     else:
         sample_set = args.train_set
-        
+
     dataset = CIFData(sample_set)
     atom_graph, _, _ = dataset[0]
     orig_atom_fea_len = atom_graph[0].shape[-1]

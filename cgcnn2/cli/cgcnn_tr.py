@@ -228,9 +228,7 @@ def parse_arguments(args=None):
     total_ratio = parsed.train_ratio + parsed.valid_ratio + parsed.test_ratio
     if abs(total_ratio - 1.0) > 1e-6:
         warnings.warn(
-            "Train ratio + Valid ratio + Test ratio != 1.0",
-            UserWarning,
-            stacklevel=2
+            "Train ratio + Valid ratio + Test ratio != 1.0", UserWarning, stacklevel=2
         )
 
     return parsed
