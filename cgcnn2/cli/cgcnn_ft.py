@@ -320,7 +320,7 @@ def main():
     normalizer.load_state_dict(checkpoint["normalizer"])
 
     print(
-        f"=> Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mse_error']})"
+        f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint.get('best_mse_error', checkpoint.get('best_mae_error', 'N/A'))})"
     )
 
     # Initialize DataLoader
