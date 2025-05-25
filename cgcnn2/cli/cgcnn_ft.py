@@ -319,9 +319,6 @@ def main():
     normalizer = Normalizer(torch.zeros(3))
     normalizer.load_state_dict(checkpoint["normalizer"])
 
-    metrics = []
-    if mse is not None:
-        metrics.append(f"MSE={mse:.4f}")
     print_checkpoint_info(checkpoint, args.model_path)
 
     # Initialize DataLoader
