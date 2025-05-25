@@ -9,7 +9,7 @@ import torch
 import torch.nn as nn
 from cgcnn2.data import CIFData, collate_pool, train_force_ratio, train_force_set
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import Normalizer, cgcnn_test, get_lr
+from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
 from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 
@@ -319,9 +319,7 @@ def main():
     normalizer = Normalizer(torch.zeros(3))
     normalizer.load_state_dict(checkpoint["normalizer"])
 
-    print(
-        f"=> Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint.get('best_mse_error', checkpoint.get('best_mae_error', 'N/A'))})"
-    )
+    print_checkpoint_info(checkpoint, args.model_path)
 
     # Initialize DataLoader
     train_loader = DataLoader(
