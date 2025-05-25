@@ -371,7 +371,7 @@ def train_force_ratio(total_set, force_set, train_ratio):
 
     shutil.copy(f"{total_set}/atom_init.json", temp_train_dir)
     shutil.copy(f"{total_set}/atom_init.json", temp_valid_test_dir)
-    
+
     # Register cleanup functions
     atexit.register(lambda: shutil.rmtree(temp_train_dir, ignore_errors=True))
     atexit.register(lambda: shutil.rmtree(temp_valid_test_dir, ignore_errors=True))
@@ -435,7 +435,9 @@ def train_force_ratio(total_set, force_set, train_ratio):
         )
 
 
-def train_force_set(total_set: str, force_set: str, train_ratio: float, random_seed: int = 0):
+def train_force_set(
+    total_set: str, force_set: str, train_ratio: float, random_seed: int = 0
+):
     """
     Split a *full* data directory into train/valid+test **and** make sure every
     structure in `force_set` ends up in the training subset *without*
@@ -456,11 +458,11 @@ def train_force_set(total_set: str, force_set: str, train_ratio: float, random_s
         raise ValueError(f"Total set directory does not exist: {total_set}")
     if not os.path.exists(force_set):
         raise ValueError(f"Force set directory does not exist: {force_set}")
-    
+
     # Create temporary directories
     temp_train_dir = tempfile.mkdtemp()
     temp_valid_test_dir = tempfile.mkdtemp()
-    
+
     # Register cleanup functions
     atexit.register(lambda: shutil.rmtree(temp_train_dir, ignore_errors=True))
     atexit.register(lambda: shutil.rmtree(temp_valid_test_dir, ignore_errors=True))
@@ -486,11 +488,13 @@ def train_force_set(total_set: str, force_set: str, train_ratio: float, random_s
     total_ids = {f[:-4] for f in total_cifs}
     overlap = force_ids.intersection(total_ids)
     if overlap:
-        warnings.warn(f"Found {len(overlap)} overlapping files between force set and total set. "
-                     f"These will only appear in training set to prevent data leakage.")
-    
+        warnings.warn(
+            f"Found {len(overlap)} overlapping files between force set and total set. "
+            f"These will only appear in training set to prevent data leakage."
+        )
+
     pool_cifs = [f for f in total_cifs if f[:-4] not in force_ids]
-    
+
     random.seed(random_seed)
     random_train_cifs = random.sample(pool_cifs, min(train_random_size, len(pool_cifs)))
     valid_test_cifs = [f for f in pool_cifs if f not in random_train_cifs]

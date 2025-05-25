@@ -342,9 +342,7 @@ def cgcnn_pred(
     model.load_state_dict(checkpoint["state_dict"])
 
     if verbose >= 3:
-        print(
-            f"=> Loaded model from '{model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint.get('best_mse_error', checkpoint.get('best_mae_error', 'N/A'))})"
-        )
+        print_checkpoint_info(checkpoint, model_path)
 
     device = "cuda" if cuda else "cpu"
     model.to(device).eval()
@@ -463,3 +461,29 @@ class Normalizer:
         """
         self.mean = state_dict["mean"]
         self.std = state_dict["std"]
+
+
+def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
+    """
+    Prints the checkpoint information.
+
+    Args:
+        checkpoint (dict[str, Any]): The checkpoint dictionary.
+        model_path (str): The path to the model file.
+    """
+    epoch = checkpoint.get("epoch", "N/A")
+    mse = checkpoint.get("best_mse_error")
+    mae = checkpoint.get("best_mae_error")
+
+    metrics = []
+    if mse is not None:
+        metrics.append(f"MSE={mse:.4f}")
+    if mae is not None:
+        metrics.append(f"MAE={mae:.4f}")
+
+    metrics_str = ", ".join(metrics) if metrics else "N/A"
+
+    print(
+        f"=> Loaded model from '{model_path}' "
+        f"(epoch {epoch}, validation {metrics_str})"
+    )
