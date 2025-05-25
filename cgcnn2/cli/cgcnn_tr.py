@@ -8,7 +8,8 @@ from random import sample
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import CIFData, collate_pool, train_force_split
+from cgcnn2.data import (CIFData, collate_pool, train_force_ratio,
+                         train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import Normalizer, cgcnn_test, get_lr
 from sklearn.model_selection import train_test_split
@@ -62,27 +63,33 @@ def parse_arguments(args=None):
         help="Ratio of the dataset for training. Default: 0.6",
     )
     parser.add_argument(
-        "-trrfs",
-        "--train-ratio-force-set",
+        "-trfr",
+        "--train-force-ratio",
         type=str,
-        help="When using the --full-set / ratio option, force a specific set of CIF files to be used for training.\n"
-        "The train : valid : test ratio is preserved.",
+        help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
+        "The train : valid : test ratio will be kept as is.",
+    )
+    parser.add_argument(
+        "-trfs",
+        "--train-force-set",
+        type=str,
+        help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
+        "The train : valid : test ratio will not be kept as is.",
     )
     parser.add_argument(
         "-vr",
         "--valid-ratio",
         default=0.2,
         type=float,
-        help="Ratio of the dataset for validation. Default: 0.2",
+        help="The ratio of the dataset to be used for validation. Default: 0.2",
     )
     parser.add_argument(
         "-tr",
         "--test-ratio",
         default=0.2,
         type=float,
-        help="Ratio of the dataset for testing. Default: 0.2",
+        help="The ratio of the dataset to be used for testing. Default: 0.2",
     )
-
     # Early stopping scheduler
     parser.add_argument(
         "-e",
@@ -249,26 +256,24 @@ def main():
     output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
-    # Depending on arguments, load separate datasets or split from the --full-set
+    # Load separate datasets or split from the --full-set
     if args.train_set and args.valid_set and args.test_set:
-        # Separate dataset folders provided
         train_dataset = CIFData(args.train_set)
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
-        # Combine them to form a total set for normalizer
-        total_dataset = [*train_dataset, *valid_dataset, *test_dataset]
-
     elif args.full_set:
-        # Single dataset folder with train-valid-test splits by ratio
-        if args.train_ratio_force_set:
-            train_dataset, valid_test_dataset = train_force_split(
-                args.full_set, args.train_ratio_force_set, args.train_ratio
+        if args.train_force_set:
+            train_dataset, valid_test_dataset = train_force_set(
+                args.full_set, args.train_force_set, args.train_ratio, args.random_seed
             )
-            total_dataset = CIFData(args.full_set)
+        elif args.train_force_ratio:
+            train_dataset, valid_test_dataset = train_force_ratio(
+                args.full_set, args.train_force_ratio, args.train_ratio
+            )
         else:
-            total_dataset = CIFData(args.full_set)
+            full_dataset = CIFData(args.full_set)
             train_dataset, valid_test_dataset = train_test_split(
-                total_dataset, test_size=(1 - args.train_ratio)
+                full_dataset, test_size=(1 - args.train_ratio)
             )
         valid_ratio_adj = args.valid_ratio / (1 - args.train_ratio)
         valid_dataset, test_dataset = train_test_split(
@@ -276,8 +281,10 @@ def main():
         )
     else:
         raise ValueError(
-            "Must specify either [train_set, valid_set, test_set] or use --full-set."
+            "Either train, valid, and test datasets or a full data directory must be provided."
         )
+
+    full_dataset = [*train_dataset, *valid_dataset, *test_dataset]
 
     # Normalizer setup
     # For classification we use a dummy normalizer, otherwise compute mean/std from data
@@ -285,14 +292,14 @@ def main():
         normalizer = Normalizer(torch.zeros(2))
         normalizer.load_state_dict({"mean": 0.0, "std": 1.0})
     else:
-        if len(total_dataset) < 500:
+        if len(full_dataset) < 500:
             warnings.warn(
                 "Dataset has fewer than 500 data points; results may have higher variance."
             )
-            sample_data_list = [total_dataset[i] for i in range(len(total_dataset))]
+            sample_data_list = [full_dataset[i] for i in range(len(full_dataset))]
         else:
-            sample_indices = sample(range(len(total_dataset)), 500)
-            sample_data_list = [total_dataset[i] for i in sample_indices]
+            sample_indices = sample(range(len(full_dataset)), 500)
+            sample_data_list = [full_dataset[i] for i in sample_indices]
 
         _, sample_target, _ = collate_pool(sample_data_list)
         normalizer = Normalizer(sample_target)
