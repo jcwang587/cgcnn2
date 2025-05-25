@@ -32,6 +32,7 @@ def parse_arguments(args=None):
         required=True,
         help="Path to the file containing the pre-trained model parameters.",
     )
+    # Dataset arguments
     parser.add_argument(
         "-as",
         "--full-set",
@@ -245,21 +246,21 @@ def main():
     args = parse_arguments()
     print(f"Using device: {args.device}")
 
-    # Set reproducibility
+    # Set the seed for reproducibility
     seed = args.random_seed
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
 
-    # Prepare output folder
+    # Create the output folder
     output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
-    # Check model_path if specified
+    # Check if the model_path exists
     if not os.path.isfile(args.model_path):
         raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
 
-    # Either load separate sets or split from a full set
+    # Load separate datasets or split from a full set
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(args.train_set)
         valid_dataset = CIFData(args.valid_set)
@@ -278,12 +279,10 @@ def main():
             train_dataset, valid_test_dataset = train_test_split(
                 full_dataset, test_size=(1 - args.train_ratio)
             )
-
         valid_ratio_adjusted = args.valid_ratio / (1 - args.train_ratio)
         valid_dataset, test_dataset = train_test_split(
             valid_test_dataset, test_size=(1 - valid_ratio_adjusted)
         )
-
     else:
         raise ValueError(
             "Either train, valid, and test datasets or a full data directory must be provided."
