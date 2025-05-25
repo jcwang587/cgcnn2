@@ -463,28 +463,27 @@ class Normalizer:
         self.std = state_dict["std"]
 
 
- def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
-     """
-     Prints the checkpoint information.
-     
-     Args:
-         checkpoint (dict[str, Any]): The checkpoint dictionary.
-         model_path (str): The path to the model file.
-     """
-     epoch = checkpoint.get("epoch", "N/A")
-     mse   = checkpoint.get("best_mse_error")
-     mae   = checkpoint.get("best_mae_error")
+def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
+    """
+    Prints the checkpoint information.
 
-     metrics = []
-     if mse is not None:
-         metrics.append(f"MSE={mse:.4f}")
-     if mae is not None:
-         metrics.append(f"MAE={mae:.4f}")
+    Args:
+        checkpoint (dict[str, Any]): The checkpoint dictionary.
+        model_path (str): The path to the model file.
+    """
+    epoch = checkpoint.get("epoch", "N/A")
+    mse = checkpoint.get("best_mse_error")
+    mae = checkpoint.get("best_mae_error")
 
-     metrics_str = ", ".join(metrics) if metrics else "N/A"
+    metrics = []
+    if mse is not None:
+        metrics.append(f"MSE={mse:.4f}")
+    if mae is not None:
+        metrics.append(f"MAE={mae:.4f}")
 
-     print(
--        f"=> Loaded model from '{args.model_path}' "
-+        f"=> Loaded model from '{model_path}' "
-         f"(epoch {epoch}, validation {metrics_str})"
-     )
+    metrics_str = ", ".join(metrics) if metrics else "N/A"
+
+    print(
+        f"=> Loaded model from '{model_path}' "
+        f"(epoch {epoch}, validation {metrics_str})"
+    )
