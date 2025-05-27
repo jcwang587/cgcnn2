@@ -334,7 +334,7 @@ def main():
     valid_loader = DataLoader(
         valid_dataset,
         batch_size=args.batch_size,
-        shuffle=True,
+        shuffle=False,
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
@@ -343,7 +343,7 @@ def main():
     test_loader = DataLoader(
         test_dataset,
         batch_size=args.batch_size,
-        shuffle=True,
+        shuffle=False,
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
