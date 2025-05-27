@@ -272,7 +272,10 @@ def main():
             )
         elif args.train_force_ratio:
             train_dataset, valid_test_dataset = train_force_ratio(
-                args.full_set, args.train_force_ratio, args.train_ratio
+                args.full_set,
+                args.train_force_ratio,
+                args.train_ratio,
+                args.random_seed,
             )
         else:
             full_dataset = CIFData(args.full_set)

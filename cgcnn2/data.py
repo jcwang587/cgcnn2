@@ -349,7 +349,7 @@ class CIFData_NoTarget(Dataset):
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
-def train_force_ratio(total_set, force_set, train_ratio):
+def train_force_ratio(total_set, force_set, train_ratio, random_seed: int = 0):
     """
     Set up a training dataset with a forced training set,
     and keep the same input splitting ratio of the training set.
@@ -358,13 +358,15 @@ def train_force_ratio(total_set, force_set, train_ratio):
         total_set (str): The path to the total set
         force_set (str): The path to the forced training set
         train_ratio (float): The ratio of the training set
-
+        random_seed (int): The random seed for the split
     Returns:
         train_dataset: CIFData
             The training dataset
         valid_test_dataset: CIFData
             The validation set
     """
+    random.seed(random_seed)
+
     # create a new temporary directory for the training set
     temp_train_dir = tempfile.mkdtemp()
     temp_valid_test_dir = tempfile.mkdtemp()
@@ -453,6 +455,8 @@ def train_force_set(
         train_dataset (CIFData): The training dataset
         valid_test_dataset (CIFData): The validation and test dataset
     """
+    random.seed(random_seed)
+
     # Validate inputs
     if not os.path.exists(total_set):
         raise ValueError(f"Total set directory does not exist: {total_set}")
@@ -495,7 +499,6 @@ def train_force_set(
 
     pool_cifs = [f for f in total_cifs if f[:-4] not in force_ids]
 
-    random.seed(random_seed)
     random_train_cifs = random.sample(pool_cifs, min(train_random_size, len(pool_cifs)))
     valid_test_cifs = [f for f in pool_cifs if f not in random_train_cifs]
 
