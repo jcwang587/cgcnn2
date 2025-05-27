@@ -11,8 +11,7 @@ from cgcnn2.data import (CIFData, collate_pool, train_force_ratio,
                          train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
-from sklearn.model_selection import train_test_split
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, random_split
 
 
 def parse_arguments(args=None):
@@ -266,22 +265,35 @@ def main():
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
+        generator = torch.Generator().manual_seed(args.random_seed)
         if args.train_force_set:
             train_dataset, valid_test_dataset = train_force_set(
                 args.full_set, args.train_force_set, args.train_ratio, args.random_seed
             )
         elif args.train_force_ratio:
             train_dataset, valid_test_dataset = train_force_ratio(
-                args.full_set, args.train_force_ratio, args.train_ratio
+                args.full_set,
+                args.train_force_ratio,
+                args.train_ratio,
+                args.random_seed,
             )
         else:
             full_dataset = CIFData(args.full_set)
-            train_dataset, valid_test_dataset = train_test_split(
-                full_dataset, test_size=(1 - args.train_ratio)
+            n_total = len(full_dataset)
+            n_train = int(round(n_total * args.train_ratio))
+            n_valid_test = n_total - n_train
+            train_dataset, valid_test_dataset = random_split(
+                full_dataset, lengths=[n_train, n_valid_test], generator=generator
             )
-        valid_ratio_adjusted = args.valid_ratio / (1 - args.train_ratio)
-        valid_dataset, test_dataset = train_test_split(
-            valid_test_dataset, test_size=(1 - valid_ratio_adjusted)
+        n_valid_test = len(valid_test_dataset)
+        n_valid = int(
+            round(
+                n_valid_test * (args.valid_ratio / (args.valid_ratio + args.test_ratio))
+            )
+        )
+        n_test = n_valid_test - n_valid
+        valid_dataset, test_dataset = random_split(
+            valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
     else:
         raise ValueError(
