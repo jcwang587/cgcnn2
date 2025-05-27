@@ -1,5 +1,5 @@
-import csv
 import atexit
+import csv
 import functools
 import json
 import os
@@ -392,7 +392,7 @@ def train_force_ratio(total_set, force_set, train_ratio):
 
     train_force_size = len(train_force_cif_files)
     total_size = len(total_cif_files)
-    train_size = int(total_size * train_ratio)
+    train_size = int(round(total_size * train_ratio))
     train_split_size = int(max(train_size - train_force_size, 0))
 
     if train_split_size > 0:
@@ -481,7 +481,7 @@ def train_force_set(
         shutil.copy(os.path.join(force_set, fname), os.path.join(temp_train_dir, fname))
 
     total_size = len(total_cifs)
-    train_random_size = int(total_size * train_ratio)
+    train_random_size = int(round(total_size * train_ratio))
 
     # Ensure no overlap between force and total sets to prevent data leakage
     force_ids = {f[:-4] for f in force_cifs}
