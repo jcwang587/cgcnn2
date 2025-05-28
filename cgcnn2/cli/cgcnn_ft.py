@@ -279,7 +279,7 @@ def main():
             args.train_set,
             transform=lltoGaussianPertubation(
                 seed=args.random_seed,
-                li_sigma=args.lithium_sigma,
+                li_sigma=args.li_sigma,
                 other_sigma=args.other_sigma,
             ),
         )
