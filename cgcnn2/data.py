@@ -717,29 +717,30 @@ class lltoGaussianPertubationTorch:
             torch.manual_seed(seed)
 
     def __call__(self, struct: Structure) -> Structure:
-        # copy the structure so we don't overwrite the original
+        # copy so original stays intact
         struct_p = struct.copy()
 
-        # get coords as a (N,3) torch tensor
-        coords = torch.tensor(struct_p.cart_coords, device=self.device)
+        # original coords (numpy) for later
+        orig = struct_p.cart_coords  # shape (N,3)
 
-        # figure out Li vs other indices
-        li_idxs = [i for i, site in enumerate(struct_p) if site.specie.symbol == "Li"]
-        other_idxs = [i for i, site in enumerate(struct_p) if site.specie.symbol != "Li"]
+        # prepare a torch tensor on device
+        coords = torch.tensor(orig, device=self.device)
+
+        # decide which indices get which σ
+        li_idxs = [i for i, s in enumerate(struct_p) if s.specie.symbol == "Li"]
+        other_idxs = [i for i in range(len(struct_p)) if i not in li_idxs]
 
         # generate noise
-        li_noise = torch.randn(len(li_idxs), 3, device=self.device) * self.li_sigma
-        other_noise = torch.randn(len(other_idxs), 3, device=self.device) * self.other_sigma
+        noise = torch.zeros_like(coords)
+        noise[li_idxs] = torch.randn(len(li_idxs), 3, device=self.device) * self.li_sigma
+        noise[other_idxs] = torch.randn(len(other_idxs), 3, device=self.device) * self.other_sigma
 
-        # apply it in one go
-        coords[li_idxs] += li_noise
-        coords[other_idxs] += other_noise
-
-        # write back into the pymatgen Structure (convert to CPU numpy)
-        struct_p._sites = [
-            struct_p[i] if i not in li_idxs + other_idxs else
-            struct_p[i].__class__(struct_p[i].species, coords[i].cpu().numpy(), properties=struct_p[i].properties)
-            for i in range(len(struct_p))
-        ]
+        # translate sites in-place (convert noise to numpy)
+        disp = noise.cpu().numpy()
+        struct_p.translate_sites(
+            indices=list(range(len(struct_p))),
+            vector_list=disp,
+            frac_coords=False
+        )
 
         return struct_p
