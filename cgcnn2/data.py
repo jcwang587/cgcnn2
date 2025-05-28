@@ -291,7 +291,14 @@ class CIFData_Aug(Dataset):
     """
 
     def __init__(
-        self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123, transform=None
+        self,
+        root_dir,
+        max_num_nbr=12,
+        radius=8,
+        dmin=0,
+        step=0.2,
+        random_seed=123,
+        transform=None,
     ):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
@@ -352,6 +359,55 @@ class CIFData_Aug(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+
+
+class lltoGaussianPertubationTorch:
+    """
+    Apply element-specific Gaussian displacements to every site
+    in a Structure:
+
+        • Li atoms: anisotropic sigma - 0.4 Å
+        • All other atoms: isotropic sigma = 0.1 Å.
+
+    Parameters
+    ----------
+    seed : int or None
+        Optional seed for reproducible noise.
+    """
+
+    def __init__(
+        self,
+        seed: int | None = None,
+        li_sigma: float = 0.4,
+        other_sigma: float = 0.1,
+        device: str | torch.device = "cpu",
+    ):
+        self.li_sigma = li_sigma
+        self.other_sigma = other_sigma
+        self.device = torch.device(device)
+        if seed is not None:
+            torch.manual_seed(seed)
+
+    def _perturb_structure(self, struct: Structure) -> Structure:
+        struct_p = struct.copy()
+
+        # get all coords, perturb, and bring back to numpy
+        coords = np.stack([site.coords for site in struct_p])
+        coords_tensor = torch.from_numpy(coords).to(self.device)
+
+        noise = torch.randn_like(coords_tensor) * self.other_sigma
+        coords_tensor += noise
+        coords_perturbed = coords_tensor.cpu().numpy()
+
+        # DIRECTLY overwrite the private _coords of each site
+        for i, new_c in enumerate(coords_perturbed):
+            struct_p._sites[i]._coords = new_c
+
+        return struct_p
+
+    # so the instance itself is callable
+    def __call__(self, struct: Structure) -> Structure:
+        return self._perturb_structure(struct)
 
 
 # class CIFData_Aug(Dataset):
@@ -777,55 +833,6 @@ class lltoGaussianPertubation:
                 dxyz = self.rng.normal(scale=self.other_sigma, size=3)
 
             struct_p.translate_sites([i], dxyz, frac_coords=False)
-        return struct_p
-
-    # so the instance itself is callable
-    def __call__(self, struct: Structure) -> Structure:
-        return self._perturb_structure(struct)
-
-
-class lltoGaussianPertubationTorch:
-    """
-    Apply element-specific Gaussian displacements to every site
-    in a Structure:
-
-        • Li atoms: anisotropic sigma - 0.4 Å
-        • All other atoms: isotropic sigma = 0.1 Å.
-
-    Parameters
-    ----------
-    seed : int or None
-        Optional seed for reproducible noise.
-    """
-
-    def __init__(
-        self,
-        seed: int | None = None,
-        li_sigma: float = 0.4,
-        other_sigma: float = 0.1,
-        device: str | torch.device = "cpu",
-    ):
-        self.li_sigma = li_sigma
-        self.other_sigma = other_sigma
-        self.device = torch.device(device)
-        if seed is not None:
-            torch.manual_seed(seed)
-
-    def _perturb_structure(self, struct: Structure) -> Structure:
-        struct_p = struct.copy()
-
-        # get all coords, perturb, and bring back to numpy
-        coords = np.stack([site.coords for site in struct_p])
-        coords_tensor = torch.from_numpy(coords).to(self.device)
-
-        noise = torch.randn_like(coords_tensor) * self.other_sigma  
-        coords_tensor += noise  
-        coords_perturbed = coords_tensor.cpu().numpy()
-
-        # DIRECTLY overwrite the private _coords of each site
-        for i, new_c in enumerate(coords_perturbed):
-            struct_p._sites[i]._coords = new_c
-
         return struct_p
 
     # so the instance itself is callable
