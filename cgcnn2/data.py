@@ -694,7 +694,7 @@ class lltoGaussianPertubationTorch:
     Apply element-specific Gaussian displacements to every site
     in a Structure:
 
-        • Li atoms: anisotropic sigma - 0.4 Å 
+        • Li atoms: anisotropic sigma - 0.4 Å
         • All other atoms: isotropic sigma = 0.1 Å.
 
     Parameters
@@ -711,6 +711,7 @@ class lltoGaussianPertubationTorch:
         # hard-coded sigmas
         self.li_sigma = li_sigma
         self.other_sigma = other_sigma
+        self.device = device
 
     def _perturb_structure(self, struct: Structure) -> Structure:
         """Return a deep-copied, perturbed structure."""
@@ -722,13 +723,15 @@ class lltoGaussianPertubationTorch:
         li_coords = np.array([site.coords for site in li_sites])
         other_sites = [site for site in struct_p if site.specie.symbol != "Li"]
         other_coords = np.array([site.coords for site in other_sites])
-        
+
         # perturb Li sites
         li_coords = self.rng.normal(scale=self.li_sigma, size=(len(li_coords), 3))
         li_coords = li_coords + li_coords.sum(axis=0) / len(li_coords)
 
         # perturb other sites
-        other_coords = self.rng.normal(scale=self.other_sigma, size=(len(other_coords), 3))
+        other_coords = self.rng.normal(
+            scale=self.other_sigma, size=(len(other_coords), 3)
+        )
         other_coords = other_coords + other_coords.sum(axis=0) / len(other_coords)
 
         # update the structure
@@ -743,4 +746,3 @@ class lltoGaussianPertubationTorch:
     # so the instance itself is callable
     def __call__(self, struct: Structure) -> Structure:
         return self._perturb_structure(struct)
-    
