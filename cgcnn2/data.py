@@ -318,7 +318,7 @@ class CIFData_Aug(Dataset):
     def __len__(self):
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=1024)  # Cache loaded structures
+    @functools.lru_cache(maxsize=64)
     def __getitem__(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
