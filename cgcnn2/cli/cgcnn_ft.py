@@ -7,8 +7,9 @@ import warnings
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import (CIFData_Aug, CIFData, collate_pool, lltoGaussianPertubation,
-                         train_force_ratio, train_force_set)
+from cgcnn2.data import (CIFData, CIFData_Aug, collate_pool,
+                         lltoGaussianPertubation, train_force_ratio,
+                         train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
 from torch.utils.data import DataLoader, random_split
@@ -284,15 +285,15 @@ def main():
             train_dataset = CIFData_Aug(
                 args.train_set,
                 transform=lltoGaussianPertubation(
-                seed=args.random_seed,
-                li_sigma=args.li_sigma,
-                other_sigma=args.other_sigma,
+                    seed=args.random_seed,
+                    li_sigma=args.li_sigma,
+                    other_sigma=args.other_sigma,
                 ),
             )
         else:
-            train_dataset = CIFData(args.train_set, transform=None)
-        valid_dataset = CIFData(args.valid_set, transform=None)
-        test_dataset = CIFData(args.test_set, transform=None)
+            train_dataset = CIFData(args.train_set)
+        valid_dataset = CIFData(args.valid_set)
+        test_dataset = CIFData(args.test_set)
     elif args.full_set:
         generator = torch.Generator().manual_seed(args.random_seed)
         if args.train_force_set:
