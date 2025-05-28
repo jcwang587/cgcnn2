@@ -687,3 +687,136 @@ class lltoGaussianPertubation:
     # so the instance itself is callable
     def __call__(self, struct: Structure) -> Structure:
         return self._perturb_structure(struct)
+
+
+class lltoGaussianPertubationTorch:
+    """
+    Same semantics as the original lltoGaussianPertubation, but the heavy-lifting
+    is vectorised with PyTorch.
+
+    Parameters
+    ----------
+    seed : int | None
+        RNG seed for reproducibility.
+    li_sigma : float
+        Anisotropic σ to apply along the least-spread Li-Ti axis.
+    other_sigma : float
+        Isotropic σ for all remaining axes and for non-Li atoms.
+    device : "cpu" | "cuda" | torch.device
+        Where to place the tensors.  Pass "cuda" on an A100 node.
+    dtype : torch.dtype
+        Use `torch.float64` if you keep your coordinates in double precision.
+    """
+
+    def __init__(
+        self,
+        seed: int | None = None,
+        li_sigma: float = 0.4,
+        other_sigma: float = 0.1,
+        device: str | torch.device = "cpu",
+        dtype: torch.dtype = torch.float32,
+    ):
+        self.li_sigma = li_sigma
+        self.other_sigma = other_sigma
+        self.device = torch.device(device)
+        self.dtype = dtype
+
+        # Torch RNG (independent of NumPy / python's random)
+        self._g = torch.Generator(device=device)
+        if seed is not None:
+            self._g.manual_seed(seed)
+
+    # --------------------------------------------------------------------- #
+    #                       ===  core perturb routine  ===                   #
+    # --------------------------------------------------------------------- #
+    def _perturb_structure(self, struct: Structure) -> Structure:
+        n = len(struct)
+
+        # cartesian coordinates → tensor, shape (N, 3)
+        xyz = torch.as_tensor(struct.cart_coords, dtype=self.dtype, device=self.device)
+
+        # boolean masks for species
+        symbols = np.array([s.specie.symbol for s in struct])
+        li_mask = torch.from_numpy(symbols == "Li").to(self.device)
+        ti_mask = torch.from_numpy(symbols == "Ti").to(self.device)
+
+        # ---------- fast path if a structure has no Ti neighbours ----------
+        if not ti_mask.any():
+            noise = torch.normal(
+                mean=0.0,
+                std=self.other_sigma,
+                size=(n, 3),
+                generator=self._g,
+                device=self.device,
+                dtype=self.dtype,
+            )
+            xyz_pert = xyz + noise
+            return self._apply_delta(struct, xyz_pert - xyz)
+
+        # ------------------------------------------------------------------ #
+        #        1. build noise tensor initialised with isotropic σ          #
+        # ------------------------------------------------------------------ #
+        noise = torch.normal(
+            mean=0.0,
+            std=self.other_sigma,
+            size=(n, 3),
+            generator=self._g,
+            device=self.device,
+            dtype=self.dtype,
+        )
+
+        # ------------------------------------------------------------------ #
+        #  2. handle Li atoms: anisotropic σ along least-spread Li-Ti axis   #
+        # ------------------------------------------------------------------ #
+        li_idx         = li_mask.nonzero(as_tuple=False).squeeze(1)          # (L,)
+        li_coords      = xyz[li_idx]                                         # (L,3)
+        ti_coords      = xyz[ti_mask]                                        # (M,3)
+
+        # pairwise distances Li ↔ Ti, shape (L, M)
+        dmat           = torch.cdist(li_coords, ti_coords)                  # GPU-optimised
+
+        # pick up to K=4 nearest Ti neighbours for every Li (L, K)
+        K              = min(4, ti_coords.shape[0])
+        topk           = torch.topk(dmat, k=K, largest=False).indices        # (L,K)
+        ti_near_coords = ti_coords[topk]                                     # (L,K,3)
+
+        # axis-wise std for each Li (L,3)   →   best axis idx  (L,)
+        axis_std   = ti_near_coords.std(dim=1)                               # (L,3)
+        best_axis  = axis_std.argmin(dim=1)                                  # (L,)
+
+        # build σ tensor for Li atoms (L,3)
+        sig_li = torch.full_like(axis_std, fill_value=self.other_sigma)      # (L,3)
+        sig_li[torch.arange(sig_li.shape[0]), best_axis] = self.li_sigma
+
+        # sample Li-specific noise and overwrite the isotropic values
+        noise_li = torch.normal(
+            mean=0.0,
+            std=sig_li,
+            generator=self._g,
+        )
+        noise[li_idx] = noise_li
+
+        # ------------------------------------------------------------------ #
+        xyz_pert = xyz + noise
+        return self._apply_delta(struct, xyz_pert - xyz)
+
+    # --------------------------------------------------------------------- #
+    #      helper: translate_sites in one shot with the Δ-tensor           #
+    # --------------------------------------------------------------------- #
+    @staticmethod
+    def _apply_delta(struct: Structure, delta: torch.Tensor) -> Structure:
+        """
+        Apply the pre-computed Cartesian displacements stored in `delta`
+        (shape = (N,3)) to a deep copy of `struct` and return it.
+        """
+        struct_p = struct.copy()
+        struct_p.translate_sites(
+            indices=list(range(len(struct_p))),
+            vector=delta.cpu().numpy(),    # convert once
+            frac_coords=False,
+        )
+        return struct_p
+
+    # so the instance itself is callable
+    def __call__(self, struct: Structure) -> Structure:
+        return self._perturb_structure(struct)

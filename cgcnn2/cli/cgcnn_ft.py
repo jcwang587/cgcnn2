@@ -8,7 +8,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from cgcnn2.data import (CIFData, CIFData_Aug, collate_pool,
-                         lltoGaussianPertubation, train_force_ratio,
+                         lltoGaussianPertubationTorch, train_force_ratio,
                          train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
@@ -284,10 +284,11 @@ def main():
         if args.augmentation:
             train_dataset = CIFData_Aug(
                 args.train_set,
-                transform=lltoGaussianPertubation(
+                transform=lltoGaussianPertubationTorch(
                     seed=args.random_seed,
                     li_sigma=args.li_sigma,
                     other_sigma=args.other_sigma,
+                    device=args.device,
                 ),
             )
         else:
