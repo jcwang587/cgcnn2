@@ -226,6 +226,11 @@ def parse_arguments(args=None):
     )
     # augmentations
     parser.add_argument(
+        "--augmentation",
+        action="store_true",
+        help="Whether to use augmentations for the training set.",
+    )
+    parser.add_argument(
         "-lsig",
         "--li-sigma",
         type=float,
@@ -275,14 +280,17 @@ def main():
 
     # Load separate datasets or split from a full set
     if args.train_set and args.valid_set and args.test_set:
-        train_dataset = CIFData(
-            args.train_set,
-            transform=lltoGaussianPertubation(
+        if args.augmentation:
+            train_dataset = CIFData(
+                args.train_set,
+                transform=lltoGaussianPertubation(
                 seed=args.random_seed,
                 li_sigma=args.li_sigma,
                 other_sigma=args.other_sigma,
-            ),
-        )
+                ),
+            )
+        else:
+            train_dataset = CIFData(args.train_set, transform=None)
         valid_dataset = CIFData(args.valid_set, transform=None)
         test_dataset = CIFData(args.test_set, transform=None)
     elif args.full_set:
