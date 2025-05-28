@@ -7,12 +7,46 @@ import random
 import shutil
 import tempfile
 import warnings
+from typing import Callable, Optional
 
 import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset
+
+
+def tensorise(
+    struct: Structure,
+    *,
+    ari: "AtomCustomJSONInitializer",
+    gdf: "GaussianDistance",
+    max_num_nbr: int,
+    radius: float,
+):
+    """Structure → (atom_fea, nbr_fea, nbr_fea_idx) tensors (exactly
+    the same math you already have in CIFData.__getitem__)."""
+    atom_fea = np.vstack([ari.get_atom_fea(s.specie.number) for s in struct])
+    atom_fea = torch.tensor(atom_fea, dtype=torch.float32)
+
+    all_nbrs = struct.get_all_neighbors(radius, include_index=True)
+    all_nbrs = [sorted(n, key=lambda x: x[1]) for n in all_nbrs]
+
+    nbr_fea_idx, nbr_fea = [], []
+    for nbr in all_nbrs:
+        if len(nbr) < max_num_nbr:
+            # identical padding logic
+            nbr_fea_idx.append([x[2] for x in nbr] + [0] * (max_num_nbr - len(nbr)))
+            nbr_fea.append(
+                [x[1] for x in nbr] + [radius + 1.0] * (max_num_nbr - len(nbr))
+            )
+        else:
+            nbr_fea_idx.append([x[2] for x in nbr[:max_num_nbr]])
+            nbr_fea.append([x[1] for x in nbr[:max_num_nbr]])
+
+    nbr_fea_idx = torch.LongTensor(np.asarray(nbr_fea_idx))
+    nbr_fea = torch.tensor(gdf.expand(np.asarray(nbr_fea)), dtype=torch.float32)
+    return atom_fea, nbr_fea, nbr_fea_idx
 
 
 def collate_pool(dataset_list):
@@ -199,7 +233,14 @@ class CIFData(Dataset):
     """
 
     def __init__(
-        self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123
+        self,
+        root_dir,
+        max_num_nbr=12,
+        radius=8,
+        dmin=0,
+        step=0.2,
+        random_seed=123,
+        perturb: Optional[Callable[[Structure], Structure]] = None,
     ):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
@@ -214,6 +255,7 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+        self.perturb = perturb
 
     def __len__(self):
         return len(self.id_prop_data)
@@ -221,42 +263,11 @@ class CIFData(Dataset):
     @functools.lru_cache(maxsize=1024)  # Cache loaded structures
     def __getitem__(self, idx):
         cif_id, target = self.id_prop_data[idx]
-        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        atom_fea = np.vstack(
-            [
-                self.ari.get_atom_fea(crystal[i].specie.number)
-                for i in range(len(crystal))
-            ]
-        )
-        atom_fea = torch.Tensor(atom_fea)
-        all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
-        all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
-        nbr_fea_idx, nbr_fea = [], []
-        for nbr in all_nbrs:
-            if len(nbr) < self.max_num_nbr:
-                warnings.warn(
-                    "{} not find enough neighbors to build graph. "
-                    "If it happens frequently, consider increase "
-                    "radius.".format(cif_id),
-                    stacklevel=2,
-                )
-                nbr_fea_idx.append(
-                    list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
-                )
-                nbr_fea.append(
-                    list(map(lambda x: x[1], nbr))
-                    + [self.radius + 1.0] * (self.max_num_nbr - len(nbr))
-                )
-            else:
-                nbr_fea_idx.append(list(map(lambda x: x[2], nbr[: self.max_num_nbr])))
-                nbr_fea.append(list(map(lambda x: x[1], nbr[: self.max_num_nbr])))
-        nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
-        nbr_fea = self.gdf.expand(nbr_fea)
-        atom_fea = torch.Tensor(atom_fea)
-        nbr_fea = torch.Tensor(nbr_fea)
-        nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
-        target = torch.Tensor([float(target)])
-        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+        struct = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+        if self.perturb is not None:
+            # NOTE – only *training* dataset will pass a real function here.
+            struct = self.perturb(struct)
+        return struct, torch.tensor([float(target)]), cif_id
 
 
 class CIFData_NoTarget(Dataset):
@@ -524,3 +535,93 @@ def train_force_set(
     valid_test_dataset = CIFData(temp_valid_test_dir)
 
     return train_dataset, valid_test_dataset
+
+
+def make_collate_fn(*, ari, gdf, max_num_nbr, radius, device=None):
+    def collate(batch):
+        bat_atom, bat_nbr, bat_nbr_idx = [], [], []
+        crys_atom_idx, bat_target, bat_ids = [], [], []
+        base = 0
+        for struct, target, cid in batch:
+            atom, nbr, nbr_idx = tensorise(
+                struct, ari=ari, gdf=gdf, max_num_nbr=max_num_nbr, radius=radius
+            )
+            n_i = atom.shape[0]
+            bat_atom.append(atom)
+            bat_nbr.append(nbr)
+            bat_nbr_idx.append(nbr_idx + base)
+            crys_atom_idx.append(torch.arange(n_i) + base)
+            bat_target.append(target)
+            bat_ids.append(cid)
+            base += n_i
+
+        return (
+            (
+                torch.cat(bat_atom, 0),
+                torch.cat(bat_nbr, 0),
+                torch.cat(bat_nbr_idx, 0),
+                [idx.to(device) if device else idx for idx in crys_atom_idx],
+            ),
+            torch.stack(bat_target, 0),
+            bat_ids,
+        )
+
+    return collate
+
+
+class lltoGaussianPertubation:
+    """
+    Apply element-specific Gaussian displacements to every site
+    in a Structure:
+
+        • Li atoms: anisotropic sigma - 0.4 Å along the least-spread
+          Li-Ti axis (within 4 Å), 0.1 Å along the other two.
+        • All other atoms: isotropic sigma = 0.1 Å.
+
+    Parameters
+    ----------
+    seed : int or None
+        Optional seed for reproducible noise.
+    """
+
+    def __init__(
+        self, seed: int | None = None, li_sigma: float = 0.4, other_sigma: float = 0.1
+    ):
+        self.rng = np.random.default_rng(seed)
+
+        # hard-coded sigmas
+        self.li_sigma = li_sigma
+        self.other_sigma = other_sigma
+
+    def _perturb_structure(self, struct: Structure) -> Structure:
+        """Return a deep-copied, perturbed structure."""
+        # deep-copy the structure
+        struct_p = struct.copy()
+
+        # get the Cartesian coordinates
+        for i, site in enumerate(struct_p):
+            if site.specie.symbol == "Li":
+                neighs = struct.get_sites_in_sphere(site.coords, 4.0)
+
+                ti_sites = [
+                    tup[0]
+                    for tup in sorted(neighs, key=lambda x: x[1])
+                    if tup[0].specie.symbol == "Ti"
+                ][:4]
+
+                ti_coords = np.array([site.coords for site in ti_sites])
+                axis_std = ti_coords.std(axis=0)
+                best_axis = np.argmin(axis_std)
+
+                sigmas = np.full(3, self.other_sigma)
+                sigmas[best_axis] = self.li_sigma
+                dxyz = self.rng.normal(scale=sigmas, size=3)
+            else:
+                dxyz = self.rng.normal(scale=self.other_sigma, size=3)
+
+            struct_p.translate_sites([i], dxyz, frac_coords=False)
+        return struct_p
+
+    # so the instance itself is callable
+    def __call__(self, struct: Structure) -> Structure:
+        return self._perturb_structure(struct)

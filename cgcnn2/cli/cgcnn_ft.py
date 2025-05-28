@@ -7,8 +7,8 @@ import warnings
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import (CIFData, collate_pool, train_force_ratio,
-                         train_force_set)
+from cgcnn2.data import (CIFData, make_collate_fn, AtomCustomJSONInitializer, GaussianDistance, train_force_ratio,
+                         train_force_set, lltoGaussianPertubation)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
 from torch.utils.data import DataLoader, random_split
@@ -225,6 +225,22 @@ def parse_arguments(args=None):
         help="Job ID for naming output folder (default: <PID>)",
     )
 
+    # augmentations
+    parser.add_argument(
+        "-lsig",
+        "--li-sigma",
+        type=float,
+        default=0.4,
+        help="Sigma for the lithium augmentations",
+    )
+    parser.add_argument(
+        "-osig",
+        "--other-sigma",
+        type=float,
+        default=0.1,
+        help="Sigma for the other augmentations",
+    )
+
     parsed = parser.parse_args(args if args is not None else sys.argv[1:])
     parsed.device = torch.device(
         "cuda" if not parsed.disable_cuda and torch.cuda.is_available() else "cpu"
@@ -261,9 +277,30 @@ def main():
 
     # Load separate datasets or split from a full set
     if args.train_set and args.valid_set and args.test_set:
-        train_dataset = CIFData(args.train_set)
+        perturber = lltoGaussianPertubation(
+            seed=args.random_seed,
+            li_sigma=args.li_sigma,
+            other_sigma=args.other_sigma,
+        )
+        train_dataset = CIFData(args.train_set, perturb=perturber)
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
+        
+        ari = train_dataset.ari        # already built inside the dataset
+        gdf = train_dataset.gdf
+        max_nbr = train_dataset.max_num_nbr
+        radius  = train_dataset.radius
+
+        collate_train = make_collate_fn(
+            ari=ari, gdf=gdf,
+            max_num_nbr=max_nbr, radius=radius,
+            device=args.device,
+        )
+        collate_eval = make_collate_fn(
+            ari=ari, gdf=gdf,
+            max_num_nbr=max_nbr, radius=radius,
+            device=args.device,
+        )       
     elif args.full_set:
         generator = torch.Generator().manual_seed(args.random_seed)
         if args.train_force_set:
@@ -339,7 +376,7 @@ def main():
         batch_size=args.batch_size,
         shuffle=True,
         num_workers=args.workers,
-        collate_fn=collate_pool,
+        collate_fn=collate_train,
         pin_memory=args.device.type == "cuda",
     )
 
@@ -348,7 +385,7 @@ def main():
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.workers,
-        collate_fn=collate_pool,
+        collate_fn=collate_eval,
         pin_memory=args.device.type == "cuda",
     )
 
@@ -357,7 +394,7 @@ def main():
         batch_size=args.batch_size,
         shuffle=False,
         num_workers=args.workers,
-        collate_fn=collate_pool,
+        collate_fn=collate_eval,
         pin_memory=args.device.type == "cuda",
     )
 
