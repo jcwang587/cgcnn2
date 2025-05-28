@@ -716,31 +716,23 @@ class lltoGaussianPertubationTorch:
         if seed is not None:
             torch.manual_seed(seed)
 
-    def __call__(self, struct: Structure) -> Structure:
-        # copy so original stays intact
+    def _perturb_structure(self, struct: Structure) -> Structure:
         struct_p = struct.copy()
 
-        # original coords (numpy) for later
-        orig = struct_p.cart_coords  # shape (N,3)
+        # get all coords, perturb, and bring back to numpy
+        coords = np.stack([site.coords for site in struct_p])
+        coords_tensor = torch.from_numpy(coords).to(self.device)
 
-        # prepare a torch tensor on device
-        coords = torch.tensor(orig, device=self.device)
+        noise = torch.randn_like(coords_tensor) * self.other_sigma  
+        coords_tensor += noise  
+        coords_perturbed = coords_tensor.cpu().numpy()
 
-        # decide which indices get which σ
-        li_idxs = [i for i, s in enumerate(struct_p) if s.specie.symbol == "Li"]
-        other_idxs = [i for i in range(len(struct_p)) if i not in li_idxs]
-
-        # generate noise
-        noise = torch.zeros_like(coords)
-        noise[li_idxs] = torch.randn(len(li_idxs), 3, device=self.device) * self.li_sigma
-        noise[other_idxs] = torch.randn(len(other_idxs), 3, device=self.device) * self.other_sigma
-
-        # translate sites in-place (convert noise to numpy)
-        disp = noise.cpu().numpy()
-        struct_p.translate_sites(
-            indices=list(range(len(struct_p))),
-            vector_list=disp,
-            frac_coords=False
-        )
+        # DIRECTLY overwrite the private _coords of each site
+        for i, new_c in enumerate(coords_perturbed):
+            struct_p._sites[i]._coords = new_c
 
         return struct_p
+
+    # so the instance itself is callable
+    def __call__(self, struct: Structure) -> Structure:
+        return self._perturb_structure(struct)
