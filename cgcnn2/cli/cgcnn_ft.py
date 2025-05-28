@@ -226,14 +226,14 @@ def parse_arguments(args=None):
     )
     # augmentations
     parser.add_argument(
-        "-li-sigma",
-        "--lithium-sigma",
+        "-lsig",
+        "--li-sigma",
         type=float,
         default=0.4,
         help="Sigma for the lithium augmentations",
     )
     parser.add_argument(
-        "-oa-sigma",
+        "-osig",
         "--other-sigma",
         type=float,
         default=0.1,
