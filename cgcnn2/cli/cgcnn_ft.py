@@ -283,8 +283,8 @@ def main():
                 other_sigma=args.other_sigma,
             ),
         )
-        valid_dataset = CIFData(args.valid_set)
-        test_dataset = CIFData(args.test_set)
+        valid_dataset = CIFData(args.valid_set, transform=None)
+        test_dataset = CIFData(args.test_set, transform=None)
     elif args.full_set:
         generator = torch.Generator().manual_seed(args.random_seed)
         if args.train_force_set:
