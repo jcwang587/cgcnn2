@@ -7,7 +7,7 @@ import warnings
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import (CIFData, collate_pool, lltoGaussianPertubation,
+from cgcnn2.data import (CIFData_Aug, CIFData, collate_pool, lltoGaussianPertubation,
                          train_force_ratio, train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
@@ -281,7 +281,7 @@ def main():
     # Load separate datasets or split from a full set
     if args.train_set and args.valid_set and args.test_set:
         if args.augmentation:
-            train_dataset = CIFData(
+            train_dataset = CIFData_Aug(
                 args.train_set,
                 transform=lltoGaussianPertubation(
                 seed=args.random_seed,
