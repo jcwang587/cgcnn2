@@ -718,32 +718,20 @@ class lltoGaussianPertubationTorch:
         self.device = device
 
     def _perturb_structure(self, struct: Structure) -> Structure:
-        """Return a deep-copied, perturbed structure."""
-        # deep-copy the structure
         struct_p = struct.copy()
+        # figure out which positions are Li vs “other”
+        li_idxs    = [i for i, site in enumerate(struct_p) if site.specie.symbol == "Li"]
+        other_idxs = [i for i, site in enumerate(struct_p) if site.specie.symbol != "Li"]
 
-        # get Li sites
-        li_sites = [site for site in struct_p if site.specie.symbol == "Li"]
-        li_coords = np.array([site.coords for site in li_sites])
-        other_sites = [site for site in struct_p if site.specie.symbol != "Li"]
-        other_coords = np.array([site.coords for site in other_sites])
+        # generate exactly as many perturbations as you need
+        li_noise    = self.rng.normal(scale=self.li_sigma,   size=(len(li_idxs),    3))
+        other_noise = self.rng.normal(scale=self.other_sigma, size=(len(other_idxs), 3))
 
-        # perturb Li sites
-        li_coords = self.rng.normal(scale=self.li_sigma, size=(len(li_coords), 3))
-        li_coords = li_coords + li_coords.sum(axis=0) / len(li_coords)
-
-        # perturb other sites
-        other_coords = self.rng.normal(
-            scale=self.other_sigma, size=(len(other_coords), 3)
-        )
-        other_coords = other_coords + other_coords.sum(axis=0) / len(other_coords)
-
-        # update the structure
-        for i, site in enumerate(struct_p):
-            if site.specie.symbol == "Li":
-                site.coords = li_coords[i]
-            else:
-                site.coords = other_coords[i]
+        # assign them back to the right site indices
+        for idx, noise in zip(li_idxs,    li_noise):
+            struct_p[idx].coords += noise
+        for idx, noise in zip(other_idxs, other_noise):
+            struct_p[idx].coords += noise
 
         return struct_p
 
