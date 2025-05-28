@@ -199,7 +199,14 @@ class CIFData(Dataset):
     """
 
     def __init__(
-        self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123
+        self,
+        root_dir,
+        max_num_nbr=12,
+        radius=8,
+        dmin=0,
+        step=0.2,
+        random_seed=123,
+        transform=None,
     ):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
@@ -214,6 +221,7 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+        self.transform = transform
 
     def __len__(self):
         return len(self.id_prop_data)
@@ -222,6 +230,8 @@ class CIFData(Dataset):
     def __getitem__(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+        if self.transform:
+            crystal = self.transform(crystal)
         atom_fea = np.vstack(
             [
                 self.ari.get_atom_fea(crystal[i].specie.number)
@@ -524,3 +534,59 @@ def train_force_set(
     valid_test_dataset = CIFData(temp_valid_test_dir)
 
     return train_dataset, valid_test_dataset
+
+
+class lltoGaussianPertubation:
+    """
+    Apply element-specific Gaussian displacements to every site
+    in a Structure:
+
+        • Li atoms: anisotropic sigma - 0.4 Å along the least-spread
+          Li-Ti axis (within 4 Å), 0.1 Å along the other two.
+        • All other atoms: isotropic sigma = 0.1 Å.
+
+    Parameters
+    ----------
+    seed : int or None
+        Optional seed for reproducible noise.
+    """
+
+    def __init__(self, seed: int | None = None):
+        self.rng = np.random.default_rng(seed)
+
+        # hard-coded sigmas
+        self.li_sigma = 0.4
+        self.other_sigma = 0.1
+
+    def _perturb_structure(self, struct: Structure) -> Structure:
+        """Return a deep-copied, perturbed structure."""
+        # deep-copy the structure
+        struct_p = struct.copy()
+
+        # get the Cartesian coordinates
+        for i, site in enumerate(struct_p):
+            if site.specie.symbol == "Li":
+                neighs = struct.get_sites_in_sphere(site.coords, 4.0)
+
+                ti_sites = [
+                    tup[0]
+                    for tup in sorted(neighs, key=lambda x: x[1])
+                    if tup[0].specie.symbol == "Ti"
+                ][:4]
+
+                ti_coords = np.array([site.coords for site in ti_sites])
+                axis_std = ti_coords.std(axis=0)
+                best_axis = np.argmin(axis_std)
+
+                sigmas = np.full(3, self.other_sigma)
+                sigmas[best_axis] = self.li_sigma
+                dxyz = self.rng.normal(scale=sigmas, size=3)
+            else:
+                dxyz = self.rng.normal(scale=self.other_sigma, size=3)
+
+            struct_p.translate_sites([i], dxyz, frac_coords=False)
+        return struct_p
+
+    # so the instance itself is callable
+    def __call__(self, struct: Structure) -> Structure:
+        return self._perturb_structure(struct)
