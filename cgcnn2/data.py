@@ -708,33 +708,38 @@ class lltoGaussianPertubationTorch:
         seed: int | None = None,
         li_sigma: float = 0.4,
         other_sigma: float = 0.1,
-        device: str = "cpu",
+        device: str | torch.device = "cpu",
     ):
-        self.rng = np.random.default_rng(seed)
-
-        # hard-coded sigmas
         self.li_sigma = li_sigma
         self.other_sigma = other_sigma
-        self.device = device
+        self.device = torch.device(device)
+        if seed is not None:
+            torch.manual_seed(seed)
 
-    def _perturb_structure(self, struct: Structure) -> Structure:
+    def __call__(self, struct: Structure) -> Structure:
+        # copy the structure so we don't overwrite the original
         struct_p = struct.copy()
-        # figure out which positions are Li vs “other”
-        li_idxs    = [i for i, site in enumerate(struct_p) if site.specie.symbol == "Li"]
+
+        # get coords as a (N,3) torch tensor
+        coords = torch.tensor(struct_p.cart_coords, device=self.device)
+
+        # figure out Li vs other indices
+        li_idxs = [i for i, site in enumerate(struct_p) if site.specie.symbol == "Li"]
         other_idxs = [i for i, site in enumerate(struct_p) if site.specie.symbol != "Li"]
 
-        # generate exactly as many perturbations as you need
-        li_noise    = self.rng.normal(scale=self.li_sigma,   size=(len(li_idxs),    3))
-        other_noise = self.rng.normal(scale=self.other_sigma, size=(len(other_idxs), 3))
+        # generate noise
+        li_noise = torch.randn(len(li_idxs), 3, device=self.device) * self.li_sigma
+        other_noise = torch.randn(len(other_idxs), 3, device=self.device) * self.other_sigma
 
-        # assign them back to the right site indices
-        for idx, noise in zip(li_idxs,    li_noise):
-            struct_p[idx].coords += noise
-        for idx, noise in zip(other_idxs, other_noise):
-            struct_p[idx].coords += noise
+        # apply it in one go
+        coords[li_idxs] += li_noise
+        coords[other_idxs] += other_noise
+
+        # write back into the pymatgen Structure (convert to CPU numpy)
+        struct_p._sites = [
+            struct_p[i] if i not in li_idxs + other_idxs else
+            struct_p[i].__class__(struct_p[i].species, coords[i].cpu().numpy(), properties=struct_p[i].properties)
+            for i in range(len(struct_p))
+        ]
 
         return struct_p
-
-    # so the instance itself is callable
-    def __call__(self, struct: Structure) -> Structure:
-        return self._perturb_structure(struct)
