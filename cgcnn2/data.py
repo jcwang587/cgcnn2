@@ -704,7 +704,11 @@ class lltoGaussianPertubationTorch:
     """
 
     def __init__(
-        self, seed: int | None = None, li_sigma: float = 0.4, other_sigma: float = 0.1
+        self,
+        seed: int | None = None,
+        li_sigma: float = 0.4,
+        other_sigma: float = 0.1,
+        device: str = "cpu",
     ):
         self.rng = np.random.default_rng(seed)
 
