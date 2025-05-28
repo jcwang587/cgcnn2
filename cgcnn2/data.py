@@ -226,13 +226,13 @@ class CIFData(Dataset):
     def __len__(self):
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=1024)  # Cache loaded structures
-    def _load_structure(self, cif_path: str) -> Structure:
-        return Structure.from_file(cif_path)
+    @functools.lru_cache(maxsize=None)
+    def _load_structure(self, cif_id: str) -> Structure:
+        return Structure.from_file(os.path.join(self.root_dir, f"{cif_id}.cif"))
 
     def __getitem__(self, idx):
         cif_id, target = self.id_prop_data[idx]
-        crystal = self._load_structure(os.path.join(self.root_dir, cif_id + ".cif"))
+        crystal = self._load_structure(cif_id)
         if self.transform is not None:
             crystal = self.transform(crystal)
         atom_fea = np.vstack(
