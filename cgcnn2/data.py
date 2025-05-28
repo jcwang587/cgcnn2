@@ -551,12 +551,14 @@ class lltoGaussianPertubation:
         Optional seed for reproducible noise.
     """
 
-    def __init__(self, seed: int | None = None):
+    def __init__(
+        self, seed: int | None = None, li_sigma: float = 0.4, other_sigma: float = 0.1
+    ):
         self.rng = np.random.default_rng(seed)
 
         # hard-coded sigmas
-        self.li_sigma = 0.4
-        self.other_sigma = 0.1
+        self.li_sigma = li_sigma
+        self.other_sigma = other_sigma
 
     def _perturb_structure(self, struct: Structure) -> Structure:
         """Return a deep-copied, perturbed structure."""

@@ -224,7 +224,21 @@ def parse_arguments(args=None):
         default=f"{os.getpid()}",
         help="Job ID for naming output folder (default: <PID>)",
     )
-
+    # augmentations
+    parser.add_argument(
+        "-li-sigma",
+        "--lithium-sigma",
+        type=float,
+        default=0.4,
+        help="Sigma for the lithium augmentations",
+    )
+    parser.add_argument(
+        "-oa-sigma",
+        "--other-sigma",
+        type=float,
+        default=0.1,
+        help="Sigma for the other augmentations",
+    )
     parsed = parser.parse_args(args if args is not None else sys.argv[1:])
     parsed.device = torch.device(
         "cuda" if not parsed.disable_cuda and torch.cuda.is_available() else "cpu"
@@ -262,7 +276,12 @@ def main():
     # Load separate datasets or split from a full set
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(
-            args.train_set, transform=lltoGaussianPertubation(seed=args.random_seed)
+            args.train_set,
+            transform=lltoGaussianPertubation(
+                seed=args.random_seed,
+                li_sigma=args.lithium_sigma,
+                other_sigma=args.other_sigma,
+            ),
         )
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
