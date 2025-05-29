@@ -47,6 +47,10 @@ id-gen   = "cgcnn2.cli.cgcnn_init:id_gen"
 requires = ["uv_build>=0.7.5"]
 build-backend = "uv_build"
 
+[tool.uv.build-backend]
+module-name = "cgcnn2"
+module-root = ""
+
 [tool.ruff]
 exclude = [
     ".bzr",
