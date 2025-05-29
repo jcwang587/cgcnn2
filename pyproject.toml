@@ -19,7 +19,6 @@ classifiers        = [
   "Operating System :: OS Independent",
 ]
 
-# runtime dependencies
 dependencies = [
   "ase>=3.25.0",
   "numpy",
@@ -31,14 +30,12 @@ dependencies = [
 # ASE and Pymatgen track the first release of the current year
 # Pymatviz tracks the latest minor version
 
-# dev/test dependencies as an “extra”
 [project.optional-dependencies]
 dev = [
   "pytest>=8.3.0",
   "pytest-cov>=6.0.0",
 ]
 
-# console entry points
 [project.scripts]
 cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
