@@ -6,12 +6,12 @@ from datetime import datetime
 from typing import Any
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import torch
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
 from pymatviz import density_hexbin
-from sklearn.metrics import mean_squared_error, r2_score
 from torch.utils.data import DataLoader
 
 from .data import CIFData_NoTarget, collate_pool
@@ -127,8 +127,14 @@ def cgcnn_test(
             outputs_list.extend(output.cpu().numpy().ravel().tolist())
             cif_ids.extend(cif_id)
 
-    mse = mean_squared_error(targets_list, outputs_list)
-    r2 = r2_score(targets_list, outputs_list)
+    targets_array = np.array(targets_list)
+    outputs_array = np.array(outputs_list)
+
+    # MSE and R2 Score
+    mse = np.mean((targets_array - outputs_array) ** 2)
+    ss_res = np.sum((targets_array - outputs_array) ** 2)
+    ss_tot = np.sum((targets_array - np.mean(targets_array)) ** 2)
+    r2 = 1 - ss_res / ss_tot
     print(f"MSE: {mse:.4f}, R2 Score: {r2:.4f}")
 
     # Save results to CSV
@@ -140,7 +146,7 @@ def cgcnn_test(
     print(f"Prediction results have been saved to {results_file}")
 
     # Create parity plot
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
     df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
 
     ax = density_hexbin(
@@ -155,7 +161,6 @@ def cgcnn_test(
     )
     ax.set_aspect("auto")
     ax.set_box_aspect(1)
-    plt.tight_layout()
     plt.savefig(plot_file, format="svg")
     print(f"Parity plot has been saved to {plot_file}")
     plt.close()
@@ -192,7 +197,7 @@ def cgcnn_test(
         )
 
         # Create parity plot
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
         ax = density_hexbin(
             x="Actual",
@@ -206,7 +211,6 @@ def cgcnn_test(
         )
         ax.set_aspect("auto")
         ax.set_box_aspect(1)
-        plt.tight_layout()
         plt.savefig(plot_file, format="svg")
         print(f"Parity plot has been saved to {plot_file}")
         plt.close()
