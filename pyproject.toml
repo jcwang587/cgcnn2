@@ -27,7 +27,6 @@ numpy = "*"
 pandas = "*"
 pymatgen = "^2025.1.9"
 pymatviz = "~0.16.0"
-scikit-learn = "*"
 torch = "^2.0.0"
 # ASE and Pymatgen track the first release of the current year
 # Pymatviz tracks the latest minor version

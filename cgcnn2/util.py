@@ -11,7 +11,6 @@ import torch
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
 from pymatviz import density_hexbin
-from sklearn.metrics import mean_squared_error, r2_score
 from torch.utils.data import DataLoader
 
 from .data import CIFData_NoTarget, collate_pool
@@ -127,8 +126,14 @@ def cgcnn_test(
             outputs_list.extend(output.cpu().numpy().ravel().tolist())
             cif_ids.extend(cif_id)
 
-    mse = mean_squared_error(targets_list, outputs_list)
-    r2 = r2_score(targets_list, outputs_list)
+    targets_array = np.array(targets_list)
+    outputs_array = np.array(outputs_list)
+
+    # MSE and R2 Score
+    mse = np.mean((targets_array - outputs_array) ** 2)
+    ss_res = np.sum((targets_array - outputs_array) ** 2)
+    ss_tot = np.sum((targets_array - np.mean(targets_array)) ** 2)
+    r2 = 1 - ss_res / ss_tot
     print(f"MSE: {mse:.4f}, R2 Score: {r2:.4f}")
 
     # Save results to CSV
