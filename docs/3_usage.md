@@ -114,3 +114,26 @@ cgcnn_test(
     plot_file=os.path.join(output_folder, "parity_plot.svg"),
 )
 ```
+
+## Training Hyperparameters
+
+The training hyperparameters can be checked by `--help` flag in both the training and finetuning scripts.
+Most of the hyperparameters are shared between the training and finetuning scripts, including:
+
+- `batch_size`: The batch size for training and finetuning.
+- `lr`: The learning rate for training and finetuning.
+- `epochs`: The number of epochs for training and finetuning.
+- `device`: The device to run the training and finetuning on.
+
+There is an early stopping strategy for the training and finetuning scripts, which stops the training if the validation loss does not improve for a given number of epochs. The default parameters are:
+
+- `patience`: The number of epochs to wait before stopping the training.
+
+There is a learning rate scheduler for the training and finetuning scripts, which applies the `ReduceLROnPlateau` strategy. The default parameters are:
+
+- `factor`: The factor by which the learning rate will be reduced. `new_lr = lr * factor`
+- `patience`: How many epochs to wait before reducing the learning rate.
+
+You can check more details in the [PyTorch documentation](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html).
+
+
