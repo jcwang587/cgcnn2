@@ -1,50 +1,54 @@
-[tool.poetry]
-name = "cgcnn2"
-version = "0.4.4"
-description = "Reproduction of Crystal Graph Convolutional Neural Networks"
-authors = ["Jiacheng Wang <jiachengwang@umass.edu>"]
-maintainers = ["Jiacheng Wang"]
-license = "MIT"
-readme = "README.md"
-homepage = "https://github.com/jcwang587/cgcnn2/"
-repository = "https://github.com/jcwang587/cgcnn2/"
-
-classifiers = [
-    "Development Status :: 1 - Planning",
-    "Intended Audience :: Science/Research",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-    "Operating System :: OS Independent",
+[project]
+name               = "cgcnn2"
+version            = "0.4.4"
+description        = "Reproduction of Crystal Graph Convolutional Neural Networks"
+readme             = "README.md"
+requires-python    = ">=3.10,<3.13"
+authors            = ["Jiacheng Wang <jiachengwang@umass.edu>"]
+maintainers        = ["Jiacheng Wang"]
+license            = { text = "MIT" }
+homepage           = "https://github.com/jcwang587/cgcnn2/"
+repository         = "https://github.com/jcwang587/cgcnn2/"
+keywords           = ["python", "graph-model", "fine-tuning", "computational-materials"]
+classifiers        = [
+  "Development Status :: 1 - Planning",
+  "Intended Audience :: Science/Research",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Operating System :: OS Independent",
 ]
 
-keywords = ["python", "graph-model", "fine-tuning", "computational-materials"]
-
-[tool.poetry.dependencies]
-python = ">=3.10,<3.13"
-ase = "^3.25.0"
-numpy = "*"
-pandas = "*"
-pymatgen = "^2025.1.9"
-pymatviz = "~0.16.0"
-torch = "^2.0.0"
+# runtime dependencies
+dependencies = [
+  "ase>=3.25.0",
+  "numpy",
+  "pandas",
+  "pymatgen>=2025.1.9",
+  "pymatviz~=0.16.0",
+  "torch>=2.0.0",
+]
 # ASE and Pymatgen track the first release of the current year
 # Pymatviz tracks the latest minor version
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.0"
-pytest-cov = "^6.0.0"
+# dev/test dependencies as an “extra”
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.3.0",
+  "pytest-cov>=6.0.0",
+]
 
-[tool.poetry.scripts]
+# console entry points
+[project.scripts]
 cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
 cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
-id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
+id-gen   = "cgcnn2.cli.cgcnn_init:id_gen"
 
 [build-system]
-requires = ["poetry-core==2.1.2"]
-build-backend = "poetry.core.masonry.api"
+requires    = ["uv_build>=0.7.5"]
+build-backend = "uv_build"
 
 [tool.ruff]
 exclude = [
