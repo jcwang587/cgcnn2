@@ -125,9 +125,12 @@ Most of the hyperparameters are shared between the training and finetuning scrip
 - `epochs`: The number of epochs for training and finetuning.
 - `device`: The device to run the training and finetuning on.
 
+### Early Stopping
 There is an early stopping strategy for the training and finetuning scripts, which stops the training if the validation loss does not improve for a given number of epochs. The default parameters are:
 
 - `patience`: The number of epochs to wait before stopping the training.
+
+### Learning Rate Scheduler
 
 There is a learning rate scheduler for the training and finetuning scripts, which applies the `ReduceLROnPlateau` strategy. The default parameters are:
 
@@ -136,4 +139,15 @@ There is a learning rate scheduler for the training and finetuning scripts, whic
 
 You can check more details in the [PyTorch documentation](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html).
 
+### Learning Rate on MLP layers
+
+This is a feature for the finetuning script. You can set a different learning rate for the MLP layers by setting the `lr_mlp` flag.
+
+### Replace MLP layers
+
+This is a feature for the finetuning script. You can replace the MLP layers with a new MLP layers by setting the `replace_mlp` flag to `True`.
+
+### Train on MLP only
+
+This is a feature for the finetuning script. You can train the model on the MLP layers by setting the `train_mlp_only` flag to `True`.
 
