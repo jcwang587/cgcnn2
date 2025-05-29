@@ -7,7 +7,7 @@ import numpy as np
 import torch
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import cgcnn_test
+from cgcnn2.util import cgcnn_test, print_checkpoint_info
 from torch.utils.data import DataLoader
 
 
@@ -153,9 +153,7 @@ def main():
     model.to(args.device)
     model.eval()
 
-    print(
-        f"Loaded model from '{args.model_path}' (epoch {checkpoint['epoch']}, validation error {checkpoint['best_mse_error']})"
-    )
+    print_checkpoint_info(checkpoint, args.model_path)
 
     # Run inference and save results
     cgcnn_test(
