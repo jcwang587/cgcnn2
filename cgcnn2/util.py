@@ -140,7 +140,7 @@ def cgcnn_test(
     print(f"Prediction results have been saved to {results_file}")
 
     # Create parity plot
-    fig, ax = plt.subplots(figsize=(8, 6))
+    fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
     df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
 
     ax = density_hexbin(
@@ -155,7 +155,6 @@ def cgcnn_test(
     )
     ax.set_aspect("auto")
     ax.set_box_aspect(1)
-    plt.tight_layout()
     plt.savefig(plot_file, format="svg")
     print(f"Parity plot has been saved to {plot_file}")
     plt.close()
@@ -192,7 +191,7 @@ def cgcnn_test(
         )
 
         # Create parity plot
-        fig, ax = plt.subplots(figsize=(8, 6))
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
         ax = density_hexbin(
             x="Actual",
@@ -206,7 +205,6 @@ def cgcnn_test(
         )
         ax.set_aspect("auto")
         ax.set_box_aspect(1)
-        plt.tight_layout()
         plt.savefig(plot_file, format="svg")
         print(f"Parity plot has been saved to {plot_file}")
         plt.close()
