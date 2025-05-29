@@ -1,16 +1,16 @@
 [project]
-name               = "cgcnn2"
-version            = "0.4.4"
-description        = "Reproduction of Crystal Graph Convolutional Neural Networks"
-readme             = "README.md"
-requires-python    = ">=3.10,<3.13"
-authors            = ["Jiacheng Wang <jiachengwang@umass.edu>"]
-maintainers        = ["Jiacheng Wang"]
-license            = { text = "MIT" }
-homepage           = "https://github.com/jcwang587/cgcnn2/"
-repository         = "https://github.com/jcwang587/cgcnn2/"
-keywords           = ["python", "graph-model", "fine-tuning", "computational-materials"]
-classifiers        = [
+name            = "cgcnn2"
+version         = "0.4.4"
+description     = "Reproduction of Crystal Graph Convolutional Neural Networks"
+readme          = "README.md"
+requires-python = ">=3.10,<3.13"
+authors         = [{ name = "Jiacheng Wang", email = "jiachengwang@umass.edu" },]
+maintainers     = [{ name = "Jiacheng Wang", email = "jiachengwang@umass.edu" },]
+license         = { text = "MIT" }
+homepage        = "https://github.com/jcwang587/cgcnn2/"
+repository      = "https://github.com/jcwang587/cgcnn2/"
+keywords        = ["python", "graph-model", "fine-tuning", "computational-materials"]
+classifiers     = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
   "Programming Language :: Python :: 3.10",
@@ -44,7 +44,7 @@ atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 id-gen   = "cgcnn2.cli.cgcnn_init:id_gen"
 
 [build-system]
-requires    = ["uv_build>=0.7.5"]
+requires = ["uv_build>=0.7.5"]
 build-backend = "uv_build"
 
 [tool.ruff]
