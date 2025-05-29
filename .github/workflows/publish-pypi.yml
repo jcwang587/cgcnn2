@@ -29,17 +29,11 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install Poetry
-      run: |
-        pipx install poetry
-        poetry config virtualenvs.create true
+    - name: Set up uv
+      uses: astral-sh/setup-uv@v3
 
-    - name: Install dependencies with Poetry
-      run: |
-        poetry install
-
-    - name: Build package with Poetry
-      run: poetry build
+    - name: Build package with uv
+      run: uv build
       
     - name: Publish package to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
