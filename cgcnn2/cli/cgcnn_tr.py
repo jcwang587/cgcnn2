@@ -1,8 +1,8 @@
 import argparse
+import logging
 import os
 import random
 import sys
-import warnings
 from random import sample
 
 import numpy as np
@@ -11,7 +11,7 @@ import torch.nn as nn
 from cgcnn2.data import (CIFData, collate_pool, train_force_ratio,
                          train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import Normalizer, cgcnn_test, get_lr
+from cgcnn2.util import Normalizer, cgcnn_test, get_lr, setup_logging
 from torch.utils.data import DataLoader, random_split
 
 
@@ -230,7 +230,7 @@ def parse_arguments(args=None):
     # Warn if dataset ratios don't sum to 1
     total_ratio = parsed.train_ratio + parsed.valid_ratio + parsed.test_ratio
     if abs(total_ratio - 1.0) > 1e-6:
-        warnings.warn(
+        logging.warning(
             "Train ratio + Valid ratio + Test ratio != 1.0", UserWarning, stacklevel=2
         )
 
@@ -240,7 +240,7 @@ def parse_arguments(args=None):
 def main():
     # Parse command-line arguments
     args = parse_arguments()
-    print("Parsed arguments:", args)
+    logging.info(f"Parsed arguments: {args}")
 
     # Set the seed for reproducibility
     seed = args.random_seed
@@ -289,9 +289,10 @@ def main():
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
     else:
-        raise ValueError(
+        logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."
         )
+        sys.exit(1)
 
     full_dataset = [*train_dataset, *valid_dataset, *test_dataset]
 
@@ -302,7 +303,7 @@ def main():
         normalizer.load_state_dict({"mean": 0.0, "std": 1.0})
     else:
         if len(full_dataset) < 500:
-            warnings.warn(
+            logging.warning(
                 "Dataset has fewer than 500 data points; results may have higher variance."
             )
             sample_data_list = [full_dataset[i] for i in range(len(full_dataset))]
@@ -368,7 +369,9 @@ def main():
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", factor=args.lr_factor, patience=int(args.lr_patience)
         )
-        print(f"[Scheduler] factor={args.lr_factor}, patience={int(args.lr_patience)}")
+        logging.info(
+            f"[Scheduler] factor={args.lr_factor}, patience={int(args.lr_patience)}"
+        )
 
     # Training epochs
     num_epochs = int(float(args.epoch))
@@ -447,7 +450,7 @@ def main():
             scheduler.step(avg_valid_loss)
 
         current_lr = get_lr(optimizer)
-        print(
+        logging.info(
             f"Epoch [{epoch+1:03d}/{num_epochs}] - "
             f"Train Loss: {avg_train_loss:.5f}, "
             f"Valid Loss: {avg_valid_loss:.5f}, "
@@ -470,17 +473,19 @@ def main():
             }
             ckpt_path = os.path.join(output_folder, "best_model.ckpt")
             torch.save(savepoint, ckpt_path)
-            print(f"  [SAVE] Best model at epoch {epoch+1}.")
+            logging.info(f"  [SAVE] Best model at epoch {epoch+1}.")
         else:
             if stop_patience:
                 epochs_without_improvement += 1
 
         # Early stopping
         if stop_patience and epochs_without_improvement >= stop_patience:
-            print(f"Early stopping after {stop_patience} epochs without improvement.")
+            logging.info(
+                f"Early stopping after {stop_patience} epochs without improvement."
+            )
             break
 
-    print("Training complete.")
+    logging.info("Training complete.")
 
     # --------------------
     # TEST WITH BEST MODEL
@@ -502,4 +507,5 @@ def main():
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import random
 import sys
@@ -101,7 +102,7 @@ def parse_arguments(args=None):
 def main():
     # Parse command-line arguments
     args = parse_arguments()
-    print(f"Using device: {args.device}")
+    logging.info(f"Using device: {args.device}")
 
     # Set seeds for reproducibility
     random.seed(args.random_seed)
