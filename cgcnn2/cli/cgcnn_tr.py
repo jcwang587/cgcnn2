@@ -99,7 +99,7 @@ def parse_arguments(args=None):
         "--stop-patience",
         default=None,
         type=float,
-        help="Number of epochs for early stopping patience. Default: 100",
+        help="Number of epochs for early stopping patience. Default: None (no early stopping)",
     )
 
     # Learning rate & scheduler
