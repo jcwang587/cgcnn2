@@ -18,6 +18,8 @@ from pymatgen.core.structure import Structure
 from pymatviz import density_hexbin
 from torch.utils.data import DataLoader
 
+import cgcnn2
+
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
@@ -31,7 +33,7 @@ def setup_logging():
     )
     logging.captureWarnings(True)
 
-    logging.info(f"* cgcnn2 version: {get_local_version()}")
+    logging.info(f"* cgcnn2 version: {cgcnn2.__version__}")
     logging.info(f"* cuda version: {torch.version.cuda}")
     logging.info(f"* torch version: {torch.__version__}")
 

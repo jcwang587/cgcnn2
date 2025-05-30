@@ -255,8 +255,7 @@ def main():
 
     # Parse command-line arguments
     args = parse_arguments()
-    logging.info(f"* Using device: {args.device}")
-    logging.info(f"* Parsed arguments:\n{pformat(vars(args))}")
+    logging.info(f"Parsed arguments:\n{pformat(vars(args))}")
 
     # Set the seed for reproducibility
     seed = args.random_seed
@@ -270,11 +269,12 @@ def main():
 
     # Check if the model_path exists
     if not os.path.isfile(args.model_path):
-        raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
+        logging.error(f"No model params found at '{args.model_path}'")
+        sys.exit(1)
 
     # Load separate datasets or split from a full set
     if args.cache_size:
-        logging.info(f"* Using cache size: {args.cache_size} for DataLoader")
+        logging.info(f"Using cache size: {args.cache_size} for DataLoader")
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
         valid_dataset = CIFData(args.valid_set)
@@ -379,11 +379,11 @@ def main():
 
     if args.train_last_fc:
         logging.info(
-            "* Only the last fully connected layer will be trained (or with higher lr)."
+            "Only the last fully connected layer will be trained (or with higher lr)."
         )
 
         if args.reset:
-            logging.info("* The last fully connected layer will be reset.")
+            logging.info("The last fully connected layer will be reset.")
             # Reset the fully connected layers after graph features were obtained
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
             if args.device.type == "cuda":
@@ -394,12 +394,12 @@ def main():
 
     else:
         logging.info(
-            "* All the fully connected layers will be trained (or with higher lr)."
+            "All the fully connected layers will be trained (or with higher lr)."
         )
 
         if args.reset:
             # Reset all the fully connected layers
-            logging.info("* All the fully connected layers will be reset.")
+            logging.info("All the fully connected layers will be reset.")
             model.conv_to_fc = nn.Linear(
                 model.conv_to_fc.in_features, model.conv_to_fc.out_features
             )
@@ -456,13 +456,13 @@ def main():
             optimizer, mode="min", factor=factor, patience=int(lr_patience)
         )
         logging.info(
-            "* Learning rate adjustment is configured with a factor of {} and patience of {} epochs.".format(
+            "Learning rate adjustment is configured with a factor of {} and patience of {} epochs.".format(
                 factor, lr_patience
             )
         )
     else:
         lr_patience = None
-        logging.info("* The training will proceed with a fixed learning rate.")
+        logging.info("The training will proceed with a fixed learning rate.")
 
     # Training epochs
     num_epochs = int(float(args.epoch))
