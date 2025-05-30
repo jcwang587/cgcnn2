@@ -456,13 +456,10 @@ def main():
             optimizer, mode="min", factor=factor, patience=int(lr_patience)
         )
         logging.info(
-            "Learning rate adjustment is configured with a factor of {} and patience of {} epochs.".format(
-                factor, lr_patience
-            )
+            f"Learning rate adjustment is configured with a factor of {factor} and patience of {lr_patience} epochs."
         )
     else:
-        lr_patience = None
-        logging.info("The training will proceed with a fixed learning rate.")
+        logging.info(f"The training will proceed with a fixed learning rate.")
 
     # Training epochs
     num_epochs = int(float(args.epoch))
