@@ -229,7 +229,7 @@ class CIFData(Dataset):
     def __getitem__(self, idx):
         return self._cache_load(idx)
 
-    def __load_item(self, idx):
+    def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(

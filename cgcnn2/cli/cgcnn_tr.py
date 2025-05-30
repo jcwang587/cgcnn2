@@ -300,7 +300,7 @@ def main():
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
         train_dataset._cache_load = functools.lru_cache(maxsize=args.cache_size)(
-            train_dataset.__load_item
+            train_dataset._load_item
         )
     else:
         logging.error(
