@@ -100,6 +100,7 @@ def parse_arguments(args=None):
 
 
 def main():
+    setup_logging()
     # Parse command-line arguments
     args = parse_arguments()
     logging.info(f"Using device: {args.device}")
@@ -170,5 +171,4 @@ def main():
 
 
 if __name__ == "__main__":
-    setup_logging()
     main()
