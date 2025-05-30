@@ -103,7 +103,6 @@ def main():
     setup_logging()
     # Parse command-line arguments
     args = parse_arguments()
-    logging.info(f"Using device: {args.device}")
 
     # Set seeds for reproducibility
     random.seed(args.random_seed)
@@ -114,9 +113,11 @@ def main():
 
     # Validate paths
     if not os.path.isfile(args.model_path):
-        raise FileNotFoundError(f"No model checkpoint found at '{args.model_path}'")
+        logging.error(f"No model checkpoint found at '{args.model_path}'")
+        sys.exit(1)
     if not os.path.isdir(args.full_set):
-        raise ValueError(f"Dataset directory '{args.full_set}' does not exist")
+        logging.error(f"Dataset directory '{args.full_set}' does not exist")
+        sys.exit(1)
 
     # Prepare output folder
     output_folder = f"output_{args.job_id}"

@@ -4,7 +4,9 @@ import glob
 import logging
 import os
 import sys
+import tomllib
 from datetime import datetime
+from pathlib import Path
 from typing import Any
 
 import matplotlib.pyplot as plt
@@ -16,6 +18,8 @@ from pymatgen.core.structure import Structure
 from pymatviz import density_hexbin
 from torch.utils.data import DataLoader
 
+import cgcnn2
+
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
@@ -24,10 +28,25 @@ def setup_logging():
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.INFO,
-        format="%(asctime)s [%(levelname)s] %(message)s",
+        format="%(asctime)s.%(msecs)03d %(levelname)s: %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
     )
     logging.captureWarnings(True)
+
+    logging.info(f"* cgcnn2 version: {cgcnn2.__version__}")
+    logging.info(f"* cuda version: {torch.version.cuda}")
+    logging.info(f"* torch version: {torch.__version__}")
+
+
+def get_local_version() -> str:
+    project_root = Path(__file__).parents[2]
+    toml_path = project_root / "pyproject.toml"
+    try:
+        with toml_path.open("rb") as f:
+            data = tomllib.load(f)
+        return data["project"]["version"]
+    except Exception:
+        return "unknown"
 
 
 def output_id_gen() -> str:

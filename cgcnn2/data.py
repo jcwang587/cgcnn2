@@ -7,12 +7,13 @@ import random
 import shutil
 import tempfile
 import warnings
+from typing import Optional
 
 import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
 
 
 def collate_pool(dataset_list):
@@ -188,6 +189,7 @@ class CIFData(Dataset):
         radius (float): The cutoff radius for searching neighbors
         dmin (float): The minimum distance for constructing GaussianDistance
         step (float): The step size for constructing GaussianDistance
+        cache_size (int | None): The size of the lru cache for the dataset
         random_seed (int): Random seed for shuffling the dataset
 
     Returns:
@@ -221,7 +223,24 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
-        self._cache_load = functools.lru_cache(maxsize=cache_size)(self.__load_item)
+        self._raw_load_item = self._load_item
+        self._configure_cache(cache_size)
+
+    def set_cache_size(self, cache_size: Optional[int]) -> None:
+        """
+        Change the LRU-cache capacity on the fly.
+
+        Args:
+            cache_size (int | None): None for unlimited cache size. 0 or negative for disabling caching. >0 for caching at most `cache_size` entries.
+        """
+        if hasattr(self._cache_load, "cache_clear"):
+            self._cache_load.cache_clear()
+        self._configure_cache(cache_size)
+
+    def clear_cache(self) -> None:
+        """Empty the current cache without altering its size."""
+        if hasattr(self._cache_load, "cache_clear"):
+            self._cache_load.cache_clear()
 
     def __len__(self):
         return len(self.id_prop_data)
@@ -229,7 +248,23 @@ class CIFData(Dataset):
     def __getitem__(self, idx):
         return self._cache_load(idx)
 
-    def __load_item(self, idx):
+    def _configure_cache(self, cache_size: Optional[int]) -> None:
+        """
+        Wrap `_raw_load_item` with an LRU cache.
+
+        Args:
+            cache_size (int | None): None for unlimited size. 0 or negative for disabling caching. >0 for caching at most `cache_size` entries.
+        """
+        if cache_size is None:  # unlimited cache
+            self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
+        elif cache_size <= 0:  # caching off
+            self._cache_load = self._raw_load_item
+        else:  # bounded cache
+            self._cache_load = functools.lru_cache(maxsize=cache_size)(
+                self._raw_load_item
+            )
+
+    def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(
@@ -268,8 +303,16 @@ class CIFData(Dataset):
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
-    def clear_cache(self):
-        self._cache_load.cache_clear()
+
+def set_dataset_cache(ds: Dataset, cache_size: Optional[int]) -> None:
+    """
+    Call `set_cache_size` on the base dataset if the method exists.
+    Works whether `ds` is a plain Dataset or a Subset.
+    """
+    if hasattr(ds, "set_cache_size"):
+        ds.set_cache_size(cache_size)
+    elif isinstance(ds, Subset) and hasattr(ds.dataset, "set_cache_size"):
+        ds.dataset.set_cache_size(cache_size)
 
 
 class CIFData_NoTarget(Dataset):
