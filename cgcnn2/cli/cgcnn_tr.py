@@ -257,7 +257,9 @@ def main():
     output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
-    # Load separate datasets or split from the --full-set
+    # Load separate datasets or split from a full set
+    if args.cache_size:
+        logging.info(f"Using cache size: {args.cache_size} for DataLoader")
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
         valid_dataset = CIFData(args.valid_set)
