@@ -1,6 +1,7 @@
 import argparse
 import csv
 import glob
+import logging
 import os
 from datetime import datetime
 from typing import Any
@@ -16,6 +17,15 @@ from torch.utils.data import DataLoader
 
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
+
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logging.captureWarnings(True)
 
 
 def output_id_gen() -> str:
@@ -135,7 +145,7 @@ def cgcnn_test(
     ss_res = np.sum((targets_array - outputs_array) ** 2)
     ss_tot = np.sum((targets_array - np.mean(targets_array)) ** 2)
     r2 = 1 - ss_res / ss_tot
-    print(f"MSE: {mse:.4f}, R2 Score: {r2:.4f}")
+    logging.info(f"MSE: {mse:.4f}, R2 Score: {r2:.4f}")
 
     # Save results to CSV
     sorted_rows = sorted(zip(cif_ids, targets_list, outputs_list), key=lambda x: x[0])
@@ -143,7 +153,7 @@ def cgcnn_test(
         writer = csv.writer(file)
         writer.writerow(["cif_id", "Actual", "Predicted"])
         writer.writerows(sorted_rows)
-    print(f"Prediction results have been saved to {results_file}")
+    logging.info(f"Prediction results have been saved to {results_file}")
 
     # Create parity plot
     fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
@@ -162,7 +172,7 @@ def cgcnn_test(
     ax.set_aspect("auto")
     ax.set_box_aspect(1)
     plt.savefig(plot_file, format="svg")
-    print(f"Parity plot has been saved to {plot_file}")
+    logging.info(f"Parity plot has been saved to {plot_file}")
     plt.close()
 
     # If axis limits are provided, save the csv file with the specified limits
@@ -212,7 +222,7 @@ def cgcnn_test(
         ax.set_aspect("auto")
         ax.set_box_aspect(1)
         plt.savefig(plot_file, format="svg")
-        print(f"Parity plot has been saved to {plot_file}")
+        logging.info(f"Parity plot has been saved to {plot_file}")
         plt.close()
 
 
@@ -274,13 +284,8 @@ def cgcnn_descriptor(
             prediction_value = output.item() if output.numel() == 1 else output.tolist()
 
             if verbose >= 4:
-                print(
-                    "index:",
-                    index,
-                    "| cif id:",
-                    cif_id_value,
-                    "| prediction:",
-                    prediction_value,
+                logging.info(
+                    f"index: {index} | cif id: {cif_id_value} | prediction: {prediction_value}"
                 )
 
     return outputs_list, crys_feas_list
@@ -487,7 +492,7 @@ def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
 
     metrics_str = ", ".join(metrics) if metrics else "N/A"
 
-    print(
+    logging.info(
         f"=> Loaded model from '{model_path}' "
         f"(epoch {epoch}, validation {metrics_str})"
     )

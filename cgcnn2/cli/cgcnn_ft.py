@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import random
 import sys
@@ -10,7 +11,8 @@ import torch.nn as nn
 from cgcnn2.data import (CIFData, collate_pool, train_force_ratio,
                          train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
+from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, print_checkpoint_info,
+                         setup_logging)
 from torch.utils.data import DataLoader, random_split
 
 
@@ -233,9 +235,7 @@ def parse_arguments(args=None):
     # Warn if dataset ratios don't sum to 1
     total_ratio = parsed.train_ratio + parsed.valid_ratio + parsed.test_ratio
     if abs(total_ratio - 1.0) > 1e-6:
-        warnings.warn(
-            "Train ratio + Valid ratio + Test ratio != 1.0", UserWarning, stacklevel=2
-        )
+        logging.warning("Train ratio + Valid ratio + Test ratio != 1.0")
 
     return parsed
 
@@ -243,7 +243,7 @@ def parse_arguments(args=None):
 def main():
     # Parse command-line arguments
     args = parse_arguments()
-    print(f"Using device: {args.device}")
+    logging.info(f"Using device: {args.device}")
 
     # Set the seed for reproducibility
     seed = args.random_seed
@@ -296,10 +296,10 @@ def main():
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
     else:
-        raise ValueError(
+        logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."
         )
-
+        sys.exit(1)
     # Load checkpoint onto device
     checkpoint = torch.load(args.model_path, map_location=args.device)
     model_args = argparse.Namespace(**checkpoint["args"])
@@ -362,12 +362,12 @@ def main():
     )
 
     if args.train_last_fc:
-        print(
+        logging.info(
             "* Only the last fully connected layer will be trained (or with higher lr)."
         )
 
         if args.reset:
-            print("* The last fully connected layer will be reset.")
+            logging.info("* The last fully connected layer will be reset.")
             # Reset the fully connected layers after graph features were obtained
             model.fc_out = nn.Linear(model.fc_out.in_features, 1)
             if args.device.type == "cuda":
@@ -377,11 +377,13 @@ def main():
         fc_parameters = [param for param in model.fc_out.parameters()]
 
     else:
-        print("* All the fully connected layers will be trained (or with higher lr).")
+        logging.info(
+            "* All the fully connected layers will be trained (or with higher lr)."
+        )
 
         if args.reset:
             # Reset all the fully connected layers
-            print("* All the fully connected layers will be reset.")
+            logging.info("* All the fully connected layers will be reset.")
             model.conv_to_fc = nn.Linear(
                 model.conv_to_fc.in_features, model.conv_to_fc.out_features
             )
@@ -437,14 +439,14 @@ def main():
         scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
             optimizer, mode="min", factor=factor, patience=int(lr_patience)
         )
-        print(
+        logging.info(
             "* Learning rate adjustment is configured with a factor of {} and patience of {} epochs.".format(
                 factor, lr_patience
             )
         )
     else:
         lr_patience = None
-        print("* The training will proceed with a fixed learning rate.")
+        logging.info("* The training will proceed with a fixed learning rate.")
 
     # Training epochs
     num_epochs = int(float(args.epoch))
@@ -521,7 +523,7 @@ def main():
             scheduler.step(avg_valid_loss)
 
         lr = get_lr(optimizer)
-        print(
+        logging.info(
             f"Epoch [{epoch + 1}/{num_epochs}] - Train Loss: {avg_train_loss:.5f}, Valid Loss: {avg_valid_loss:.5f}, LR: {str(lr)}"
         )
 
@@ -540,17 +542,19 @@ def main():
             torch.save(savepoint, os.path.join(output_folder, "best_model.ckpt"))
             best_valid_loss = avg_valid_loss
             epochs_without_improvement = 0
-            print(f" [SAVE] Best model at epoch {epoch + 1}")
+            logging.info(f" [SAVE] Best model at epoch {epoch + 1}")
         else:
             if stop_patience:
                 epochs_without_improvement += 1
 
         # Early stopping
         if stop_patience and epochs_without_improvement == stop_patience:
-            print(f"Early stopping after {stop_patience} epochs without improvement.")
+            logging.info(
+                f"Early stopping after {stop_patience} epochs without improvement."
+            )
             break
 
-    print("Training completed.")
+    logging.info("Training completed.")
 
     # --------------------
     # TEST WITH BEST MODEL
@@ -574,4 +578,5 @@ def main():
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()

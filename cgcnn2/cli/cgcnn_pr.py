@@ -1,4 +1,5 @@
 import argparse
+import logging
 import os
 import random
 import sys
@@ -7,7 +8,7 @@ import numpy as np
 import torch
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import cgcnn_test, print_checkpoint_info
+from cgcnn2.util import cgcnn_test, print_checkpoint_info, setup_logging
 from torch.utils.data import DataLoader
 
 
@@ -101,7 +102,7 @@ def parse_arguments(args=None):
 def main():
     # Parse command-line arguments
     args = parse_arguments()
-    print(f"Using device: {args.device}")
+    logging.info(f"Using device: {args.device}")
 
     # Set seeds for reproducibility
     random.seed(args.random_seed)
@@ -169,4 +170,5 @@ def main():
 
 
 if __name__ == "__main__":
+    setup_logging()
     main()
