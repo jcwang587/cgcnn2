@@ -115,20 +115,28 @@ cgcnn_test(
 )
 ```
 
-## Training Hyperparameters
+## Training Options
 
-The training hyperparameters can be checked by `--help` flag in both the training and finetuning scripts.
-Most of the hyperparameters are shared between the training and finetuning scripts, including:
+You can view the training hyperparameters by using the `--help` flag with both the `cgcnn-tr` and `cgcnn-ft` commands.
+Most of the hyperparameters are shared between these two scripts, including:
 
-- `batch_size`: The batch size for training and finetuning.
-- `lr`: The learning rate for training and finetuning.
-- `epochs`: The number of epochs for training and finetuning.
-- `device`: The device to run the training and finetuning on.
+- `batch-size`: Specifies the number of samples that are grouped together and processed in one forward/backward pass during both training and fine-tuning. At each step, the DataLoader will pull `batch-size` examples from the dataset, feed them through the model, compute the loss, and then perform a gradient update. Choosing the right `batch-size` involves a trade-off between memory usage, computational efficiency, and optimization dynamics.
+By default, we set `batch-size = 256` as a balance between speed and memory requirements on modern GPUs. If you run into OOM errors, try reducing this value; if you have excess memory and want to speed up training, experiment with increasing it.
 
+- `learning-rate`: Determines the step size used by the optimizer to update model weights at each gradient step. A higher learning rate makes larger jumps in parameter space, potentially speeding up initial convergence but risking instability or divergence. A lower rate yields more precise, stable updates at the cost of slower training. By default, we set learning-rate = 1e-2 as a good starting point for most graph-based models. If loss oscillates or diverges, try reducing it; if training stalls, consider increasing it or adding a scheduler.
+
+- `epoch`: Specifies how many epochs the training loop will make over the entire dataset during both training and fine-tuning. More epochs give the model more opportunities to learn but increase total runtime and can lead to overfitting if too many are used. The default is `epoch = 1000`. Monitor your validation loss and use early stopping if you observe that performance plateaus.
+
+- `device`: Indicates which hardware backend to use for both data loading and model computation. Usually `cuda` for NVIDIA GPUs or `cpu`. When set to `cuda`, tensors and the model are moved onto the GPU. By default, we auto-detect the device by checking if `cuda` is available. Using the GPU generally yields significant speed-ups.
+
+```bash
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+```
+ 
 ### Early Stopping
-There is an early stopping strategy for the training and finetuning scripts, which stops the training if the validation loss does not improve for a given number of epochs. The default parameters are:
+Both the training and fine-tuning scripts implement an early stopping strategy that halts training if the validation loss fails to improve for a specified number of consecutive epochs.
 
-- `patience`: The number of epochs to wait before stopping the training.
+- `stop-patience`: Defines how many consecutive epochs without any decrease in validation loss are allowed before training is terminated. Default is `None`, which means no early stopping.
 
 ### Learning Rate Scheduler
 
@@ -139,15 +147,4 @@ There is a learning rate scheduler for the training and finetuning scripts, whic
 
 You can check more details in the [PyTorch documentation](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html).
 
-### Learning Rate on MLP layers
-
-This is a feature for the finetuning script. You can set a different learning rate for the MLP layers by setting the `lr_mlp` flag.
-
-### Replace MLP layers
-
-This is a feature for the finetuning script. You can replace the MLP layers with a new MLP layers by setting the `replace_mlp` flag to `True`.
-
-### Train on MLP only
-
-This is a feature for the finetuning script. You can train the model on the MLP layers by setting the `train_mlp_only` flag to `True`.
 

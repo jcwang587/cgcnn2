@@ -103,7 +103,7 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-sp",
         "--stop-patience",
-        default=100,
+        default=None,
         type=float,
         help="Epochs for early stopping. Default: 100",
     )
@@ -451,7 +451,7 @@ def main():
     best_valid_loss = float("inf")
 
     # Set the patience for early stopping
-    stop_patience = int(float(args.stop_patience))
+    stop_patience = int(float(args.stop_patience)) if args.stop_patience else None
     epochs_without_improvement = 0
 
     for epoch in range(num_epochs):
@@ -542,10 +542,11 @@ def main():
             epochs_without_improvement = 0
             print(f" [SAVE] Best model at epoch {epoch + 1}")
         else:
-            epochs_without_improvement += 1
+            if stop_patience:
+                epochs_without_improvement += 1
 
-        # If the validation loss hasn't improved in 'stop_patience' epochs, stop training
-        if epochs_without_improvement == stop_patience:
+        # Early stopping
+        if stop_patience and epochs_without_improvement == stop_patience:
             print(f"Early stopping after {stop_patience} epochs without improvement.")
             break
 
