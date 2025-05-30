@@ -199,7 +199,14 @@ class CIFData(Dataset):
     """
 
     def __init__(
-        self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123
+        self,
+        root_dir,
+        max_num_nbr=12,
+        radius=8,
+        dmin=0,
+        step=0.2,
+        cache_size=None,
+        random_seed=123,
     ):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
@@ -214,12 +221,15 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+        self._cache_load = functools.lru_cache(maxsize=cache_size)(self.__load_item)
 
     def __len__(self):
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
+        return self._cache_load(idx)
+
+    def __load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(
@@ -257,6 +267,9 @@ class CIFData(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+
+    def clear_cache(self):
+        self._cache_load.cache_clear()
 
 
 class CIFData_NoTarget(Dataset):

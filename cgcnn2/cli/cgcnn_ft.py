@@ -1,4 +1,5 @@
 import argparse
+import functools
 import logging
 import os
 import random
@@ -94,6 +95,54 @@ def parse_arguments(args=None):
         type=float,
         help="The ratio of the dataset to be used for testing. Default: 0.2",
     )
+    # Advanced training options
+    parser.add_argument(
+        "--disable-cuda",
+        action="store_true",
+        help="Disable CUDA even if available",
+    )
+    parser.add_argument(
+        "-rs",
+        "--random-seed",
+        default=42,
+        type=int,
+        help="Random seed for reproducibility (default: 42)",
+    )
+    parser.add_argument(
+        "-bs",
+        "--batch-size",
+        default=256,
+        type=int,
+        metavar="N",
+        help="Batch size for DataLoader (default: 256)",
+    )
+    parser.add_argument(
+        "-cs",
+        "--cache-size",
+        default=None,
+        type=int,
+        help="Cache size for training DataLoader (default: None), which is unlimited",
+    )
+    parser.add_argument(
+        "-j",
+        "--workers",
+        default=0,
+        type=int,
+        metavar="N",
+        help="Number of DataLoader workers (default: 0)",
+    )
+    parser.add_argument(
+        "-bt",
+        "--bias-temperature",
+        default=0.0,
+        type=float,
+        help=(
+            "If set > 0, bias the loss function using a Boltzmann-like factor.\n"
+            "Smaller 'bias_temperature' strongly favors low-energy structures.\n"
+            "Larger 'bias_temperature' reduces the low-energy bias.\n"
+            "If not specified or non-positive, no bias is applied."
+        ),
+    )
     # Early stopping scheduler
     parser.add_argument(
         "-e",
@@ -144,11 +193,6 @@ def parse_arguments(args=None):
         "Specified: Train on the last fully connected layer.",
     )
     parser.add_argument(
-        "--disable-cuda",
-        action="store_true",
-        help="Disable CUDA even if available",
-    )
-    parser.add_argument(
         "-lrfc",
         "--lr-fc",
         default=0.01,
@@ -161,41 +205,6 @@ def parse_arguments(args=None):
         default=0.001,
         type=float,
         help="Learning rate for the layers to be frozen (non-fully connected layers). Default: 0.001",
-    )
-    parser.add_argument(
-        "-rs",
-        "--random-seed",
-        default=42,
-        type=int,
-        help="Random seed for reproducibility (default: 42)",
-    )
-    parser.add_argument(
-        "-bs",
-        "--batch-size",
-        default=256,
-        type=int,
-        metavar="N",
-        help="Batch size for DataLoader (default: 256)",
-    )
-    parser.add_argument(
-        "-j",
-        "--workers",
-        default=0,
-        type=int,
-        metavar="N",
-        help="Number of DataLoader workers (default: 0)",
-    )
-    parser.add_argument(
-        "-bt",
-        "--bias-temperature",
-        default=0.0,
-        type=float,
-        help=(
-            "If set > 0, bias the loss function using a Boltzmann-like factor.\n"
-            "Smaller 'bias_temperature' strongly favors low-energy structures.\n"
-            "Larger 'bias_temperature' reduces the low-energy bias.\n"
-            "If not specified or non-positive, no bias is applied."
-        ),
     )
     parser.add_argument(
         "-al",
@@ -244,7 +253,7 @@ def main():
     setup_logging()
     # Parse command-line arguments
     args = parse_arguments()
-    logging.info(f"Using device: {args.device}")
+    logging.info(f"* Using device: {args.device}")
 
     # Set the seed for reproducibility
     seed = args.random_seed
@@ -261,8 +270,10 @@ def main():
         raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
 
     # Load separate datasets or split from a full set
+    if args.cache_size:
+        logging.info(f"* Using cache size: {args.cache_size} for DataLoader")
     if args.train_set and args.valid_set and args.test_set:
-        train_dataset = CIFData(args.train_set)
+        train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
@@ -296,6 +307,7 @@ def main():
         valid_dataset, test_dataset = random_split(
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
+        train_dataset._cache_load = functools.lru_cache(maxsize=args.cache_size)(train_dataset.__load_item)
     else:
         logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."

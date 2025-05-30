@@ -1,4 +1,5 @@
 import argparse
+import functools
 import logging
 import os
 import random
@@ -125,7 +126,6 @@ def parse_arguments(args=None):
         help="Factor by which LR is reduced when LR scheduler is triggered. Default: 0.5.\n"
         "Ignored if lr-patience=0.",
     )
-
     # Advanced training options
     parser.add_argument(
         "--disable-cuda",
@@ -145,6 +145,13 @@ def parse_arguments(args=None):
         default=256,
         type=int,
         help="Batch size for DataLoader (default: 256)",
+    )
+    parser.add_argument(
+        "-cs",
+        "--cache-size",
+        default=None,
+        type=int,
+        help="Cache size for training DataLoader (default: None), which is unlimited",
     )
     parser.add_argument(
         "-j",
@@ -239,7 +246,7 @@ def main():
     setup_logging()
     # Parse command-line arguments
     args = parse_arguments()
-    logging.info(f"Parsed arguments: {args}")
+    logging.info(f"* Parsed arguments: {args}")
 
     # Set the seed for reproducibility
     seed = args.random_seed
@@ -251,9 +258,11 @@ def main():
     output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 
-    # Load separate datasets or split from the --full-set
+    # Load separate datasets or split from a full set
+    if args.cache_size:
+        logging.info(f"* Using cache size: {args.cache_size} for DataLoader")
     if args.train_set and args.valid_set and args.test_set:
-        train_dataset = CIFData(args.train_set)
+        train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
@@ -287,6 +296,7 @@ def main():
         valid_dataset, test_dataset = random_split(
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
+        train_dataset._cache_load = functools.lru_cache(maxsize=args.cache_size)(train_dataset.__load_item)
     else:
         logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."
