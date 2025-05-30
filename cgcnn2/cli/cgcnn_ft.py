@@ -10,7 +10,8 @@ import torch.nn as nn
 from cgcnn2.data import (CIFData, collate_pool, train_force_ratio,
                          train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import Normalizer, cgcnn_test, get_lr, print_checkpoint_info
+from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, print_checkpoint_info,
+                         setup_logging)
 from torch.utils.data import DataLoader, random_split
 
 

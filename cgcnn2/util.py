@@ -1,6 +1,7 @@
 import argparse
 import csv
 import glob
+import logging
 import os
 from datetime import datetime
 from typing import Any
@@ -16,6 +17,15 @@ from torch.utils.data import DataLoader
 
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
+
+
+def setup_logging():
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s [%(levelname)s] %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+    )
+    logging.captureWarnings(True)
 
 
 def output_id_gen() -> str:
