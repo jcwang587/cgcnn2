@@ -3,6 +3,7 @@ import csv
 import glob
 import logging
 import os
+import sys
 from datetime import datetime
 from typing import Any
 
@@ -21,6 +22,7 @@ from .model import CrystalGraphConvNet
 
 def setup_logging():
     logging.basicConfig(
+        stream=sys.stdout,
         level=logging.INFO,
         format="%(asctime)s [%(levelname)s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
