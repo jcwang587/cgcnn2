@@ -13,7 +13,8 @@ import torch.nn as nn
 from cgcnn2.data import (CIFData, collate_pool, train_force_ratio,
                          train_force_set)
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import Normalizer, cgcnn_test, get_lr, setup_logging
+from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, set_dataset_cache,
+                         setup_logging)
 from torch.utils.data import DataLoader, random_split
 
 
@@ -299,7 +300,7 @@ def main():
         valid_dataset, test_dataset = random_split(
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
-        train_dataset.set_cache_size(args.cache_size)
+        set_dataset_cache(train_dataset, args.cache_size)
     else:
         logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."

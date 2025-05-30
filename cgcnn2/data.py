@@ -8,11 +8,12 @@ import shutil
 import tempfile
 import warnings
 from typing import Optional
+
 import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, Subset
 
 
 def collate_pool(dataset_list):
@@ -301,6 +302,17 @@ class CIFData(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+
+
+def set_dataset_cache(ds: Dataset, cache_size: Optional[int]) -> None:
+    """
+    Call `set_cache_size` on the base dataset if the method exists.
+    Works whether `ds` is a plain Dataset or a Subset.
+    """
+    if hasattr(ds, "set_cache_size"):
+        ds.set_cache_size(cache_size)
+    elif isinstance(ds, Subset) and hasattr(ds.dataset, "set_cache_size"):
+        ds.dataset.set_cache_size(cache_size)
 
 
 class CIFData_NoTarget(Dataset):
