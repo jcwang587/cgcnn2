@@ -4,6 +4,7 @@ import glob
 import logging
 import os
 import sys
+import tomllib
 from datetime import datetime
 from typing import Any
 
@@ -28,6 +29,21 @@ def setup_logging():
         datefmt="%Y-%m-%d %H:%M:%S:%f",
     )
     logging.captureWarnings(True)
+
+    logging.info(f"* cgcnn2 version: {get_local_version()}")
+    logging.info(f"* cuda version: {torch.version.cuda}")
+    logging.info(f"* torch version: {torch.__version__}")
+
+
+def get_local_version() -> str:
+    project_root = Path(__file__).parents[2]
+    toml_path = project_root / "pyproject.toml"
+    try:
+        with toml_path.open("rb") as f:
+            data = tomllib.load(f)
+        return data["project"]["version"]
+    except Exception:
+        return "unknown"
 
 
 def output_id_gen() -> str:

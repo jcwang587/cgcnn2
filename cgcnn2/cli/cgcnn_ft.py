@@ -252,12 +252,7 @@ def parse_arguments(args=None):
 
 def main():
     setup_logging()
-    
-    # Print package versions
-    logging.info(f"* cgcnn2 version: {__version__}")
-    logging.info(f"* cuda version: {torch.version.cuda}")
-    logging.info(f"* torch version: {torch.__version__}")
-    
+
     # Parse command-line arguments
     args = parse_arguments()
     logging.info(f"* Using device: {args.device}")
