@@ -236,6 +236,7 @@ def parse_arguments(args=None):
 
 
 def main():
+    setup_logging()
     # Parse command-line arguments
     args = parse_arguments()
     logging.info(f"Parsed arguments: {args}")
@@ -505,5 +506,4 @@ def main():
 
 
 if __name__ == "__main__":
-    setup_logging()
     main()
