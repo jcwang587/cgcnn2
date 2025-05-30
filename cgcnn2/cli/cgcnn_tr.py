@@ -299,9 +299,7 @@ def main():
         valid_dataset, test_dataset = random_split(
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
-        train_dataset._cache_load = functools.lru_cache(maxsize=args.cache_size)(
-            train_dataset._load_item
-        )
+        train_dataset.set_cache_size(args.cache_size)
     else:
         logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."
