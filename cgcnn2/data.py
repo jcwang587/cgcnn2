@@ -221,7 +221,7 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
-        self._cache_load = functools.lru_cache(maxsize=cache_size)(self.__load_item)
+        self._cache_load = functools.lru_cache(maxsize=cache_size)(self._load_item)
 
     def __len__(self):
         return len(self.id_prop_data)
