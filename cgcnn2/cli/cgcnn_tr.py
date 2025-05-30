@@ -125,7 +125,6 @@ def parse_arguments(args=None):
         help="Factor by which LR is reduced when LR scheduler is triggered. Default: 0.5.\n"
         "Ignored if lr-patience=0.",
     )
-
     # Advanced training options
     parser.add_argument(
         "--disable-cuda",

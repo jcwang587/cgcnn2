@@ -94,6 +94,47 @@ def parse_arguments(args=None):
         type=float,
         help="The ratio of the dataset to be used for testing. Default: 0.2",
     )
+    # Advanced training options
+    parser.add_argument(
+        "--disable-cuda",
+        action="store_true",
+        help="Disable CUDA even if available",
+    )
+    parser.add_argument(
+        "-rs",
+        "--random-seed",
+        default=42,
+        type=int,
+        help="Random seed for reproducibility (default: 42)",
+    )
+    parser.add_argument(
+        "-bs",
+        "--batch-size",
+        default=256,
+        type=int,
+        metavar="N",
+        help="Batch size for DataLoader (default: 256)",
+    )
+    parser.add_argument(
+        "-j",
+        "--workers",
+        default=0,
+        type=int,
+        metavar="N",
+        help="Number of DataLoader workers (default: 0)",
+    )
+    parser.add_argument(
+        "-bt",
+        "--bias-temperature",
+        default=0.0,
+        type=float,
+        help=(
+            "If set > 0, bias the loss function using a Boltzmann-like factor.\n"
+            "Smaller 'bias_temperature' strongly favors low-energy structures.\n"
+            "Larger 'bias_temperature' reduces the low-energy bias.\n"
+            "If not specified or non-positive, no bias is applied."
+        ),
+    )
     # Early stopping scheduler
     parser.add_argument(
         "-e",
@@ -144,11 +185,6 @@ def parse_arguments(args=None):
         "Specified: Train on the last fully connected layer.",
     )
     parser.add_argument(
-        "--disable-cuda",
-        action="store_true",
-        help="Disable CUDA even if available",
-    )
-    parser.add_argument(
         "-lrfc",
         "--lr-fc",
         default=0.01,
@@ -161,41 +197,6 @@ def parse_arguments(args=None):
         default=0.001,
         type=float,
         help="Learning rate for the layers to be frozen (non-fully connected layers). Default: 0.001",
-    )
-    parser.add_argument(
-        "-rs",
-        "--random-seed",
-        default=42,
-        type=int,
-        help="Random seed for reproducibility (default: 42)",
-    )
-    parser.add_argument(
-        "-bs",
-        "--batch-size",
-        default=256,
-        type=int,
-        metavar="N",
-        help="Batch size for DataLoader (default: 256)",
-    )
-    parser.add_argument(
-        "-j",
-        "--workers",
-        default=0,
-        type=int,
-        metavar="N",
-        help="Number of DataLoader workers (default: 0)",
-    )
-    parser.add_argument(
-        "-bt",
-        "--bias-temperature",
-        default=0.0,
-        type=float,
-        help=(
-            "If set > 0, bias the loss function using a Boltzmann-like factor.\n"
-            "Smaller 'bias_temperature' strongly favors low-energy structures.\n"
-            "Larger 'bias_temperature' reduces the low-energy bias.\n"
-            "If not specified or non-positive, no bias is applied."
-        ),
     )
     parser.add_argument(
         "-al",
