@@ -97,9 +97,9 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-sp",
         "--stop-patience",
-        default=100,
+        default=None,
         type=float,
-        help="Number of epochs for early stopping patience. Default: 100",
+        help="Number of epochs for early stopping patience. Default: None (no early stopping)",
     )
 
     # Learning rate & scheduler
@@ -376,7 +376,7 @@ def main():
     criterion = nn.MSELoss(reduction="none")
 
     # Set the patience for early stopping
-    stop_patience = int(float(args.stop_patience))
+    stop_patience = int(float(args.stop_patience)) if args.stop_patience else None
     epochs_without_improvement = 0
 
     for epoch in range(num_epochs):
@@ -472,10 +472,11 @@ def main():
             torch.save(savepoint, ckpt_path)
             print(f"  [SAVE] Best model at epoch {epoch+1}.")
         else:
-            epochs_without_improvement += 1
+            if stop_patience:
+                epochs_without_improvement += 1
 
         # Early stopping
-        if epochs_without_improvement >= stop_patience:
+        if stop_patience and epochs_without_improvement >= stop_patience:
             print(f"Early stopping after {stop_patience} epochs without improvement.")
             break
 
