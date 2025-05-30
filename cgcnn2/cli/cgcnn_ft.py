@@ -235,9 +235,7 @@ def parse_arguments(args=None):
     # Warn if dataset ratios don't sum to 1
     total_ratio = parsed.train_ratio + parsed.valid_ratio + parsed.test_ratio
     if abs(total_ratio - 1.0) > 1e-6:
-        logging.warning(
-            "Train ratio + Valid ratio + Test ratio != 1.0", UserWarning, stacklevel=2
-        )
+        logging.warning("Train ratio + Valid ratio + Test ratio != 1.0")
 
     return parsed
 

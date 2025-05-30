@@ -1,9 +1,11 @@
 import glob
 import importlib.resources as resources
+import logging
 import os
 import shutil
+import sys
 
-from cgcnn2.util import id_prop_gen
+from cgcnn2.util import id_prop_gen, setup_logging
 
 
 def atom_gen():
@@ -32,7 +34,8 @@ def atom_gen():
             dest_path = os.path.join(os.getcwd(), "atom_init.json")
             shutil.copy(src_path, dest_path)
     except Exception as e:
-        raise RuntimeError(f"Failed to copy atom_init.json: {e}")
+        logging.error(f"Failed to copy atom_init.json: {e}")
+        sys.exit(1)
 
 
 def id_gen():
@@ -55,7 +58,8 @@ def id_gen():
             return
 
     if not glob.glob("*.cif"):
-        raise FileNotFoundError("No CIF files found in the current directory.")
+        logging.error("No CIF files found in the current directory.")
+        sys.exit(1)
 
     dest_path = os.path.join(os.getcwd())
     id_prop_gen(dest_path)
