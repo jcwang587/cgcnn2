@@ -245,7 +245,7 @@ def main():
     setup_logging()
     # Parse command-line arguments
     args = parse_arguments()
-    logging.info(f"Parsed arguments: {args}")
+    logging.info(f"* Parsed arguments: {args}")
 
     # Set the seed for reproducibility
     seed = args.random_seed
@@ -259,7 +259,7 @@ def main():
 
     # Load separate datasets or split from a full set
     if args.cache_size:
-        logging.info(f"Using cache size: {args.cache_size} for DataLoader")
+        logging.info(f"* Using cache size: {args.cache_size} for DataLoader")
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
         valid_dataset = CIFData(args.valid_set)

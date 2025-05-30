@@ -252,7 +252,7 @@ def main():
     setup_logging()
     # Parse command-line arguments
     args = parse_arguments()
-    logging.info(f"Using device: {args.device}")
+    logging.info(f"* Using device: {args.device}")
 
     # Set the seed for reproducibility
     seed = args.random_seed
@@ -269,6 +269,8 @@ def main():
         raise FileNotFoundError(f"=> No model params found at '{args.model_path}'")
 
     # Load separate datasets or split from a full set
+    if args.cache_size:
+        logging.info(f"* Using cache size: {args.cache_size} for DataLoader")
     if args.train_set and args.valid_set and args.test_set:
         train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
         valid_dataset = CIFData(args.valid_set)
@@ -304,6 +306,7 @@ def main():
         valid_dataset, test_dataset = random_split(
             valid_test_dataset, lengths=[n_valid, n_test], generator=generator
         )
+        train_dataset._cache_load = functools.lru_cache(maxsize=args.cache_size)(train_dataset.__load_item)
     else:
         logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."
