@@ -35,7 +35,6 @@ def collate_pool(dataset_list):
           - cif_id (str or int)
             Unique ID for the crystal
 
-
     Returns:
         N = sum(n_i); N0 = sum(i)
 
@@ -55,9 +54,7 @@ def collate_pool(dataset_list):
     crystal_atom_idx, batch_target = [], []
     batch_cif_ids = []
     base_idx = 0
-    for i, ((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id) in enumerate(
-        dataset_list
-    ):
+    for (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id in dataset_list:
         n_i = atom_fea.shape[0]  # number of atoms for this crystal
         batch_atom_fea.append(atom_fea)
         batch_nbr_fea.append(nbr_fea)
