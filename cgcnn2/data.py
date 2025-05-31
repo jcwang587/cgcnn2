@@ -412,6 +412,7 @@ def train_force_ratio(total_set, force_set, train_ratio, random_seed: int = 0):
         force_set (str): The path to the forced training set
         train_ratio (float): The ratio of the training set
         random_seed (int): The random seed for the split
+
     Returns:
         train_dataset: CIFData
             The training dataset
@@ -504,6 +505,7 @@ def train_force_set(
         train_ratio (float): Fraction of `total_set` that should be assigned to the training split before the forced set is added.
             E.g. 0.8 ⇒ 80 % of `total_set` + 100 % of `force_set`.
         random_seed (int): Random seed for shuffling the dataset
+
     Returns:
         train_dataset (CIFData): The training dataset
         valid_test_dataset (CIFData): The validation and test dataset
