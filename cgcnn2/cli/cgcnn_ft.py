@@ -1,17 +1,15 @@
 import argparse
-import functools
 import logging
 import os
 import random
 import sys
-import warnings
 from pprint import pformat
 
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import (CIFData, collate_pool, set_dataset_cache,
-                         train_force_ratio, train_force_set)
+from cgcnn2.data import (CIFData, collate_pool, full_set_split,
+                         set_dataset_cache)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, print_checkpoint_info,
                          setup_logging)
@@ -284,25 +282,17 @@ def main():
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
         generator = torch.Generator().manual_seed(args.random_seed)
-        if args.train_force_set:
-            train_dataset, valid_test_dataset = train_force_set(
-                args.full_set, args.train_force_set, args.train_ratio, args.random_seed
-            )
-        elif args.train_force_ratio:
-            train_dataset, valid_test_dataset = train_force_ratio(
-                args.full_set,
-                args.train_force_ratio,
-                args.train_ratio,
-                args.random_seed,
-            )
-        else:
-            full_dataset = CIFData(args.full_set)
-            n_total = len(full_dataset)
-            n_train = int(round(n_total * args.train_ratio))
-            n_valid_test = n_total - n_train
-            train_dataset, valid_test_dataset = random_split(
-                full_dataset, lengths=[n_train, n_valid_test], generator=generator
-            )
+        if args.train_set or args.valid_set or args.test_set:
+            logging.error("Cannot specify both full-set and train, valid, test sets.")
+            sys.exit(1)
+
+        full_dataset = CIFData(args.full_set)
+        n_total = len(full_dataset)
+        n_train = int(round(n_total * args.train_ratio))
+        n_valid_test = n_total - n_train
+        train_dataset, valid_test_dataset = random_split(
+            full_dataset, lengths=[n_train, n_valid_test], generator=generator
+        )
         n_valid_test = len(valid_test_dataset)
         n_valid = int(
             round(
