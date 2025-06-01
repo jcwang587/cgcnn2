@@ -504,8 +504,10 @@ class LLTOGaussianPertubation:
     Apply element-specific Gaussian displacements to every site
     in an LLTO structure:
 
-        • Li atoms: anisotropic sigma - 0.7 Å along the least-spread
+        • Li atoms: anisotropic sigma - 0.6 Å along the least-spread
           Li-Ti axis (within 4 Å), 0.2 Å along the other two.
+        • B atoms: anisotropic sigma - 0.6 Å along the least-spread
+          B-Ti axis (within 4 Å), 0.2 Å along the other two.
         • All other atoms: isotropic sigma = 0.2 Å.
 
     Parameters
@@ -515,12 +517,17 @@ class LLTOGaussianPertubation:
     """
 
     def __init__(
-        self, seed: int | None = None, li_sigma: float = 0.7, other_sigma: float = 0.2
+        self,
+        seed: int | None = None,
+        li_sigma: float = 0.6,
+        B_sigma: float = 0.6,
+        other_sigma: float = 0.2,
     ):
         self.rng = np.random.default_rng(seed)
 
         # hard-coded sigmas
         self.li_sigma = li_sigma
+        self.B_sigma = B_sigma
         self.other_sigma = other_sigma
 
     def _perturb_structure(self, struct: Structure) -> Structure:
@@ -545,6 +552,22 @@ class LLTOGaussianPertubation:
 
                 sigmas = np.full(3, self.other_sigma)
                 sigmas[best_axis] = self.li_sigma
+                dxyz = self.rng.normal(scale=sigmas, size=3)
+            elif site.specie.symbol == "B":
+                neighs = struct.get_sites_in_sphere(site.coords, 4.0)
+
+                ti_sites = [
+                    tup[0]
+                    for tup in sorted(neighs, key=lambda x: x[1])
+                    if tup[0].specie.symbol == "Ti"
+                ][:4]
+
+                ti_coords = np.array([site.coords for site in ti_sites])
+                axis_std = ti_coords.std(axis=0)
+                best_axis = np.argmin(axis_std)
+
+                sigmas = np.full(3, self.other_sigma)
+                sigmas[best_axis] = self.B_sigma
                 dxyz = self.rng.normal(scale=sigmas, size=3)
             else:
                 dxyz = self.rng.normal(scale=self.other_sigma, size=3)
