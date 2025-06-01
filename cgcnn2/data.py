@@ -445,6 +445,10 @@ def full_set_split(
     temp_valid_dir = tempfile.mkdtemp()
     temp_test_dir = tempfile.mkdtemp()
 
+    atexit.register(shutil.rmtree, temp_train_dir, ignore_errors=True)
+    atexit.register(shutil.rmtree, temp_valid_dir, ignore_errors=True)
+    atexit.register(shutil.rmtree, temp_test_dir, ignore_errors=True)
+
     splits = {
         temp_train_dir: train_df,
         temp_valid_dir: valid_df,
