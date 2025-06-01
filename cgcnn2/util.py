@@ -402,9 +402,7 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
         delete_duplicates (bool): Whether to delete the duplicate structures, default is False.
 
     Returns:
-        grouped: list
-            A list of lists, where each sublist contains structurally equivalent
-        structures.
+        grouped (list): A list of lists, where each sublist contains structurally equivalent structures.
     """
     cif_files = [f for f in os.listdir(dataset_dir) if f.endswith(".cif")]
     structures = []
