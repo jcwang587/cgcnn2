@@ -34,7 +34,7 @@ def collate_pool(dataset_list):
         batch_nbr_fea: torch.Tensor shape (N, M, nbr_fea_len) Bond features of each atom's M neighbors
         batch_nbr_fea_idx: torch.LongTensor shape (N, M) Indices of M neighbors of each atom
         crystal_atom_idx: list of torch.LongTensor of length N0 Mapping from the crystal idx to atom idx
-        target: torch.Tensor shape (N, 1) Target value for prediction
+        batch_target: torch.Tensor shape (N, 1) Target value for prediction
         batch_cif_ids: list of str or int Unique IDs for each crystal
     """
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
