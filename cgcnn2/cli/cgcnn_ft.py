@@ -272,7 +272,7 @@ def main():
         if args.full_set:
             logging.error("Cannot specify both full-set and train, valid, test sets.")
             sys.exit(1)
-        train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
+        train_dataset = CIFData(args.train_set, cache_size=args.cache_size, transform=LLTOGaussianPertubation())
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
@@ -282,7 +282,7 @@ def main():
         train_set_dir, valid_set_dir, test_set_dir = full_set_split(
             args.full_set, args.train_ratio, args.valid_ratio, args.train_force_set
         )
-        train_dataset = CIFData(train_set_dir, cache_size=args.cache_size)
+        train_dataset = CIFData(train_set_dir, cache_size=args.cache_size, transform=LLTOGaussianPertubation())
         valid_dataset = CIFData(valid_set_dir)
         test_dataset = CIFData(test_set_dir)
     else:
