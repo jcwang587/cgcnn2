@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
-from torch.utils.data import Dataset, Subset, random_split
+from torch.utils.data import Dataset, Subset
 
 
 def collate_pool(dataset_list):
@@ -406,8 +406,7 @@ def full_set_split(
     full_set_dir: str,
     train_ratio: float,
     valid_ratio: float,
-    train_force_dir: str = None,
-    train_force_keep_ratio: bool = False,
+    train_force_dir: str | None = None,
     random_seed: int = 0,
 ):
     """
@@ -431,15 +430,16 @@ def full_set_split(
         names=["cif_id", "property"],
     )
 
-    n_total = len(df)
+    rng = np.random.RandomState(random_seed)
+    df_shuffle = df.sample(frac=1.0, random_state=rng).reset_index(drop=True)
+
+    n_total = len(df_shuffle)
     n_train = int(n_total * train_ratio)
     n_valid = int(n_total * valid_ratio)
-    n_test = n_total - n_train - n_valid
 
-    generator = torch.Generator().manual_seed(random_seed)
-    train_df, valid_df, test_df = random_split(
-        df, [n_train, n_valid, n_test], generator=generator
-    )
+    train_df = df_shuffle[:n_train]
+    valid_df = df_shuffle[n_train : n_train + n_valid]
+    test_df = df_shuffle[n_train + n_valid :]
 
     temp_train_dir = tempfile.mkdtemp()
     temp_valid_dir = tempfile.mkdtemp()
@@ -472,11 +472,20 @@ def full_set_split(
     shutil.copy(os.path.join(full_set_dir, "atom_init.json"), temp_test_dir)
 
     if train_force_dir is not None:
-        # copy the forced training set into the train set
-        for cif_id in os.listdir(train_force_dir):
-            shutil.copy(
-                os.path.join(train_force_dir, cif_id),
-                os.path.join(temp_train_dir, cif_id),
-            )
+        df_force = pd.read_csv(
+            os.path.join(train_force_dir, "id_prop.csv"),
+            header=None,
+            names=["cif_id", "property"],
+        )
+
+        train_df = pd.concat([train_df, df_force])
+        train_df.to_csv(
+            os.path.join(temp_train_dir, "id_prop.csv"), index=False, header=False
+        )
+
+        for cif_id in df_force["cif_id"]:
+            src = os.path.join(train_force_dir, f"{cif_id}.cif")
+            dst = os.path.join(temp_train_dir, f"{cif_id}.cif")
+            shutil.copy(src, dst)
 
     return temp_train_dir, temp_valid_dir, temp_test_dir

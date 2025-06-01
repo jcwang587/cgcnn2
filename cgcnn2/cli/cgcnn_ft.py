@@ -8,12 +8,11 @@ from pprint import pformat
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import (CIFData, collate_pool, full_set_split,
-                         set_dataset_cache)
+from cgcnn2.data import (CIFData, collate_pool, full_set_split)
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, print_checkpoint_info,
                          setup_logging)
-from torch.utils.data import DataLoader, random_split
+from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):
@@ -67,18 +66,13 @@ def parse_arguments(args=None):
         help="The ratio of the dataset to be used for training. Default: 0.6",
     )
     parser.add_argument(
-        "-trfr",
-        "--train-force-ratio",
-        type=str,
-        help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
-        "The train : valid : test ratio will be kept as is.",
-    )
-    parser.add_argument(
         "-trfs",
         "--train-force-set",
+        default=None,
         type=str,
-        help="When using the full-set / ratios option, this allows you to force a specific set of cif files to be used for training.\n"
-        "The train : valid : test ratio will not be kept as is.",
+        help="When using the combined full-set and ratios option,\n"
+        "this allows you to force a specific set to be used for training.\n"
+        "The train : valid : test ratio will be not be kept as is. Default: None",
     )
     parser.add_argument(
         "-vr",
@@ -281,29 +275,15 @@ def main():
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
-        generator = torch.Generator().manual_seed(args.random_seed)
         if args.train_set or args.valid_set or args.test_set:
             logging.error("Cannot specify both full-set and train, valid, test sets.")
             sys.exit(1)
-
-        full_dataset = CIFData(args.full_set)
-        n_total = len(full_dataset)
-        n_train = int(round(n_total * args.train_ratio))
-        n_valid_test = n_total - n_train
-        train_dataset, valid_test_dataset = random_split(
-            full_dataset, lengths=[n_train, n_valid_test], generator=generator
+        train_set_dir, valid_set_dir, test_set_dir = full_set_split(
+            args.full_set, args.train_ratio, args.valid_ratio, args.train_force_set
         )
-        n_valid_test = len(valid_test_dataset)
-        n_valid = int(
-            round(
-                n_valid_test * (args.valid_ratio / (args.valid_ratio + args.test_ratio))
-            )
-        )
-        n_test = n_valid_test - n_valid
-        valid_dataset, test_dataset = random_split(
-            valid_test_dataset, lengths=[n_valid, n_test], generator=generator
-        )
-        set_dataset_cache(train_dataset, args.cache_size)
+        train_dataset = CIFData(train_set_dir, cache_size=args.cache_size)
+        valid_dataset = CIFData(valid_set_dir)
+        test_dataset = CIFData(test_set_dir)
     else:
         logging.error(
             "Either train, valid, and test datasets or a full data directory must be provided."
