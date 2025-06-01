@@ -276,6 +276,9 @@ def main():
     if args.cache_size:
         logging.info(f"Using cache size: {args.cache_size} for DataLoader")
     if args.train_set and args.valid_set and args.test_set:
+        if args.full_set:
+            logging.error("Cannot specify both full-set and train, valid, test sets.")
+            sys.exit(1)
         train_dataset = CIFData(args.train_set, cache_size=args.cache_size)
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
