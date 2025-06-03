@@ -54,7 +54,7 @@ def output_id_gen() -> str:
     Generates a unique output identifier based on current date and time.
 
     Returns:
-        str: A string in the format 'output_mmdd_HHMM' representing the current date and time.
+        folder_name (str): A string in the format 'output_mmdd_HHMM' representing the current date and time.
     """
 
     now = datetime.now()
@@ -95,10 +95,13 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
         optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
 
     Returns:
-        list[float]: A list of learning rates, one for each parameter group in the optimizer.
+        lr_list (list[float]): A list of learning rates, one for each parameter group in the optimizer.
     """
 
-    return [param_group["lr"] for param_group in optimizer.param_groups]
+    lr_list = []
+    for param_group in optimizer.param_groups:
+        lr_list.append(param_group["lr"])
+    return lr_list
 
 
 def cgcnn_test(
@@ -125,9 +128,6 @@ def cgcnn_test(
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
             ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
-
-    Returns:
-        None
 
     Notes:
         This function is intended for use in a command-line interface, providing
