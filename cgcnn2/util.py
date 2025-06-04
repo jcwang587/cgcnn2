@@ -64,7 +64,7 @@ def output_id_gen() -> str:
     Generates a unique output identifier based on current date and time.
 
     Returns:
-        folder_name (str): A string in the format 'output_mmdd_HHMM' representing the current date and time.
+        folder_name (str): A string in format 'output_mmdd_HHMM' for current date/time.
     """
 
     now = datetime.now()
@@ -105,7 +105,7 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
         optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
 
     Returns:
-        learning_rates (list[float]): A list of learning rates, one for each parameter group in the optimizer.
+        learning_rates (list[float]): A list of learning rates for each parameter group.
     """
 
     learning_rates = []
