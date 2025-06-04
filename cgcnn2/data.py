@@ -251,14 +251,16 @@ class CIFData(Dataset):
         Change the LRU-cache capacity on the fly.
 
         Args:
-            cache_size (int | None): None for unlimited cache size. 0 or negative for disabling caching. >0 for caching at most `cache_size` entries.
+            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
         self._configure_cache(cache_size)
 
     def clear_cache(self) -> None:
-        """Empty the current cache without altering its size."""
+        """
+        Clear the current cache.
+        """
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
 
@@ -273,13 +275,13 @@ class CIFData(Dataset):
         Wrap `_raw_load_item` with an LRU cache.
 
         Args:
-            cache_size (int | None): Number of entries to cache, None for unlimited size. Default is None.
+            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
-        if cache_size is None:  # unlimited cache
+        if cache_size is None:
             self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
-        elif cache_size <= 0:  # caching off
+        elif cache_size <= 0:
             self._cache_load = self._raw_load_item
-        else:  # bounded cache
+        else:
             self._cache_load = functools.lru_cache(maxsize=cache_size)(
                 self._raw_load_item
             )
