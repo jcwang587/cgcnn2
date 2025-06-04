@@ -18,8 +18,7 @@ from torch.utils.data import Dataset, Subset
 
 def collate_pool(dataset_list):
     """
-    Collate a list of data and return a batch for predicting crystal
-    properties.
+    Collate a list of data and return a batch for predicting crystal properties.
 
     Args:
         dataset_list (list of tuples): List of tuples for each data point. Each tuple contains:
@@ -37,6 +36,7 @@ def collate_pool(dataset_list):
         batch_target: torch.Tensor shape (N, 1) Target value for prediction
         batch_cif_ids: list of str or int Unique IDs for each crystal
     """
+
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
     crystal_atom_idx, batch_target = [], []
     batch_cif_ids = []
@@ -73,10 +73,12 @@ class GaussianDistance(object):
     def __init__(self, dmin, dmax, step, var=None):
         """
         Args:
-            dmin (float): Minimum interatomic distance
-            dmax (float): Maximum interatomic distance
-            step (float): Step size for the Gaussian filter
+            dmin (float): Minimum interatomic distance (center of the first Gaussian).
+            dmax (float): Maximum interatomic distance (center of the last Gaussian).
+            step (float): Spacing between consecutive Gaussian centers.
+            var (float, optional): Variance of each Gaussian. If None, defaults to step.
         """
+
         assert dmin < dmax
         assert dmax - dmin > step
         self.filter = np.arange(dmin, dmax + step, step)
@@ -86,45 +88,79 @@ class GaussianDistance(object):
 
     def expand(self, distances):
         """
-        Apply Gaussian distance filter to a numpy distance array
+        Project each scalar distance onto a set of Gaussian basis functions.
 
         Args:
-            distances (np.ndarray): A distance matrix of any shape
+            distances (np.ndarray): An array of interatomic distances.
 
         Returns:
-            expanded_distance: shape (n+1)-d array
-              Expanded distance matrix with the last dimension of length
-              len(self.filter)
+            expanded_distance (np.ndarray): An array where the last dimension contains the Gaussian basis values for each input distance.
         """
-        return np.exp(-((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2)
+
+        expanded_distance = np.exp(
+            -((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2
+        )
+        return expanded_distance
 
 
 class AtomInitializer(object):
     """
     Base class for initializing the vector representation for atoms.
-
     Use one `AtomInitializer` per dataset.
     """
 
     def __init__(self, atom_types):
+        """
+        Initialize the atom types and embedding dictionary.
+
+        Args:
+            atom_types (set): A set of unique atom types in the dataset.
+        """
         self.atom_types = set(atom_types)
         self._embedding = {}
 
     def get_atom_fea(self, atom_type):
+        """
+        Get the vector representation for an atom type.
+
+        Args:
+            atom_type (str): The type of atom to get the vector representation for.
+        """
         assert atom_type in self.atom_types
         return self._embedding[atom_type]
 
     def load_state_dict(self, state_dict):
+        """
+        Load the state dictionary for the atom initializer.
+
+        Args:
+            state_dict (dict): The state dictionary to load.
+        """
         self._embedding = state_dict
         self.atom_types = set(self._embedding.keys())
         self._decodedict = {
             idx: atom_type for atom_type, idx in self._embedding.items()
         }
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
+        """
+        Get the state dictionary for the atom initializer.
+
+        Returns:
+            dict: The state dictionary.
+        """
         return self._embedding
 
-    def decode(self, idx):
+    def decode(self, idx: int) -> str:
+        """
+        Decode an index to an atom type.
+
+        Args:
+            idx (int): The index to decode.
+
+        Returns:
+            str: The decoded atom type.
+        """
         if not hasattr(self, "_decodedict"):
             self._decodedict = {
                 idx: atom_type for atom_type, idx in self._embedding.items()
@@ -292,6 +328,10 @@ def set_dataset_cache(ds: Dataset, cache_size: Optional[int]) -> None:
     """
     Call `set_cache_size` on the base dataset if the method exists.
     Works whether `ds` is a plain Dataset or a Subset.
+
+    Args:
+        ds (Dataset): The dataset to set the cache size for.
+        cache_size (int | None): The size of the cache to set.
     """
     if hasattr(ds, "set_cache_size"):
         ds.set_cache_size(cache_size)
