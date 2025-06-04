@@ -324,7 +324,7 @@ class CIFData(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
-    
+
     def _load_item_fast(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
@@ -350,8 +350,8 @@ class CIFData(Dataset):
                     "radius.",
                     stacklevel=2,
                 )
-            idxs = [t[0] for t in lst[:self.max_num_nbr]]
-            dvec = [t[1] for t in lst[:self.max_num_nbr]]
+            idxs = [t[0] for t in lst[: self.max_num_nbr]]
+            dvec = [t[1] for t in lst[: self.max_num_nbr]]
             pad = self.max_num_nbr - len(idxs)
             nbr_fea_idx.append(idxs + [0] * pad)
             nbr_fea.append(dvec + [self.radius + 1.0] * pad)
