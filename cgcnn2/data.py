@@ -356,7 +356,8 @@ class CIFData(Dataset):
             nbr_fea_idx.append(idxs + [0] * pad)
             nbr_fea.append(dvec + [self.radius + 1.0] * pad)
         nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
-        nbr_fea = torch.as_tensor(self.gdf.expand(np.array(nbr_fea)))
+        nbr_fea = self.gdf.expand(nbr_fea)
+        nbr_fea = torch.as_tensor(nbr_fea)
         target = torch.tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
