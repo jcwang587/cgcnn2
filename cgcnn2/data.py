@@ -324,6 +324,41 @@ class CIFData(Dataset):
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+    
+    def _load_item_fast(self, idx):
+        cif_id, target = self.id_prop_data[idx]
+        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+        atom_fea = np.vstack(
+            [
+                self.ari.get_atom_fea(crystal[i].specie.number)
+                for i in range(len(crystal))
+            ]
+        )
+        atom_fea = torch.Tensor(atom_fea)
+        center_idx, neigh_idx, _images, dists = crystal.get_neighbor_list(self.radius)
+        n_sites = len(crystal)
+        bucket = [[] for _ in range(n_sites)]
+        for c, n, d in zip(center_idx, neigh_idx, dists):
+            bucket[c].append((n, d))
+        bucket = [sorted(lst, key=lambda x: x[1]) for lst in bucket]
+        nbr_fea_idx, nbr_fea = [], []
+        for lst in bucket:
+            if len(lst) < self.max_num_nbr:
+                warnings.warn(
+                    f"{cif_id} not find enough neighbors to build graph. "
+                    "If it happens frequently, consider increase "
+                    "radius.",
+                    stacklevel=2,
+                )
+            idxs = [t[0] for t in lst[:self.max_num_nbr]]
+            dvec = [t[1] for t in lst[:self.max_num_nbr]]
+            pad = self.max_num_nbr - len(idxs)
+            nbr_fea_idx.append(idxs + [0] * pad)
+            nbr_fea.append(dvec + [self.radius + 1.0] * pad)
+        nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
+        nbr_fea = torch.as_tensor(self.gdf.expand(np.array(nbr_fea)))
+        target = torch.tensor([float(target)])
+        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
 def set_dataset_cache(ds: Dataset, cache_size: Optional[int]) -> None:
