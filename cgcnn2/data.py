@@ -237,7 +237,7 @@ class CIFData(Dataset):
         Wrap `_raw_load_item` with an LRU cache.
 
         Args:
-            cache_size (int | None): None for unlimited size. 0 or negative for disabling caching. >0 for caching at most `cache_size` entries.
+            cache_size (int | None): Number of entries to cache, None for unlimited size. Default is None.
         """
         if cache_size is None:  # unlimited cache
             self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
