@@ -24,7 +24,10 @@ from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
 
-def setup_logging():
+def setup_logging() -> None:
+    """
+    Sets up logging for the project.
+    """
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.INFO,
@@ -39,12 +42,19 @@ def setup_logging():
 
 
 def get_local_version() -> str:
+    """
+    Retrieves the version of the project from the pyproject.toml file.
+
+    Returns:
+        version (str): The version of the project.
+    """
     project_root = Path(__file__).parents[2]
     toml_path = project_root / "pyproject.toml"
     try:
         with toml_path.open("rb") as f:
             data = tomllib.load(f)
-        return data["project"]["version"]
+            version = data["project"]["version"]
+        return version
     except Exception:
         return "unknown"
 
