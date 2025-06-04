@@ -106,29 +106,61 @@ class GaussianDistance(object):
 class AtomInitializer(object):
     """
     Base class for initializing the vector representation for atoms.
-
     Use one `AtomInitializer` per dataset.
     """
 
     def __init__(self, atom_types):
+        """
+        Initialize the atom types and embedding dictionary.
+
+        Args:
+            atom_types (set): A set of unique atom types in the dataset.
+        """
         self.atom_types = set(atom_types)
         self._embedding = {}
 
     def get_atom_fea(self, atom_type):
+        """
+        Get the vector representation for an atom type.
+
+        Args:
+            atom_type (str): The type of atom to get the vector representation for.
+        """
         assert atom_type in self.atom_types
         return self._embedding[atom_type]
 
     def load_state_dict(self, state_dict):
+        """
+        Load the state dictionary for the atom initializer.
+
+        Args:
+            state_dict (dict): The state dictionary to load.
+        """
         self._embedding = state_dict
         self.atom_types = set(self._embedding.keys())
         self._decodedict = {
             idx: atom_type for atom_type, idx in self._embedding.items()
         }
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
+        """
+        Get the state dictionary for the atom initializer.
+
+        Returns:
+            dict: The state dictionary.
+        """
         return self._embedding
 
-    def decode(self, idx):
+    def decode(self, idx: int) -> str:
+        """
+        Decode an index to an atom type.
+
+        Args:
+            idx (int): The index to decode.
+
+        Returns:
+            str: The decoded atom type.
+        """
         if not hasattr(self, "_decodedict"):
             self._decodedict = {
                 idx: atom_type for atom_type, idx in self._embedding.items()
@@ -296,6 +328,10 @@ def set_dataset_cache(ds: Dataset, cache_size: Optional[int]) -> None:
     """
     Call `set_cache_size` on the base dataset if the method exists.
     Works whether `ds` is a plain Dataset or a Subset.
+
+    Args:
+        ds (Dataset): The dataset to set the cache size for.
+        cache_size (int | None): The size of the cache to set.
     """
     if hasattr(ds, "set_cache_size"):
         ds.set_cache_size(cache_size)
