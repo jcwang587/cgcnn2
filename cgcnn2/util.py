@@ -95,13 +95,13 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
         optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
 
     Returns:
-        lr_list (list[float]): A list of learning rates, one for each parameter group in the optimizer.
+        learning_rates (list[float]): A list of learning rates, one for each parameter group in the optimizer.
     """
 
-    lr_list = []
+    learning_rates = []
     for param_group in optimizer.param_groups:
-        lr_list.append(param_group["lr"])
-    return lr_list
+        learning_rates.append(param_group["lr"])
+    return learning_rates
 
 
 def _make_and_save_parity(
