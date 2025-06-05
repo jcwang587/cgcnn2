@@ -18,8 +18,7 @@ from torch.utils.data import Dataset, Subset
 
 def collate_pool(dataset_list):
     """
-    Collate a list of data and return a batch for predicting crystal
-    properties.
+    Collate a list of data and return a batch for predicting crystal properties.
 
     Args:
         dataset_list (list of tuples): List of tuples for each data point. Each tuple contains:
@@ -37,6 +36,7 @@ def collate_pool(dataset_list):
         batch_target: torch.Tensor shape (N, 1) Target value for prediction
         batch_cif_ids: list of str or int Unique IDs for each crystal
     """
+
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
     crystal_atom_idx, batch_target = [], []
     batch_cif_ids = []
@@ -63,7 +63,7 @@ def collate_pool(dataset_list):
     )
 
 
-class GaussianDistance(object):
+class GaussianDistance:
     """
     Expands the distance by Gaussian basis.
 
@@ -73,10 +73,12 @@ class GaussianDistance(object):
     def __init__(self, dmin, dmax, step, var=None):
         """
         Args:
-            dmin (float): Minimum interatomic distance
-            dmax (float): Maximum interatomic distance
-            step (float): Step size for the Gaussian filter
+            dmin (float): Minimum interatomic distance (center of the first Gaussian).
+            dmax (float): Maximum interatomic distance (center of the last Gaussian).
+            step (float): Spacing between consecutive Gaussian centers.
+            var (float, optional): Variance of each Gaussian. If None, defaults to step.
         """
+
         assert dmin < dmax
         assert dmax - dmin > step
         self.filter = np.arange(dmin, dmax + step, step)
@@ -86,45 +88,79 @@ class GaussianDistance(object):
 
     def expand(self, distances):
         """
-        Apply Gaussian distance filter to a numpy distance array
+        Project each scalar distance onto a set of Gaussian basis functions.
 
         Args:
-            distances (np.ndarray): A distance matrix of any shape
+            distances (np.ndarray): An array of interatomic distances.
 
         Returns:
-            expanded_distance: shape (n+1)-d array
-              Expanded distance matrix with the last dimension of length
-              len(self.filter)
+            expanded_distance (np.ndarray): An array where the last dimension contains the Gaussian basis values for each input distance.
         """
-        return np.exp(-((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2)
+
+        expanded_distance = np.exp(
+            -((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2
+        )
+        return expanded_distance
 
 
-class AtomInitializer(object):
+class AtomInitializer:
     """
     Base class for initializing the vector representation for atoms.
-
     Use one `AtomInitializer` per dataset.
     """
 
     def __init__(self, atom_types):
+        """
+        Initialize the atom types and embedding dictionary.
+
+        Args:
+            atom_types (set): A set of unique atom types in the dataset.
+        """
         self.atom_types = set(atom_types)
         self._embedding = {}
 
     def get_atom_fea(self, atom_type):
+        """
+        Get the vector representation for an atom type.
+
+        Args:
+            atom_type (str): The type of atom to get the vector representation for.
+        """
         assert atom_type in self.atom_types
         return self._embedding[atom_type]
 
     def load_state_dict(self, state_dict):
+        """
+        Load the state dictionary for the atom initializer.
+
+        Args:
+            state_dict (dict): The state dictionary to load.
+        """
         self._embedding = state_dict
         self.atom_types = set(self._embedding.keys())
         self._decodedict = {
             idx: atom_type for atom_type, idx in self._embedding.items()
         }
 
-    def state_dict(self):
+    def state_dict(self) -> dict:
+        """
+        Get the state dictionary for the atom initializer.
+
+        Returns:
+            dict: The state dictionary.
+        """
         return self._embedding
 
-    def decode(self, idx):
+    def decode(self, idx: int) -> str:
+        """
+        Decode an index to an atom type.
+
+        Args:
+            idx (int): The index to decode.
+
+        Returns:
+            str: The decoded atom type.
+        """
         if not hasattr(self, "_decodedict"):
             self._decodedict = {
                 idx: atom_type for atom_type, idx in self._embedding.items()
@@ -147,7 +183,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
             elem_embedding = json.load(f)
         elem_embedding = {int(key): value for key, value in elem_embedding.items()}
         atom_types = set(elem_embedding.keys())
-        super(AtomCustomJSONInitializer, self).__init__(atom_types)
+        super().__init__(atom_types)
         for key, value in elem_embedding.items():
             self._embedding[key] = np.array(value, dtype=float)
 
@@ -208,7 +244,7 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
-        self._raw_load_item = self._load_item
+        self._raw_load_item = self._load_item_fast
         self._configure_cache(cache_size)
         self.transform = transform
 
@@ -217,14 +253,16 @@ class CIFData(Dataset):
         Change the LRU-cache capacity on the fly.
 
         Args:
-            cache_size (int | None): None for unlimited cache size. 0 or negative for disabling caching. >0 for caching at most `cache_size` entries.
+            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
         self._configure_cache(cache_size)
 
     def clear_cache(self) -> None:
-        """Empty the current cache without altering its size."""
+        """
+        Clear the current cache.
+        """
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
 
@@ -239,13 +277,13 @@ class CIFData(Dataset):
         Wrap `_raw_load_item` with an LRU cache.
 
         Args:
-            cache_size (int | None): None for unlimited size. 0 or negative for disabling caching. >0 for caching at most `cache_size` entries.
+            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
-        if cache_size is None:  # unlimited cache
+        if cache_size is None:
             self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
-        elif cache_size <= 0:  # caching off
+        elif cache_size <= 0:
             self._cache_load = self._raw_load_item
-        else:  # bounded cache
+        else:
             self._cache_load = functools.lru_cache(maxsize=cache_size)(
                 self._raw_load_item
             )
@@ -291,11 +329,51 @@ class CIFData(Dataset):
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
+    def _load_item_fast(self, idx):
+        cif_id, target = self.id_prop_data[idx]
+        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+        atom_fea = np.vstack(
+            [
+                self.ari.get_atom_fea(crystal[i].specie.number)
+                for i in range(len(crystal))
+            ]
+        )
+        atom_fea = torch.Tensor(atom_fea)
+        center_idx, neigh_idx, _images, dists = crystal.get_neighbor_list(self.radius)
+        n_sites = len(crystal)
+        bucket = [[] for _ in range(n_sites)]
+        for c, n, d in zip(center_idx, neigh_idx, dists):
+            bucket[c].append((n, d))
+        bucket = [sorted(lst, key=lambda x: x[1]) for lst in bucket]
+        nbr_fea_idx, nbr_fea = [], []
+        for lst in bucket:
+            if len(lst) < self.max_num_nbr:
+                warnings.warn(
+                    f"{cif_id} not find enough neighbors to build graph. "
+                    "If it happens frequently, consider increase "
+                    "radius.",
+                    stacklevel=2,
+                )
+            idxs = [t[0] for t in lst[: self.max_num_nbr]]
+            dvec = [t[1] for t in lst[: self.max_num_nbr]]
+            pad = self.max_num_nbr - len(idxs)
+            nbr_fea_idx.append(idxs + [0] * pad)
+            nbr_fea.append(dvec + [self.radius + 1.0] * pad)
+        nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
+        nbr_fea = self.gdf.expand(np.array(nbr_fea))
+        nbr_fea = torch.Tensor(nbr_fea)
+        target = torch.tensor([float(target)])
+        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+
 
 def set_dataset_cache(ds: Dataset, cache_size: Optional[int]) -> None:
     """
     Call `set_cache_size` on the base dataset if the method exists.
     Works whether `ds` is a plain Dataset or a Subset.
+
+    Args:
+        ds (Dataset): The dataset to set the cache size for.
+        cache_size (int | None): The size of the cache to set.
     """
     if hasattr(ds, "set_cache_size"):
         ds.set_cache_size(cache_size)

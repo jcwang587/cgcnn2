@@ -24,7 +24,10 @@ from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
 
-def setup_logging():
+def setup_logging() -> None:
+    """
+    Sets up logging for the project.
+    """
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.INFO,
@@ -33,18 +36,25 @@ def setup_logging():
     )
     logging.captureWarnings(True)
 
-    logging.info(f"* cgcnn2 version: {cgcnn2.__version__}")
-    logging.info(f"* cuda version: {torch.version.cuda}")
-    logging.info(f"* torch version: {torch.__version__}")
+    logging.info(f"cgcnn2 version: {cgcnn2.__version__}")
+    logging.info(f"cuda version: {torch.version.cuda}")
+    logging.info(f"torch version: {torch.__version__}")
 
 
 def get_local_version() -> str:
+    """
+    Retrieves the version of the project from the pyproject.toml file.
+
+    Returns:
+        version (str): The version of the project.
+    """
     project_root = Path(__file__).parents[2]
     toml_path = project_root / "pyproject.toml"
     try:
         with toml_path.open("rb") as f:
             data = tomllib.load(f)
-        return data["project"]["version"]
+            version = data["project"]["version"]
+        return version
     except Exception:
         return "unknown"
 
@@ -54,7 +64,7 @@ def output_id_gen() -> str:
     Generates a unique output identifier based on current date and time.
 
     Returns:
-        str: A string in the format 'output_mmdd_HHMM' representing the current date and time.
+        folder_name (str): A string in format 'output_mmdd_HHMM' for current date/time.
     """
 
     now = datetime.now()
@@ -95,17 +105,50 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
         optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
 
     Returns:
-        list[float]: A list of learning rates, one for each parameter group in the optimizer.
+        learning_rates (list[float]): A list of learning rates for each parameter group.
     """
 
-    return [param_group["lr"] for param_group in optimizer.param_groups]
+    learning_rates = []
+    for param_group in optimizer.param_groups:
+        learning_rates.append(param_group["lr"])
+    return learning_rates
+
+
+def _make_and_save_parity(
+    df: pd.DataFrame, xlabel: str, ylabel: str, out_png: str
+) -> None:
+    """
+    Creates a parity plot and saves it to a file.
+
+    Args:
+        df (pd.DataFrame): The dataframe containing the actual and predicted values.
+        xlabel (str): The label for the x-axis.
+        ylabel (str): The label for the y-axis.
+        out_png (str): The path to the file to save the parity plot.
+    """
+
+    fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+    _ = density_hexbin(
+        x="Actual",
+        y="Predicted",
+        df=df,
+        ax=ax,
+        xlabel=xlabel,
+        ylabel=ylabel,
+        best_fit_line=False,
+        gridsize=40,
+    )
+    ax.set_aspect("auto")
+    ax.set_box_aspect(1)
+    plt.savefig(out_png, format="png", dpi=300)
+    plt.close(fig)
 
 
 def cgcnn_test(
     model: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: str,
-    plot_file: str = "parity_plot.svg",
+    plot_file: str = "parity_plot.png",
     results_file: str = "results.csv",
     axis_limits: list[float] | None = None,
     **kwargs: Any,
@@ -125,9 +168,6 @@ def cgcnn_test(
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
             ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
-
-    Returns:
-        None
 
     Notes:
         This function is intended for use in a command-line interface, providing
@@ -177,74 +217,23 @@ def cgcnn_test(
     logging.info(f"Prediction results have been saved to {results_file}")
 
     # Create parity plot
-    fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
-    df = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
-
-    ax = density_hexbin(
-        x="Actual",
-        y="Predicted",
-        df=df,
-        ax=ax,
-        xlabel=xlabel,
-        ylabel=ylabel,
-        best_fit_line=False,
-        gridsize=40,
-    )
-    ax.set_aspect("auto")
-    ax.set_box_aspect(1)
-    plt.savefig(plot_file, format="svg")
+    df_full = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
+    _make_and_save_parity(df_full, xlabel, ylabel, plot_file)
     logging.info(f"Parity plot has been saved to {plot_file}")
-    plt.close()
 
     # If axis limits are provided, save the csv file with the specified limits
     if axis_limits:
-        results_file = (
-            results_file.split(".")[0]
-            + "_axis_limits_"
-            + str(axis_limits[0])
-            + "_"
-            + str(axis_limits[1])
-            + ".csv"
-        )
-        plot_file = (
-            plot_file.split(".")[0]
-            + "_axis_limits_"
-            + str(axis_limits[0])
-            + "_"
-            + str(axis_limits[1])
-            + ".svg"
-        )
-
-        df = df[
-            (df["Actual"] >= axis_limits[0])
-            & (df["Actual"] <= axis_limits[1])
-            & (df["Predicted"] >= axis_limits[0])
-            & (df["Predicted"] <= axis_limits[1])
+        df_clip = df_full[
+            (df_full["Actual"] >= axis_limits[0])
+            & (df_full["Actual"] <= axis_limits[1])
+            & (df_full["Predicted"] >= axis_limits[0])
+            & (df_full["Predicted"] <= axis_limits[1])
         ]
-
-        df.to_csv(
-            results_file,
-            index=False,
+        clipped_file = plot_file.replace(
+            ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
-
-        # Create parity plot
-        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
-
-        ax = density_hexbin(
-            x="Actual",
-            y="Predicted",
-            df=df,
-            ax=ax,
-            xlabel=xlabel,
-            ylabel=ylabel,
-            best_fit_line=False,
-            gridsize=40,
-        )
-        ax.set_aspect("auto")
-        ax.set_box_aspect(1)
-        plt.savefig(plot_file, format="svg")
-        logging.info(f"Parity plot has been saved to {plot_file}")
-        plt.close()
+        _make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
+        logging.info(f"Parity plot with axis limits has been saved to {clipped_file}")
 
 
 def cgcnn_descriptor(
