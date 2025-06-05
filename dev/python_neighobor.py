@@ -133,11 +133,11 @@ class GaussianDistance(object):
 
 
 def main():
-    cif_id = "U2_N0_OV0_00_000.cif"
+    cif_id = "llto.cif"
     target = 1
     radius = 8
     max_num_nbr = 12
-    ari = AtomCustomJSONInitializer("examples/data/sample-regression/atom_init.json")
+    ari = AtomCustomJSONInitializer("../examples/data/sample-regression/atom_init.json")
     crystal = Structure.from_file(cif_id)
     atom_fea = np.vstack(
         [ari.get_atom_fea(crystal[i].specie.number) for i in range(len(crystal))]
@@ -171,7 +171,7 @@ def main():
     nbr_fea = torch.Tensor(nbr_fea)
     nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
     target = torch.Tensor([float(target)])
-    
+
     print(atom_fea.shape)
     print(nbr_fea.shape)
     print(nbr_fea_idx.shape)
@@ -179,19 +179,22 @@ def main():
 
 
 if __name__ == "__main__":
+    import inspect
+    import io
+    import sys
+
     from line_profiler import LineProfiler
-    import inspect, io, sys
 
     # ---- set up the profiler ----
     lp = LineProfiler()
-    lp_wrapper = lp(main)   # profile ONLY main(); add more functions if you like
+    lp_wrapper = lp(main)  # profile ONLY main(); add more functions if you like
 
     # ---- run the code ----
     lp_wrapper()
 
     # ---- capture the text stats that line_profiler prints ----
     s = io.StringIO()
-    lp.print_stats(stream=s, output_unit=1e-6)   # μs resolution
+    lp.print_stats(stream=s, output_unit=1e-6)  # μs resolution
     stats_text = s.getvalue()
 
     # ---- parse -> sort -> print ----
@@ -210,4 +213,3 @@ if __name__ == "__main__":
     print("\n=== Lines in main() sorted by TOTAL time (µs) ===")
     for t, code in lines:
         print(f"{t:>10.6f}  {code}")
-

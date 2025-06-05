@@ -133,17 +133,17 @@ class GaussianDistance(object):
 
 
 def main():
-    cif_id = "U2_N0_OV0_00_000.cif"
+    cif_id = "llto.cif"
     target = 1
     radius = 8
     max_num_nbr = 12
-    ari = AtomCustomJSONInitializer("examples/data/sample-regression/atom_init.json")
+    ari = AtomCustomJSONInitializer("../examples/data/sample-regression/atom_init.json")
     crystal = Structure.from_file(cif_id)
     atom_fea = np.vstack(
         [ari.get_atom_fea(crystal[i].specie.number) for i in range(len(crystal))]
     )
     atom_fea = torch.Tensor(atom_fea)
-    
+
     # --- fast neighbour search ---
     center_idx, neigh_idx, _images, dists = crystal.get_neighbor_list(radius)  # new API
 
@@ -170,28 +170,34 @@ def main():
         nbr_fea.append(dvec + [radius + 1.0] * pad)
 
     nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
-    nbr_fea     = torch.as_tensor(GaussianDistance(0, radius, 0.2).expand(np.array(nbr_fea)))
-    target      = torch.tensor([float(target)])
+    nbr_fea = torch.as_tensor(
+        GaussianDistance(0, radius, 0.2).expand(np.array(nbr_fea))
+    )
+    target = torch.tensor([float(target)])
 
     print(atom_fea.shape)
     print(nbr_fea.shape)
     print(nbr_fea_idx.shape)
     print(target.shape)
 
+
 if __name__ == "__main__":
+    import inspect
+    import io
+    import sys
+
     from line_profiler import LineProfiler
-    import inspect, io, sys
 
     # ---- set up the profiler ----
     lp = LineProfiler()
-    lp_wrapper = lp(main)   # profile ONLY main(); add more functions if you like
+    lp_wrapper = lp(main)  # profile ONLY main(); add more functions if you like
 
     # ---- run the code ----
     lp_wrapper()
 
     # ---- capture the text stats that line_profiler prints ----
     s = io.StringIO()
-    lp.print_stats(stream=s, output_unit=1e-6)   # μs resolution
+    lp.print_stats(stream=s, output_unit=1e-6)  # μs resolution
     stats_text = s.getvalue()
 
     # ---- parse -> sort -> print ----
@@ -210,4 +216,3 @@ if __name__ == "__main__":
     print("\n=== Lines in main() sorted by TOTAL time (µs) ===")
     for t, code in lines:
         print(f"{t:>10.6f}  {code}")
-
