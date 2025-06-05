@@ -2,13 +2,12 @@
 
 ## Prerequisites
 
-- Python 3.10 or higher
+- Python 3.11 or higher
 - pip (Python package installer)
 
 ## Installation Steps
 
-Make sure you have a Python interpreter, preferably version 3.10 or higher. Then, you can simply install `cgcnn2` from
-PyPI using `pip`:
+It is recommended to first check your available CUDA version (or, if you only have a CPU, skip this step) and install PyTorch following the instructions on the PyTorch official [website](https://pytorch.org/get-started/locally/). Then, you can simply install `cgcnn2` from PyPI using pip:
 
 ```bash
 pip install cgcnn2
@@ -24,14 +23,12 @@ pip install git+https://github.com/jcwang587/cgcnn2@main
 
 The package requires the following dependencies:
 
-* [ASE](https://wiki.fysik.dtu.dk/ase/)
 * [matplotlib](https://matplotlib.org/)
 * [NumPy](https://numpy.org/)
 * [pandas](https://pandas.pydata.org/)
 * [pymatgen](https://pymatgen.org/)
 * [pymatviz](https://pymatviz.janosh.dev/)
 * [PyTorch](https://pytorch.org/)
-* [scikit-learn](https://scikit-learn.org/)
 
 These will be automatically installed when you install the package.
 
