@@ -7,7 +7,7 @@
 
 ## Installation Steps
 
-It is recommended to first check your available CUDA version (or, if you only have a CPU, skip this step) and install PyTorch following the instructions on the PyTorch official [website](https://pytorch.org/get-started/locally/). Then, you can simply install `cgcnn2` from PyPI using pip:
+It is recommended to first check your available CUDA version (or CPU only) and install PyTorch following the instructions on the PyTorch official [website](https://pytorch.org/get-started/locally/). Then, you can simply install `cgcnn2` from PyPI using pip:
 
 ```bash
 pip install cgcnn2
