@@ -162,7 +162,7 @@ def cgcnn_test(
         model (torch.nn.Module): The pre-trained CGCNN model.
         loader (torch.utils.data.DataLoader): DataLoader for the dataset.
         device (str): The device ('cuda' or 'cpu') where the model will be run.
-        plot_file (str, optional): File path for saving the parity plot. Defaults to 'parity_plot.svg'.
+        plot_file (str, optional): File path for saving the parity plot. Defaults to 'parity_plot.png'.
         results_file (str, optional): File path for saving results as CSV. Defaults to 'results.csv'.
         axis_limits (list, optional): Limits for x and y axes of the parity plot. Defaults to None.
         **kwargs: Additional keyword arguments:
