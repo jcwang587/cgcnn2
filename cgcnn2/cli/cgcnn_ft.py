@@ -106,7 +106,6 @@ def parse_arguments(args=None):
         "--batch-size",
         default=256,
         type=int,
-        metavar="N",
         help="Batch size for DataLoader (default: 256)",
     )
     parser.add_argument(
@@ -121,7 +120,6 @@ def parse_arguments(args=None):
         "--workers",
         default=0,
         type=int,
-        metavar="N",
         help="Number of DataLoader workers (default: 0)",
     )
     parser.add_argument(

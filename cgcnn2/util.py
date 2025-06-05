@@ -36,9 +36,9 @@ def setup_logging() -> None:
     )
     logging.captureWarnings(True)
 
-    logging.info(f"* cgcnn2 version: {cgcnn2.__version__}")
-    logging.info(f"* cuda version: {torch.version.cuda}")
-    logging.info(f"* torch version: {torch.__version__}")
+    logging.info(f"cgcnn2 version: {cgcnn2.__version__}")
+    logging.info(f"cuda version: {torch.version.cuda}")
+    logging.info(f"torch version: {torch.__version__}")
 
 
 def get_local_version() -> str:

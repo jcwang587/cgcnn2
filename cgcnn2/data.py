@@ -63,7 +63,7 @@ def collate_pool(dataset_list):
     )
 
 
-class GaussianDistance(object):
+class GaussianDistance:
     """
     Expands the distance by Gaussian basis.
 
@@ -103,7 +103,7 @@ class GaussianDistance(object):
         return expanded_distance
 
 
-class AtomInitializer(object):
+class AtomInitializer:
     """
     Base class for initializing the vector representation for atoms.
     Use one `AtomInitializer` per dataset.
@@ -183,7 +183,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
             elem_embedding = json.load(f)
         elem_embedding = {int(key): value for key, value in elem_embedding.items()}
         atom_types = set(elem_embedding.keys())
-        super(AtomCustomJSONInitializer, self).__init__(atom_types)
+        super().__init__(atom_types)
         for key, value in elem_embedding.items():
             self._embedding[key] = np.array(value, dtype=float)
 
@@ -243,7 +243,7 @@ class CIFData(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
-        self._raw_load_item = self._load_item
+        self._raw_load_item = self._load_item_fast
         self._configure_cache(cache_size)
 
     def set_cache_size(self, cache_size: Optional[int]) -> None:
@@ -251,14 +251,16 @@ class CIFData(Dataset):
         Change the LRU-cache capacity on the fly.
 
         Args:
-            cache_size (int | None): None for unlimited cache size. 0 or negative for disabling caching. >0 for caching at most `cache_size` entries.
+            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
         self._configure_cache(cache_size)
 
     def clear_cache(self) -> None:
-        """Empty the current cache without altering its size."""
+        """
+        Clear the current cache.
+        """
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
 
@@ -273,13 +275,13 @@ class CIFData(Dataset):
         Wrap `_raw_load_item` with an LRU cache.
 
         Args:
-            cache_size (int | None): Number of entries to cache, None for unlimited size. Default is None.
+            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
-        if cache_size is None:  # unlimited cache
+        if cache_size is None:
             self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
-        elif cache_size <= 0:  # caching off
+        elif cache_size <= 0:
             self._cache_load = self._raw_load_item
-        else:  # bounded cache
+        else:
             self._cache_load = functools.lru_cache(maxsize=cache_size)(
                 self._raw_load_item
             )
@@ -321,6 +323,42 @@ class CIFData(Dataset):
         nbr_fea = torch.Tensor(nbr_fea)
         nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
         target = torch.Tensor([float(target)])
+        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+
+    def _load_item_fast(self, idx):
+        cif_id, target = self.id_prop_data[idx]
+        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+        atom_fea = np.vstack(
+            [
+                self.ari.get_atom_fea(crystal[i].specie.number)
+                for i in range(len(crystal))
+            ]
+        )
+        atom_fea = torch.Tensor(atom_fea)
+        center_idx, neigh_idx, _images, dists = crystal.get_neighbor_list(self.radius)
+        n_sites = len(crystal)
+        bucket = [[] for _ in range(n_sites)]
+        for c, n, d in zip(center_idx, neigh_idx, dists):
+            bucket[c].append((n, d))
+        bucket = [sorted(lst, key=lambda x: x[1]) for lst in bucket]
+        nbr_fea_idx, nbr_fea = [], []
+        for lst in bucket:
+            if len(lst) < self.max_num_nbr:
+                warnings.warn(
+                    f"{cif_id} not find enough neighbors to build graph. "
+                    "If it happens frequently, consider increase "
+                    "radius.",
+                    stacklevel=2,
+                )
+            idxs = [t[0] for t in lst[: self.max_num_nbr]]
+            dvec = [t[1] for t in lst[: self.max_num_nbr]]
+            pad = self.max_num_nbr - len(idxs)
+            nbr_fea_idx.append(idxs + [0] * pad)
+            nbr_fea.append(dvec + [self.radius + 1.0] * pad)
+        nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
+        nbr_fea = self.gdf.expand(np.array(nbr_fea))
+        nbr_fea = torch.Tensor(nbr_fea)
+        target = torch.tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 

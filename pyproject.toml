@@ -19,15 +19,15 @@ classifiers     = [
 ]
 
 dependencies = [
-  "ase>=3.25.0",
   "numpy",
   "pandas",
   "pymatgen>=2025.1.9",
   "pymatviz~=0.16.0",
-  "torch>=2.0.0",
+  "torch>=2.2.0",
 ]
-# ASE and Pymatgen track the first release of the current year
-# Pymatviz tracks the latest minor version
+# pymatgen tracks the first release of the current year
+# pymatviz tracks the latest minor version
+# torch tracks the first release of the last year
 
 [project.optional-dependencies]
 dev = [
@@ -43,12 +43,14 @@ atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 id-gen   = "cgcnn2.cli.cgcnn_init:id_gen"
 
 [build-system]
-requires = ["uv_build>=0.7.5"]
+requires = ["uv_build>=0.7.10"]
 build-backend = "uv_build"
 
 [tool.uv.build-backend]
 module-name = "cgcnn2"
 module-root = ""
+source-exclude = ["dev/**"]
+wheel-exclude = ["dev/**"]
 
 [tool.ruff]
 exclude = [
