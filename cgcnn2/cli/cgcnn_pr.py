@@ -161,7 +161,7 @@ def main():
         model=model,
         loader=loader,
         device=args.device,
-        plot_file=os.path.join(output_folder, "parity_plot.svg"),
+        plot_file=os.path.join(output_folder, "parity_plot.png"),
         results_file=os.path.join(output_folder, "results.csv"),
         xlabel=args.xlabel,
         ylabel=args.ylabel,
