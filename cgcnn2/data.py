@@ -63,7 +63,7 @@ def collate_pool(dataset_list):
     )
 
 
-class GaussianDistance(object):
+class GaussianDistance:
     """
     Expands the distance by Gaussian basis.
 
@@ -103,7 +103,7 @@ class GaussianDistance(object):
         return expanded_distance
 
 
-class AtomInitializer():
+class AtomInitializer:
     """
     Base class for initializing the vector representation for atoms.
     Use one `AtomInitializer` per dataset.
