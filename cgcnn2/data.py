@@ -103,7 +103,7 @@ class GaussianDistance(object):
         return expanded_distance
 
 
-class AtomInitializer(object):
+class AtomInitializer():
     """
     Base class for initializing the vector representation for atoms.
     Use one `AtomInitializer` per dataset.
@@ -183,7 +183,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
             elem_embedding = json.load(f)
         elem_embedding = {int(key): value for key, value in elem_embedding.items()}
         atom_types = set(elem_embedding.keys())
-        super(AtomCustomJSONInitializer, self).__init__(atom_types)
+        super().__init__(atom_types)
         for key, value in elem_embedding.items():
             self._embedding[key] = np.array(value, dtype=float)
 

@@ -1,9 +1,11 @@
+import io
 import json
 import os
 import warnings
 
 import numpy as np
 import torch
+from line_profiler import LineProfiler
 from pymatgen.core import Structure
 
 
@@ -182,11 +184,6 @@ def main():
 
 
 if __name__ == "__main__":
-    import inspect
-    import io
-    import sys
-
-    from line_profiler import LineProfiler
 
     # ---- set up the profiler ----
     lp = LineProfiler()
