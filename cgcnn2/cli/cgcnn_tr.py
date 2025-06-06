@@ -157,7 +157,7 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-bt",
         "--bias-temperature",
-        default=0.0,
+        default=-1.0,
         type=float,
         help="If set > 0, apply a Boltzmann-like factor weighting in the loss.\n"
         "Smaller values favor low-energy structures more strongly.",
