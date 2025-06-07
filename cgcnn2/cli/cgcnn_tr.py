@@ -157,7 +157,7 @@ def parse_arguments(args=None):
     parser.add_argument(
         "-bt",
         "--bias-temperature",
-        default=0.0,
+        default=-1.0,
         type=float,
         help="If set > 0, apply a Boltzmann-like factor weighting in the loss.\n"
         "Smaller values favor low-energy structures more strongly.",
@@ -483,7 +483,7 @@ def main():
         model,
         test_loader,
         args.device,
-        plot_file=os.path.join(output_folder, "parity_plot.svg"),
+        plot_file=os.path.join(output_folder, "parity_plot.png"),
         results_file=os.path.join(output_folder, "test_results.csv"),
         xlabel=args.xlabel,
         ylabel=args.ylabel,
