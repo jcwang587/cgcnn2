@@ -210,6 +210,7 @@ class CIFData(Dataset):
         dmin (float): The minimum distance for constructing GaussianDistance
         step (float): The step size for constructing GaussianDistance
         cache_size (int | None): The size of the lru cache for the dataset
+        aug_filter (str): The filter for the augmentation. Default: 'gen0'
         random_seed (int): Random seed for shuffling the dataset
 
     Returns:
@@ -230,6 +231,7 @@ class CIFData(Dataset):
         cache_size=None,
         transform=None,
         random_seed=123,
+        aug_filter='gen0',
     ):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
@@ -247,6 +249,7 @@ class CIFData(Dataset):
         self._raw_load_item = self._load_item_fast
         self._configure_cache(cache_size)
         self.transform = transform
+        self.aug_filter = aug_filter
 
     def set_cache_size(self, cache_size: Optional[int]) -> None:
         """
@@ -291,7 +294,7 @@ class CIFData(Dataset):
     def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        if self.transform is not None:
+        if self.transform is not None and not cif_id.startswith(self.aug_filter):
             crystal = self.transform(crystal)
         atom_fea = np.vstack(
             [
@@ -332,6 +335,8 @@ class CIFData(Dataset):
     def _load_item_fast(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+        if self.transform is not None and not cif_id.startswith(self.aug_filter):
+            crystal = self.transform(crystal)
         atom_fea = np.vstack(
             [
                 self.ari.get_atom_fea(crystal[i].specie.number)

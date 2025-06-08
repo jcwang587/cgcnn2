@@ -8,11 +8,15 @@ from pprint import pformat
 import numpy as np
 import torch
 import torch.nn as nn
-from cgcnn2.data import (CIFData, LLTOGaussianPertubation, collate_pool,
-                         full_set_split)
+from cgcnn2.data import CIFData, LLTOGaussianPertubation, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, print_checkpoint_info,
-                         setup_logging)
+from cgcnn2.util import (
+    Normalizer,
+    cgcnn_test,
+    get_lr,
+    print_checkpoint_info,
+    setup_logging,
+)
 from torch.utils.data import DataLoader
 
 
@@ -227,6 +231,14 @@ def parse_arguments(args=None):
         default=f"{os.getpid()}",
         help="Job ID for naming output folder (default: <PID>)",
     )
+    # Augmentation options
+    parser.add_argument(
+        "-af",
+        "--aug-filter",
+        type=str,
+        default="gen0",
+        help="Augmentation filter, which filters out the CIF files starting with the given string. Default: 'gen0'",
+    )
 
     parsed = parser.parse_args(args if args is not None else sys.argv[1:])
     parsed.device = torch.device(
@@ -270,7 +282,12 @@ def main():
         if args.full_set:
             logging.error("Cannot specify both full-set and train, valid, test sets.")
             sys.exit(1)
-        train_dataset = CIFData(args.train_set, cache_size=args.cache_size, transform=LLTOGaussianPertubation())
+        train_dataset = CIFData(
+            args.train_set,
+            cache_size=args.cache_size,
+            transform=LLTOGaussianPertubation(),
+            aug_filter=args.aug_filter,
+        )
         valid_dataset = CIFData(args.valid_set)
         test_dataset = CIFData(args.test_set)
     elif args.full_set:
@@ -280,7 +297,12 @@ def main():
         train_set_dir, valid_set_dir, test_set_dir = full_set_split(
             args.full_set, args.train_ratio, args.valid_ratio, args.train_force_set
         )
-        train_dataset = CIFData(train_set_dir, cache_size=args.cache_size, transform=LLTOGaussianPertubation())
+        train_dataset = CIFData(
+            train_set_dir,
+            cache_size=args.cache_size,
+            transform=LLTOGaussianPertubation(),
+            aug_filter=args.aug_filter,
+        )
         valid_dataset = CIFData(valid_set_dir)
         test_dataset = CIFData(test_set_dir)
     else:
