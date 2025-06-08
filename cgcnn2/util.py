@@ -164,7 +164,7 @@ def cgcnn_test(
         device (str): The device ('cuda' or 'cpu') where the model will be run.
         plot_file (str, optional): File path for saving the parity plot. Defaults to 'parity_plot.png'.
         results_file (str, optional): File path for saving results as CSV. Defaults to 'results.csv'.
-        axis_limits (list, optional): Limits for x and y axes of the parity plot. Defaults to None.
+        axis_limits (list, optional): Limits for x-axis (Actual values) of the parity plot. Defaults to None.
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
             ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
