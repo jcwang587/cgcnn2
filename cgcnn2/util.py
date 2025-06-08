@@ -226,14 +226,14 @@ def cgcnn_test(
         df_clip = df_full[
             (df_full["Actual"] >= axis_limits[0])
             & (df_full["Actual"] <= axis_limits[1])
-            & (df_full["Predicted"] >= axis_limits[0])
-            & (df_full["Predicted"] <= axis_limits[1])
         ]
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
         _make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
-        logging.info(f"Parity plot with axis limits has been saved to {clipped_file}")
+        logging.info(
+            f"Parity plot clipped to {axis_limits} on Actual has been saved to {clipped_file}"
+        )
 
 
 def cgcnn_descriptor(
