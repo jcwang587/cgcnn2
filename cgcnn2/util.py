@@ -164,7 +164,7 @@ def cgcnn_test(
         device (str): The device ('cuda' or 'cpu') where the model will be run.
         plot_file (str, optional): File path for saving the parity plot. Defaults to 'parity_plot.png'.
         results_file (str, optional): File path for saving results as CSV. Defaults to 'results.csv'.
-        axis_limits (list, optional): Limits for x and y axes of the parity plot. Defaults to None.
+        axis_limits (list, optional): Limits for x-axis (Actual values) of the parity plot. Defaults to None.
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
             ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
@@ -226,14 +226,14 @@ def cgcnn_test(
         df_clip = df_full[
             (df_full["Actual"] >= axis_limits[0])
             & (df_full["Actual"] <= axis_limits[1])
-            & (df_full["Predicted"] >= axis_limits[0])
-            & (df_full["Predicted"] <= axis_limits[1])
         ]
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
         _make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
-        logging.info(f"Parity plot with axis limits has been saved to {clipped_file}")
+        logging.info(
+            f"Parity plot clipped to {axis_limits} on Actual has been saved to {clipped_file}"
+        )
 
 
 def cgcnn_descriptor(
