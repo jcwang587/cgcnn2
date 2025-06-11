@@ -16,7 +16,13 @@ from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset, Subset
 
 
-def collate_pool(dataset_list):
+def collate_pool(
+    dataset_list,
+) -> tuple[
+    tuple[torch.Tensor, torch.Tensor, torch.Tensor, list[torch.Tensor]],
+    torch.Tensor,
+    list[str | int],
+]:
     """
     Collate a list of data and return a batch for predicting crystal properties.
 
@@ -325,7 +331,11 @@ class CIFData(Dataset):
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
-    def _load_item_fast(self, idx):
+    def _load_item_fast(
+        self, idx
+    ) -> tuple[
+        tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor, str | int
+    ]:
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(
@@ -426,8 +436,12 @@ class CIFData_NoTarget(Dataset):
     def __len__(self):
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=1024)  # Cache loaded structures
-    def __getitem__(self, idx):
+    @functools.lru_cache(maxsize=None)  # Cache loaded structures
+    def __getitem__(
+        self, idx
+    ) -> tuple[
+        tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor, str | int
+    ]:
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(
