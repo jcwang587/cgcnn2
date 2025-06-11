@@ -4,10 +4,10 @@
 
 ## Features
 
-- Training a CGCNN model with a customized dataset.
+- Training a CGCNN model using a custom dataset.
 - Predicting material properties with a pre-trained CGCNN model.
 - Fine-tuning a pre-trained CGCNN model on a new dataset.
-- Extracting atomic features as descriptors for the downstream task.
+- Extracting structural features as descriptors for downstream tasks.
 
 ## Getting Started
 
