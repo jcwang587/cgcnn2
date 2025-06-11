@@ -13,7 +13,7 @@ import numpy as np
 import pandas as pd
 import torch
 from pymatgen.core.structure import Structure
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset
 
 
 def collate_pool(dataset_list):
@@ -325,11 +325,7 @@ class CIFData(Dataset):
         target = torch.Tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
-    def _load_item_fast(
-        self, idx
-    ) -> tuple[
-        tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor, str | int
-    ]:
+    def _load_item_fast(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(
