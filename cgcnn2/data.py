@@ -210,7 +210,8 @@ class CIFData(Dataset):
         dmin (float): The minimum distance for constructing GaussianDistance
         step (float): The step size for constructing GaussianDistance
         cache_size (int | None): The size of the lru cache for the dataset
-        aug_filter (str): The filter for the augmentation. Default: 'gen0'
+        transform (callable | None): The transform to apply to the crystal. Default: None
+        aug_filter (str | None): The filter for the augmentation. Default: None
         random_seed (int): Random seed for shuffling the dataset
 
     Returns:
@@ -230,8 +231,8 @@ class CIFData(Dataset):
         step=0.2,
         cache_size=None,
         transform=None,
+        aug_filter=None,
         random_seed=123,
-        aug_filter='gen0',
     ):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
@@ -247,9 +248,10 @@ class CIFData(Dataset):
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
         self._raw_load_item = self._load_item_fast
-        self._configure_cache(cache_size)
+        self.cache_size = cache_size
         self.transform = transform
         self.aug_filter = aug_filter
+        self._configure_cache()
 
     def set_cache_size(self, cache_size: Optional[int]) -> None:
         """
@@ -258,9 +260,10 @@ class CIFData(Dataset):
         Args:
             cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
+        self.cache_size = cache_size
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
-        self._configure_cache(cache_size)
+        self._configure_cache()
 
     def clear_cache(self) -> None:
         """
@@ -275,26 +278,28 @@ class CIFData(Dataset):
     def __getitem__(self, idx):
         return self._cache_load(idx)
 
-    def _configure_cache(self, cache_size: Optional[int]) -> None:
+    def _configure_cache(self) -> None:
         """
         Wrap `_raw_load_item` with an LRU cache.
 
         Args:
             cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
-        if cache_size is None:
+        if self.cache_size is None:
             self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
-        elif cache_size <= 0:
+        elif self.cache_size <= 0:
             self._cache_load = self._raw_load_item
         else:
-            self._cache_load = functools.lru_cache(maxsize=cache_size)(
+            self._cache_load = functools.lru_cache(maxsize=self.cache_size)(
                 self._raw_load_item
             )
 
     def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        if self.transform is not None and not cif_id.startswith(self.aug_filter):
+        if self.transform is not None and (
+            self.aug_filter is None or not cif_id.startswith(self.aug_filter)
+        ):
             crystal = self.transform(crystal)
         atom_fea = np.vstack(
             [
@@ -335,7 +340,9 @@ class CIFData(Dataset):
     def _load_item_fast(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        if self.transform is not None and not cif_id.startswith(self.aug_filter):
+        if self.transform is not None and (
+            self.aug_filter is None or not cif_id.startswith(self.aug_filter)
+        ):
             crystal = self.transform(crystal)
         atom_fea = np.vstack(
             [
