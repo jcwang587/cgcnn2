@@ -16,13 +16,7 @@ from pymatgen.core.structure import Structure
 from torch.utils.data import Dataset, Subset
 
 
-def collate_pool(
-    dataset_list,
-) -> tuple[
-    tuple[torch.Tensor, torch.Tensor, torch.Tensor, list[torch.Tensor]],
-    torch.Tensor,
-    list[str | int],
-]:
+def collate_pool(dataset_list):
     """
     Collate a list of data and return a batch for predicting crystal properties.
 
@@ -35,12 +29,12 @@ def collate_pool(
         cif_id (str or int) Unique ID for the crystal
 
     Returns:
-        batch_atom_fea: torch.Tensor shape (N, orig_atom_fea_len) Atom features from atom type
-        batch_nbr_fea: torch.Tensor shape (N, M, nbr_fea_len) Bond features of each atom's M neighbors
-        batch_nbr_fea_idx: torch.LongTensor shape (N, M) Indices of M neighbors of each atom
-        crystal_atom_idx: list of torch.LongTensor of length N0 Mapping from the crystal idx to atom idx
-        batch_target: torch.Tensor shape (N, 1) Target value for prediction
-        batch_cif_ids: list of str or int Unique IDs for each crystal
+        batch_atom_fea (torch.Tensor): shape (N, orig_atom_fea_len) Atom features from atom type
+        batch_nbr_fea (torch.Tensor): shape (N, M, nbr_fea_len) Bond features of each atom's M neighbors
+        batch_nbr_fea_idx (torch.LongTensor): shape (N, M) Indices of M neighbors of each atom
+        crystal_atom_idx (list of torch.LongTensor): length N0 Mapping from the crystal idx to atom idx
+        batch_target (torch.Tensor): shape (N, 1) Target value for prediction
+        batch_cif_ids (list of str or int): Unique IDs for each crystal
     """
 
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
@@ -219,11 +213,11 @@ class CIFData(Dataset):
         random_seed (int): Random seed for shuffling the dataset
 
     Returns:
-        atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-        nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-        nbr_fea_idx: torch.LongTensor shape (n_i, M)
-        target: torch.Tensor shape (1, )
-        cif_id: str or int
+        atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
+        nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len)
+        nbr_fea_idx (torch.LongTensor): shape (n_i, M)
+        target (torch.Tensor): shape (1, )
+        cif_id (str or int): Unique ID for the crystal
     """
 
     def __init__(
@@ -372,21 +366,6 @@ class CIFData(Dataset):
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
-def set_dataset_cache(ds: Dataset, cache_size: Optional[int]) -> None:
-    """
-    Call `set_cache_size` on the base dataset if the method exists.
-    Works whether `ds` is a plain Dataset or a Subset.
-
-    Args:
-        ds (Dataset): The dataset to set the cache size for.
-        cache_size (int | None): The size of the cache to set.
-    """
-    if hasattr(ds, "set_cache_size"):
-        ds.set_cache_size(cache_size)
-    elif isinstance(ds, Subset) and hasattr(ds.dataset, "set_cache_size"):
-        ds.dataset.set_cache_size(cache_size)
-
-
 class CIFData_NoTarget(Dataset):
     """
     The CIFData_NoTarget dataset is a wrapper for a dataset where the crystal
@@ -437,11 +416,7 @@ class CIFData_NoTarget(Dataset):
         return len(self.id_prop_data)
 
     @functools.lru_cache(maxsize=None)  # Cache loaded structures
-    def __getitem__(
-        self, idx
-    ) -> tuple[
-        tuple[torch.Tensor, torch.Tensor, torch.Tensor], torch.Tensor, str | int
-    ]:
+    def __getitem__(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(
