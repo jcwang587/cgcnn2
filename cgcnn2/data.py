@@ -382,11 +382,11 @@ class CIFData_NoTarget(Dataset):
         random_seed (int): Random seed for shuffling the dataset
 
     Returns:
-        atom_fea: torch.Tensor shape (n_i, atom_fea_len)
-        nbr_fea: torch.Tensor shape (n_i, M, nbr_fea_len)
-        nbr_fea_idx: torch.LongTensor shape (n_i, M)
-        target: torch.Tensor shape (1, )
-        cif_id: str or int
+        atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
+        nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len)
+        nbr_fea_idx (torch.LongTensor): shape (n_i, M)
+        target (torch.Tensor): shape (1, )
+        cif_id (str or int): Unique ID for the crystal
     """
 
     def __init__(
