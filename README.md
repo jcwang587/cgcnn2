@@ -12,7 +12,7 @@ The package provides the following major functions:
 - **Predicting** material properties with a pre-trained CGCNN model.
 - **Fine-tuning** a pre-trained CGCNN model on a new dataset.
 - **Extracting** structural features as descriptors for downstream tasks.
-- **Augmenting** training data by pertubing atomic positions (in development).
+<!---**Augmenting** training data by pertubing atomic positions (in development).-->
 
 ## Installation
 
