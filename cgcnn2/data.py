@@ -209,7 +209,7 @@ class CIFData(Dataset):
         radius (float): The cutoff radius for searching neighbors
         dmin (float): The minimum distance for constructing GaussianDistance
         step (float): The step size for constructing GaussianDistance
-        cache_size (int | None): The size of the lru cache for the dataset
+        cache_size (int | None): The size of the lru cache for the dataset. Default is None.
         random_seed (int): Random seed for shuffling the dataset
 
     Returns:
@@ -245,7 +245,7 @@ class CIFData(Dataset):
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
         self._raw_load_item = self._load_item_fast
         self.cache_size = cache_size
-        self._configure_cache(self.cache_size)
+        self._configure_cache()
 
     def set_cache_size(self, cache_size: Optional[int]) -> None:
         """
@@ -257,7 +257,7 @@ class CIFData(Dataset):
         self.cache_size = cache_size
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
-        self._configure_cache(self.cache_size)
+        self._configure_cache()
 
     def clear_cache(self) -> None:
         """
