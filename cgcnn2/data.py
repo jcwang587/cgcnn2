@@ -244,7 +244,8 @@ class CIFData(Dataset):
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
         self._raw_load_item = self._load_item_fast
-        self._configure_cache(cache_size)
+        self.cache_size = cache_size
+        self._configure_cache(self.cache_size)
 
     def set_cache_size(self, cache_size: Optional[int]) -> None:
         """
@@ -253,9 +254,10 @@ class CIFData(Dataset):
         Args:
             cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
+        self.cache_size = cache_size
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
-        self._configure_cache(cache_size)
+        self._configure_cache(self.cache_size)
 
     def clear_cache(self) -> None:
         """
@@ -270,19 +272,16 @@ class CIFData(Dataset):
     def __getitem__(self, idx):
         return self._cache_load(idx)
 
-    def _configure_cache(self, cache_size: Optional[int]) -> None:
+    def _configure_cache(self) -> None:
         """
         Wrap `_raw_load_item` with an LRU cache.
-
-        Args:
-            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
         """
-        if cache_size is None:
+        if self.cache_size is None:
             self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
-        elif cache_size <= 0:
+        elif self.cache_size <= 0:
             self._cache_load = self._raw_load_item
         else:
-            self._cache_load = functools.lru_cache(maxsize=cache_size)(
+            self._cache_load = functools.lru_cache(maxsize=self.cache_size)(
                 self._raw_load_item
             )
 
