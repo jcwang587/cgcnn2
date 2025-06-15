@@ -41,7 +41,7 @@ Similarly, you can access the predicting and fine-tuning functionalities through
 
 ## References
 
-The original paper describes the details of the CGCNN framework:
+The original paper describes the CGCNN framework in detail:
 
 ```bibtex
 @article{PhysRevLett2018,
