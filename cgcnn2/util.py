@@ -149,7 +149,7 @@ def _make_and_save_parity(
         pad = (target - y_span) / 2
         ax.set_ylim(y_min - pad, y_max + pad)
 
-    ax.set_aspect("equal", adjustable="box")  # square parity window
+    # ax.set_aspect("equal", adjustable="box")  # square parity window
     pmv.save_fig(ax.get_figure(), out_png)   
 
 def cgcnn_test(
