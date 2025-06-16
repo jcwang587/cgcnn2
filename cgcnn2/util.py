@@ -11,6 +11,7 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
+import pymatviz as pmv
 import torch
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
@@ -18,7 +19,6 @@ from pymatviz import density_hexbin
 from torch.utils.data import DataLoader
 
 import cgcnn2
-import pymatviz as pmv
 
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
@@ -136,7 +136,7 @@ def _make_and_save_parity(
         best_fit_line=False,
         gridsize=40,
     )
-    
+
     x_min, x_max = ax.get_xlim()
     y_min, y_max = ax.get_ylim()
     x_span, y_span = x_max - x_min, y_max - y_min
@@ -149,8 +149,8 @@ def _make_and_save_parity(
         pad = (target - y_span) / 2
         ax.set_ylim(y_min - pad, y_max + pad)
 
-    # ax.set_aspect("equal", adjustable="box")  # square parity window
-    pmv.save_fig(ax.get_figure(), out_png)   
+    pmv.save_fig(ax.get_figure(), out_png)
+
 
 def cgcnn_test(
     model: torch.nn.Module,
