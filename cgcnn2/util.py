@@ -9,13 +9,12 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import pymatviz as pmv
 import torch
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
-from pymatviz import density_hexbin
 from torch.utils.data import DataLoader
 
 import cgcnn2
@@ -127,21 +126,29 @@ def _make_and_save_parity(
         out_png (str): The path to the file to save the parity plot.
     """
 
-    fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
-    _ = density_hexbin(
+    ax = pmv.density_hexbin(
         x="Actual",
         y="Predicted",
         df=df,
-        ax=ax,
         xlabel=xlabel,
         ylabel=ylabel,
         best_fit_line=False,
         gridsize=40,
     )
-    ax.set_aspect("auto")
-    ax.set_box_aspect(1)
-    plt.savefig(out_png, format="png", dpi=300)
-    plt.close(fig)
+
+    x_min, x_max = ax.get_xlim()
+    y_min, y_max = ax.get_ylim()
+    x_span, y_span = x_max - x_min, y_max - y_min
+    target = max(x_span, y_span, 1e-6)
+
+    if x_span < target:
+        pad = (target - x_span) / 2
+        ax.set_xlim(x_min - pad, x_max + pad)
+    if y_span < target:
+        pad = (target - y_span) / 2
+        ax.set_ylim(y_min - pad, y_max + pad)
+
+    pmv.save_fig(ax.get_figure(), out_png)
 
 
 def cgcnn_test(
