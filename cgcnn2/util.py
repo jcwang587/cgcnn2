@@ -127,7 +127,7 @@ def _make_and_save_parity(
         out_png (str): The path to the file to save the parity plot.
     """
 
-    fig = density_hexbin(
+    ax = density_hexbin(
         x="Actual",
         y="Predicted",
         df=df,
@@ -137,34 +137,20 @@ def _make_and_save_parity(
         gridsize=40,
     )
     
-    # 2 ── Read those auto-limits back
-    # (If Plotly hasn’t written them yet, fall back on the raw data.)
-    x_min, x_max = (fig.layout.xaxis.range or 
-                    [df["Actual"].min(), df["Actual"].max()])
-    y_min, y_max = (fig.layout.yaxis.range or 
-                    [df["Predicted"].min(), df["Predicted"].max()])
+    x_min, x_max = ax.get_xlim()
+    y_min, y_max = ax.get_ylim()
+    x_span, y_span = x_max - x_min, y_max - y_min
+    target = max(x_span, y_span)
 
-    x_span, y_span = np.diff([x_min, x_max])[0], np.diff([y_min, y_max])[0]
-    target_span   = max(x_span, y_span)        # the larger of the two
+    if x_span < target:
+        pad = (target - x_span) / 2
+        ax.set_xlim(x_min - pad, x_max + pad)
+    if y_span < target:
+        pad = (target - y_span) / 2
+        ax.set_ylim(y_min - pad, y_max + pad)
 
-    # 3 ── Expand the shorter axis symmetrically to match the target span
-    if x_span < target_span:
-        pad = (target_span - x_span) / 2
-        x_min -= pad
-        x_max += pad
-    if y_span < target_span:
-        pad = (target_span - y_span) / 2
-        y_min -= pad
-        y_max += pad
-
-    fig.update_xaxes(range=[x_min, x_max])
-    fig.update_yaxes(range=[y_min, y_max],
-                     scaleanchor="x",   # 1:1 aspect so the parity line is a true 45 °
-                     scaleratio=1)
-
-    # 4 ── Save or show
-    pmv.save_fig(fig, out_png)
-
+    ax.set_aspect("equal", adjustable="box")  # square parity window
+    pmv.save_fig(ax.get_figure(), out_png)   
 
 def cgcnn_test(
     model: torch.nn.Module,
