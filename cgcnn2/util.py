@@ -15,7 +15,6 @@ import pymatviz as pmv
 import torch
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
-from pymatviz import density_hexbin
 from torch.utils.data import DataLoader
 
 import cgcnn2
@@ -127,7 +126,7 @@ def _make_and_save_parity(
         out_png (str): The path to the file to save the parity plot.
     """
 
-    ax = density_hexbin(
+    ax = pmv.density_hexbin(
         x="Actual",
         y="Predicted",
         df=df,
@@ -140,7 +139,7 @@ def _make_and_save_parity(
     x_min, x_max = ax.get_xlim()
     y_min, y_max = ax.get_ylim()
     x_span, y_span = x_max - x_min, y_max - y_min
-    target = max(x_span, y_span)
+    target = max(x_span, y_span, 1e-6)
 
     if x_span < target:
         pad = (target - x_span) / 2
