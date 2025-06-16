@@ -19,7 +19,6 @@ classifiers     = [
 ]
 
 dependencies = [
-  "matplotlib",
   "numpy",
   "pandas",
   "pymatgen>=2025.1.9",

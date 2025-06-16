@@ -9,7 +9,6 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
@@ -19,6 +18,7 @@ from pymatviz import density_hexbin
 from torch.utils.data import DataLoader
 
 import cgcnn2
+import pymatviz as pmv
 
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
@@ -127,21 +127,16 @@ def _make_and_save_parity(
         out_png (str): The path to the file to save the parity plot.
     """
 
-    fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
-    _ = density_hexbin(
+    fig = density_hexbin(
         x="Actual",
         y="Predicted",
         df=df,
-        ax=ax,
         xlabel=xlabel,
         ylabel=ylabel,
         best_fit_line=False,
         gridsize=40,
     )
-    ax.set_aspect("auto")
-    ax.set_box_aspect(1)
-    plt.savefig(out_png, format="png", dpi=300)
-    plt.close(fig)
+    pmv.save_fig(fig, out_png)
 
 
 def cgcnn_test(
