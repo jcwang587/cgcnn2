@@ -1,17 +1,16 @@
 import argparse
 import logging
 import os
-import random
 import sys
 from pprint import pformat
 from random import sample
 
-import numpy as np
 import torch
 import torch.nn as nn
 from cgcnn2.data import CIFData, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import Normalizer, cgcnn_test, get_lr, setup_logging
+from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, seed_everything,
+                         setup_logging)
 from torch.utils.data import DataLoader
 
 
@@ -245,9 +244,7 @@ def main():
 
     # Set the seed for reproducibility
     seed = args.random_seed
-    random.seed(seed)
-    np.random.seed(seed)
-    torch.manual_seed(seed)
+    seed_everything(seed)
 
     # Create the output folder
     output_folder = f"output_{args.job_id}"
