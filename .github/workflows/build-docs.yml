@@ -29,7 +29,8 @@ jobs:
         with:
           python-version: '3.11'
           
-      - uses: rhysd/changelog-from-release/action@v3
+      - name: Generate changelog
+        uses: rhysd/changelog-from-release/action@v3
         with:
           file: CHANGELOG.md
           github_token: ${{ secrets.GITHUB_TOKEN }}
