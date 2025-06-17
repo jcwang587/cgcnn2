@@ -28,12 +28,6 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          
-      - name: Generate changelog
-        uses: rhysd/changelog-from-release/action@v3
-        with:
-          file: CHANGELOG.md
-          github_token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set cache ID
         run: echo "cache_id=$(date --utc '+%V')" >> $GITHUB_ENV
