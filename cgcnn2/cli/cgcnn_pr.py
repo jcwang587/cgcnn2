@@ -1,14 +1,13 @@
 import argparse
 import logging
 import os
-import random
 import sys
 
-import numpy as np
 import torch
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import cgcnn_test, print_checkpoint_info, setup_logging
+from cgcnn2.util import (cgcnn_test, print_checkpoint_info, seed_everything,
+                         setup_logging)
 from torch.utils.data import DataLoader
 
 
@@ -103,11 +102,7 @@ def main():
     args = parse_arguments()
 
     # Set seeds for reproducibility
-    random.seed(args.random_seed)
-    np.random.seed(args.random_seed)
-    torch.manual_seed(args.random_seed)
-    if args.device.type == "cuda":
-        torch.cuda.manual_seed_all(args.random_seed)
+    seed_everything(args.random_seed)
 
     # Validate paths
     if not os.path.isfile(args.model_path):

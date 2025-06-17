@@ -3,6 +3,7 @@ import csv
 import glob
 import logging
 import os
+import random
 import sys
 import tomllib
 from datetime import datetime
@@ -511,3 +512,19 @@ def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
         f"=> Loaded model from '{model_path}' "
         f"(epoch {epoch}, validation {metrics_str})"
     )
+
+
+def seed_everything(seed: int) -> None:
+    """
+    Seeds the random number generators for Python, NumPy, PyTorch, and PyTorch CUDA.
+
+    Args:
+        seed (int): The seed value to use for random number generation.
+    """
+    random.seed(seed)
+    np.random.seed(seed)
+    torch.manual_seed(seed)
+
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
