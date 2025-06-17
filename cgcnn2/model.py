@@ -189,8 +189,8 @@ class CrystalGraphConvNet(nn.Module):
             mean_fea (torch.Tensor): shape (n_crystals, atom_fea_len)
                 Mean-pooled crystal embeddings.
         """
-        assert sum([len(idx) for idx in crystal_atom_idx]) == atom_fea.shape[0]
+        assert sum(len(idx) for idx in crystal_atom_idx) == atom_fea.shape[0]
         mean_fea = torch.stack(
-            [torch.mean(atom_fea[idx], dim=0) for idx in crystal_atom_idx]
+            [torch.mean(atom_fea[idx], dim=0) for idx in crystal_atom_idx], dim=0
         )
         return mean_fea
