@@ -186,8 +186,8 @@ class CrystalGraphConvNet(nn.Module):
             crystal_atom_idx (list of torch.LongTensor): Mapping from the crystal idx to atom idx
         """
         assert sum([len(idx_map) for idx_map in crystal_atom_idx]) == atom_fea.shape[0]
-        summed_fea = [
+        mean_fea = [
             torch.mean(atom_fea[idx_map], dim=0, keepdim=True)
             for idx_map in crystal_atom_idx
         ]
-        return torch.cat(summed_fea, dim=0)
+        return torch.cat(mean_fea, dim=0)
