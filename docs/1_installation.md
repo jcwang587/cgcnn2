@@ -1,9 +1,8 @@
 # Installation
 
-## Prerequisites
+## Prerequisite
 
 - Python 3.11 or higher
-- pip (Python package installer)
 
 ## Installation Steps
 
