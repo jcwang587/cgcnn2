@@ -62,6 +62,7 @@ nav:
   - Usage: 3_usage.md
   - Examples: 4_examples.md
   - API Reference: 5_api_reference.md
+  - Changelog: changelog.md
   
 extra:
   social:
