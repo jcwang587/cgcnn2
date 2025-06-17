@@ -246,8 +246,7 @@ def main():
     logging.info(f"Parsed arguments:\n{pformat(vars(args))}")
 
     # Set the seed for reproducibility
-    seed = args.random_seed
-    seed_everything(seed)
+    seed_everything(args.random_seed)
 
     # Create the output folder
     output_folder = f"output_{args.job_id}"

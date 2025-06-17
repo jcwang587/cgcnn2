@@ -102,8 +102,7 @@ def main():
     args = parse_arguments()
 
     # Set seeds for reproducibility
-    seed = args.random_seed
-    seed_everything(seed)
+    seed_everything(args.random_seed)
 
     # Validate paths
     if not os.path.isfile(args.model_path):
