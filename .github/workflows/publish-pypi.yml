@@ -9,7 +9,7 @@ on:
         default: 'no'
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   pypi-publish:
