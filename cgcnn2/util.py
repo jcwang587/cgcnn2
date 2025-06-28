@@ -137,10 +137,15 @@ def _make_and_save_parity(
         gridsize=40,
     )
 
+    fig = ax.get_figure()
+    fig.set_size_inches(8, 6)
+    fig.set_constrained_layout(True)
+
     ax.set_aspect("equal")
     ax.set_box_aspect(1)
 
-    pmv.save_fig(ax.get_figure(), out_png)
+    pmv.save_fig(fig, out_png)
+    fig.close()
 
 
 def cgcnn_test(
