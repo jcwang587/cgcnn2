@@ -188,6 +188,21 @@ def _make_and_save_parity(
     cax.yaxis.set_ticks_position("left")
     cax.yaxis.set_label_position("left")
 
+    # get mae and r2 score
+    mae = np.abs(df["Actual"] - df["Predicted"]).mean()
+    r2 = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
+        (df["Actual"] - df["Actual"].mean()) ** 2
+    )
+    ax.text(
+        0.05,
+        0.95,
+        f"MAE: {mae:.3f}\n$R^2$: {r2:.3f}",
+        transform=ax.transAxes,
+        fontsize=18,
+        ha="left",
+        va="top",
+    )
+
     plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
     plt.close(fig)
 
