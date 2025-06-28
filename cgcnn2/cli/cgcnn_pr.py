@@ -6,8 +6,12 @@ import sys
 import torch
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import (cgcnn_test, print_checkpoint_info, seed_everything,
-                         setup_logging)
+from cgcnn2.util import (
+    cgcnn_test,
+    print_checkpoint_info,
+    seed_everything,
+    setup_logging,
+)
 from torch.utils.data import DataLoader
 
 

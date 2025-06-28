@@ -1,6 +1,5 @@
 import io
 import json
-import os
 import warnings
 
 import numpy as np
@@ -184,7 +183,6 @@ def main():
 
 
 if __name__ == "__main__":
-
     # ---- set up the profiler ----
     lp = LineProfiler()
     lp_wrapper = lp(main)  # profile ONLY main(); add more functions if you like

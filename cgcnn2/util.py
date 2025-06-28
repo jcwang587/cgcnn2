@@ -500,8 +500,7 @@ def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
     metrics_str = ", ".join(metrics) if metrics else "N/A"
 
     logging.info(
-        f"=> Loaded model from '{model_path}' "
-        f"(epoch {epoch}, validation {metrics_str})"
+        f"=> Loaded model from '{model_path}' (epoch {epoch}, validation {metrics_str})"
     )
 
 

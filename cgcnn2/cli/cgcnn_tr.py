@@ -9,8 +9,7 @@ import torch
 import torch.nn as nn
 from cgcnn2.data import CIFData, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, seed_everything,
-                         setup_logging)
+from cgcnn2.util import Normalizer, cgcnn_test, get_lr, seed_everything, setup_logging
 from torch.utils.data import DataLoader
 
 
@@ -432,7 +431,7 @@ def main():
 
         current_lr = get_lr(optimizer)
         logging.info(
-            f"Epoch [{epoch+1:03d}/{num_epochs}] - "
+            f"Epoch [{epoch + 1:03d}/{num_epochs}] - "
             f"Train Loss: {avg_train_loss:.5f}, "
             f"Valid Loss: {avg_valid_loss:.5f}, "
             f"LR: {current_lr}"
@@ -454,7 +453,7 @@ def main():
             }
             ckpt_path = os.path.join(output_folder, "best_model.ckpt")
             torch.save(savepoint, ckpt_path)
-            logging.info(f"  [SAVE] Best model at epoch {epoch+1}.")
+            logging.info(f"  [SAVE] Best model at epoch {epoch + 1}.")
         else:
             if stop_patience:
                 epochs_without_improvement += 1

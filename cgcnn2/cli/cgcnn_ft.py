@@ -8,8 +8,14 @@ import torch
 import torch.nn as nn
 from cgcnn2.data import CIFData, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import (Normalizer, cgcnn_test, get_lr, print_checkpoint_info,
-                         seed_everything, setup_logging)
+from cgcnn2.util import (
+    Normalizer,
+    cgcnn_test,
+    get_lr,
+    print_checkpoint_info,
+    seed_everything,
+    setup_logging,
+)
 from torch.utils.data import DataLoader
 
 
@@ -425,7 +431,7 @@ def main():
             f"Learning rate adjustment is configured with a factor of {factor} and patience of {lr_patience} epochs."
         )
     else:
-        logging.info(f"The training will proceed with a fixed learning rate.")
+        logging.info("The training will proceed with a fixed learning rate.")
 
     # Training epochs
     num_epochs = int(float(args.epoch))
@@ -510,7 +516,6 @@ def main():
         # CHECKPOINTING
         # --------------------
         if avg_valid_loss < best_valid_loss:
-
             savepoint = {
                 "epoch": epoch + 1,
                 "state_dict": model.state_dict(),
