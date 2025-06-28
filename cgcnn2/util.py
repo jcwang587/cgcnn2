@@ -137,17 +137,8 @@ def _make_and_save_parity(
         gridsize=40,
     )
 
-    x_min, x_max = ax.get_xlim()
-    y_min, y_max = ax.get_ylim()
-    x_span, y_span = x_max - x_min, y_max - y_min
-    target = max(x_span, y_span, 1e-6)
-
-    if x_span < target:
-        pad = (target - x_span) / 2
-        ax.set_xlim(x_min - pad, x_max + pad)
-    if y_span < target:
-        pad = (target - y_span) / 2
-        ax.set_ylim(y_min - pad, y_max + pad)
+    ax.set_aspect("equal")
+    ax.set_box_aspect(1)
 
     pmv.save_fig(ax.get_figure(), out_png)
 
