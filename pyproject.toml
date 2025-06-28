@@ -19,14 +19,13 @@ classifiers     = [
 ]
 
 dependencies = [
+  "matplotlib",
   "numpy",
   "pandas",
   "pymatgen>=2025.1.9",
-  "pymatviz~=0.16.0",
   "torch>=2.2.0",
 ]
 # pymatgen tracks the first release of the current year
-# pymatviz tracks the latest minor version
 # torch tracks the first release of the last year
 
 [project.optional-dependencies]
