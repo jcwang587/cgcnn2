@@ -35,7 +35,9 @@ jobs:
         file: CHANGELOG.md
         github_token: ${{ secrets.GITHUB_TOKEN }}
         args: -l 2
-
+        push: false
+        pull_request: true
+  
     - name: Set up uv
       uses: astral-sh/setup-uv@v3
 
