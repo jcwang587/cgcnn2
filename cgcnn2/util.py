@@ -138,7 +138,6 @@ def _make_and_save_parity(
     )
 
     fig = ax.get_figure()
-    fig.set_size_inches(8, 6)
     fig.set_constrained_layout(True)
 
     ax.set_aspect("equal")
