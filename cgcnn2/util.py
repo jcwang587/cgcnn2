@@ -136,19 +136,20 @@ def _make_and_save_parity(
         Path of the PNG file in which to save the parity plot.
     """
 
-    with plt.rc_context({
-        "font.size": 18,
-        "axes.linewidth": 1.5,
-        "xtick.major.width": 1.5,
-        "ytick.major.width": 1.5,
-        "xtick.major.size": 5,
-        "ytick.major.size": 5,
-        "xtick.minor.width": 1,
-        "ytick.minor.width": 1,
-        "xtick.minor.size": 3,
-        "ytick.minor.size": 3,
-    }):
-
+    with plt.rc_context(
+        {
+            "font.size": 18,
+            "axes.linewidth": 1.5,
+            "xtick.major.width": 1.5,
+            "ytick.major.width": 1.5,
+            "xtick.major.size": 5,
+            "ytick.major.size": 5,
+            "xtick.minor.width": 1,
+            "ytick.minor.width": 1,
+            "xtick.minor.size": 3,
+            "ytick.minor.size": 3,
+        }
+    ):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         hb = ax.hexbin(
             x="Actual",
@@ -185,7 +186,9 @@ def _make_and_save_parity(
         ax.set_ylim(ylim)
 
         # add density colorbar put inside the plot
-        cax = inset_axes(ax, width="3.5%", height="70%", loc="lower right", borderpad=0.5)
+        cax = inset_axes(
+            ax, width="3.5%", height="70%", loc="lower right", borderpad=0.5
+        )
         plt.colorbar(hb, cax=cax)
         cax.yaxis.set_ticks_position("left")
         cax.yaxis.set_label_position("left")
