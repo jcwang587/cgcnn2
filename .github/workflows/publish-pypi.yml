@@ -33,7 +33,7 @@ jobs:
       uses: rhysd/changelog-from-release/action@v3
       with:
         file: CHANGELOG.md
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        github_token: ${{ secrets.CHANGELOG_TOKEN }}
         args: -l 2
         push: false
         pull_request: true
