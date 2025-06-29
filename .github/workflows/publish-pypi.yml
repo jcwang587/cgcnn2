@@ -19,6 +19,8 @@ jobs:
       name: pypi
       url: https://pypi.org/project/cgcnn2/
     permissions:
+      contents: write
+      pull-requests: write
       id-token: write
 
     steps:
