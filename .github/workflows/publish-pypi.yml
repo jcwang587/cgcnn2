@@ -39,8 +39,8 @@ jobs:
         github_token: ${{ secrets.GITHUB_TOKEN }}
         args: -l 2
   
-    - name: Set up uv
-      uses: astral-sh/setup-uv@v3
+    - name: Install the latest version of uv
+      uses: astral-sh/setup-uv@v6
 
     - name: Build package with uv
       run: uv build
