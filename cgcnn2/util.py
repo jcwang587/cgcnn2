@@ -136,75 +136,77 @@ def _make_and_save_parity(
         Path of the PNG file in which to save the parity plot.
     """
 
-    plt.rcParams.update({"font.size": 18})
-    plt.rcParams["axes.linewidth"] = 1.5
-    plt.rcParams["xtick.major.width"] = 1.5
-    plt.rcParams["ytick.major.width"] = 1.5
-    plt.rcParams["xtick.major.size"] = 5
-    plt.rcParams["ytick.major.size"] = 5
-    plt.rcParams["xtick.minor.width"] = 1
-    plt.rcParams["ytick.minor.width"] = 1
-    plt.rcParams["xtick.minor.size"] = 3
-    plt.rcParams["ytick.minor.size"] = 3
+    with plt.rc_context({
+        "font.size": 18,
+        "axes.linewidth": 1.5,
+        "xtick.major.width": 1.5,
+        "ytick.major.width": 1.5,
+        "xtick.major.size": 5,
+        "ytick.major.size": 5,
+        "xtick.minor.width": 1,
+        "ytick.minor.width": 1,
+        "xtick.minor.size": 3,
+        "ytick.minor.size": 3,
+    }):
 
-    fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
-    hb = ax.hexbin(
-        x="Actual",
-        y="Predicted",
-        data=df,
-        gridsize=40,
-        cmap="viridis",
-        bins="log",
-    )
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        hb = ax.hexbin(
+            x="Actual",
+            y="Predicted",
+            data=df,
+            gridsize=40,
+            cmap="viridis",
+            bins="log",
+        )
 
-    ax.set_xlabel(xlabel)
-    ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
 
-    # Keep axes square
-    ax.set_box_aspect(1)
+        # Keep axes square
+        ax.set_box_aspect(1)
 
-    # Get the current axis limits
-    xlim = ax.get_xlim()
-    ylim = ax.get_ylim()
-    min_val = min(xlim[0], ylim[0])
-    max_val = max(xlim[1], ylim[1])
+        # Get the current axis limits
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        min_val = min(xlim[0], ylim[0])
+        max_val = max(xlim[1], ylim[1])
 
-    # Plot y = x reference line (grey dashed)
-    ax.plot(
-        [min_val, max_val],
-        [min_val, max_val],
-        linestyle="--",
-        color="grey",
-        linewidth=2,
-    )
+        # Plot y = x reference line (grey dashed)
+        ax.plot(
+            [min_val, max_val],
+            [min_val, max_val],
+            linestyle="--",
+            color="grey",
+            linewidth=2,
+        )
 
-    # Restore the original limits
-    ax.set_xlim(xlim)
-    ax.set_ylim(ylim)
+        # Restore the original limits
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
 
-    # add density colorbar put inside the plot
-    cax = inset_axes(ax, width="3.5%", height="70%", loc="lower right", borderpad=0.5)
-    plt.colorbar(hb, cax=cax)
-    cax.yaxis.set_ticks_position("left")
-    cax.yaxis.set_label_position("left")
+        # add density colorbar put inside the plot
+        cax = inset_axes(ax, width="3.5%", height="70%", loc="lower right", borderpad=0.5)
+        plt.colorbar(hb, cax=cax)
+        cax.yaxis.set_ticks_position("left")
+        cax.yaxis.set_label_position("left")
 
-    # get mae and r2 score
-    mae = np.abs(df["Actual"] - df["Predicted"]).mean()
-    r2 = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
-        (df["Actual"] - df["Actual"].mean()) ** 2
-    )
-    ax.text(
-        0.05,
-        0.95,
-        f"MAE: {mae:.3f}\n$R^2$: {r2:.3f}",
-        transform=ax.transAxes,
-        fontsize=18,
-        ha="left",
-        va="top",
-    )
+        # get mae and r2 score
+        mae = np.abs(df["Actual"] - df["Predicted"]).mean()
+        r2 = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
+            (df["Actual"] - df["Actual"].mean()) ** 2
+        )
+        ax.text(
+            0.025,
+            0.975,
+            f"MAE: {mae:.3f}\n$R^2$: {r2:.3f}",
+            transform=ax.transAxes,
+            fontsize=18,
+            ha="left",
+            va="top",
+        )
 
-    plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
-    plt.close(fig)
+        plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
 
 
 def cgcnn_test(
