@@ -10,10 +10,11 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any
 
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import pymatviz as pmv
 import torch
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
 from torch.utils.data import DataLoader
@@ -115,37 +116,100 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
 
 
 def _make_and_save_parity(
-    df: pd.DataFrame, xlabel: str, ylabel: str, out_png: str
+    df: pd.DataFrame,
+    xlabel: str,
+    ylabel: str,
+    out_png: str,
 ) -> None:
     """
-    Creates a parity plot and saves it to a file.
+    Create a parity plot and save it to a file.
 
-    Args:
-        df (pd.DataFrame): The dataframe containing the actual and predicted values.
-        xlabel (str): The label for the x-axis.
-        ylabel (str): The label for the y-axis.
-        out_png (str): The path to the file to save the parity plot.
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing the actual and predicted values.
+    xlabel : str
+        Label for the x-axis.
+    ylabel : str
+        Label for the y-axis.
+    out_png : str
+        Path of the PNG file in which to save the parity plot.
     """
 
-    ax = pmv.density_hexbin(
-        x="Actual",
-        y="Predicted",
-        df=df,
-        xlabel=xlabel,
-        ylabel=ylabel,
-        best_fit_line=False,
-        gridsize=40,
-    )
+    with plt.rc_context(
+        {
+            "font.size": 18,
+            "axes.linewidth": 1.5,
+            "xtick.major.width": 1.5,
+            "ytick.major.width": 1.5,
+            "xtick.major.size": 5,
+            "ytick.major.size": 5,
+            "xtick.minor.width": 1,
+            "ytick.minor.width": 1,
+            "xtick.minor.size": 3,
+            "ytick.minor.size": 3,
+        }
+    ):
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        hb = ax.hexbin(
+            x="Actual",
+            y="Predicted",
+            data=df,
+            gridsize=40,
+            cmap="viridis",
+            bins="log",
+        )
 
-    fig = ax.get_figure()
-    fig.set_size_inches(8, 6)
-    fig.set_constrained_layout(True)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
 
-    ax.set_aspect("equal")
-    ax.set_box_aspect(1)
+        # Keep axes square
+        ax.set_box_aspect(1)
 
-    pmv.save_fig(fig, out_png)
-    fig.close()
+        # Get the current axis limits
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        min_val = min(xlim[0], ylim[0])
+        max_val = max(xlim[1], ylim[1])
+
+        # Plot y = x reference line (grey dashed)
+        ax.plot(
+            [min_val, max_val],
+            [min_val, max_val],
+            linestyle="--",
+            color="grey",
+            linewidth=2,
+        )
+
+        # Restore the original limits
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+
+        # add density colorbar put inside the plot
+        cax = inset_axes(
+            ax, width="3.5%", height="70%", loc="lower right", borderpad=0.5
+        )
+        plt.colorbar(hb, cax=cax)
+        cax.yaxis.set_ticks_position("left")
+        cax.yaxis.set_label_position("left")
+
+        # get mae and r2 score
+        mae = np.abs(df["Actual"] - df["Predicted"]).mean()
+        r2 = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
+            (df["Actual"] - df["Actual"].mean()) ** 2
+        )
+        ax.text(
+            0.025,
+            0.975,
+            f"MAE: {mae:.3f}\n$R^2$: {r2:.3f}",
+            transform=ax.transAxes,
+            fontsize=18,
+            ha="left",
+            va="top",
+        )
+
+        plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
 
 
 def cgcnn_test(
