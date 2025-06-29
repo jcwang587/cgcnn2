@@ -113,7 +113,7 @@
 * Add a `cgcnn-pr` cli script for prediction by [@jcwang587](https://github.com/jcwang587) in [#20](https://github.com/jcwang587/cgcnn2/pull/20)
 * Add a `cgcnn-tr` cli script for training from scratch by [@jcwang587](https://github.com/jcwang587) in [#22](https://github.com/jcwang587/cgcnn2/pull/22)
 
-## New Contributors
+### New Contributors
 * [@Andrew-S-Rosen](https://github.com/Andrew-S-Rosen) made their first contribution in [#14](https://github.com/jcwang587/cgcnn2/pull/14)
 
 **Full Changelog**: https://github.com/jcwang587/cgcnn2/compare/v0.3.4...v0.4.0
@@ -138,7 +138,7 @@
 ### What's Changed
 * Add an option to the fine-tuning script to generate a parity plot within a user-specified range
 
-## New Contributors
+### New Contributors
 * [@jcwang587](https://github.com/jcwang587) made their first contribution
 
 **Full Changelog**: https://github.com/jcwang587/cgcnn2/commits/v0.3.2
