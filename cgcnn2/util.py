@@ -206,13 +206,13 @@ def make_and_save_parity(
             if m_lower == "mae":
                 values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
             elif m_lower == "mse":
-                values["MSE"] = ((df["Actual"] - df["Predicted"])**2).mean()
+                values["MSE"] = ((df["Actual"] - df["Predicted"]) ** 2).mean()
             elif m_lower == "rmse":
-                values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"])**2).mean())
+                values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"]) ** 2).mean())
             elif m_lower == "r2":
-                values["$R^2$"] = 1 - np.sum((df["Actual"] - df["Predicted"])**2) / np.sum(
-                    (df["Actual"] - df["Actual"].mean())**2
-                )
+                values["$R^2$"] = 1 - np.sum(
+                    (df["Actual"] - df["Predicted"]) ** 2
+                ) / np.sum((df["Actual"] - df["Actual"].mean()) ** 2)
             else:
                 raise ValueError(f"Unsupported metric: {m}")
 
