@@ -41,10 +41,10 @@ jobs:
 
     - name: Downgrade heading level in changelog
       run: |
-        sed -i \
-          -e 's/^## What'"'"'s Changed/### What'"'"'s Changed/g' \
-          -e 's/^## New Contributors/### New Contributors/g' \
-          CHANGELOG.md
+        grep -qE "^## (What's Changed|New Contributors)" CHANGELOG.md || {
+            echo "Expected headings not found in CHANGELOG.md"; exit 1; }
+        sed -i -e "s/^## What's Changed/### What's Changed/g" \
+              -e "s/^## New Contributors/### New Contributors/g" CHANGELOG.md
   
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
