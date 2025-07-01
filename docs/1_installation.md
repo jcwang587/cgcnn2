@@ -22,10 +22,10 @@ pip install git+https://github.com/jcwang587/cgcnn2@main
 
 The package requires the following dependencies:
 
+* [matplotlib](https://matplotlib.org/)
 * [NumPy](https://numpy.org/)
 * [pandas](https://pandas.pydata.org/)
 * [pymatgen](https://pymatgen.org/)
-* [pymatviz](https://pymatviz.janosh.dev/)
 * [PyTorch](https://pytorch.org/)
 
 These will be automatically installed when you install the package.
