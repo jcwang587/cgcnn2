@@ -161,6 +161,14 @@ def parse_arguments(args=None):
         "Smaller values favor low-energy structures more strongly.",
     )
     parser.add_argument(
+        "-ji",
+        "--job-id",
+        type=str,
+        default=f"{os.getpid()}",
+        help="Job ID for naming output folder (default: <PID>)",
+    )
+    # Parity plot options
+    parser.add_argument(
         "-al",
         "--axis-limits",
         nargs=4,
@@ -181,14 +189,6 @@ def parse_arguments(args=None):
         default="Predicted",
         help="Y-axis label for the parity plot",
     )
-    parser.add_argument(
-        "-ji",
-        "--job-id",
-        default=f"{os.getpid()}",
-        type=str,
-        help="Job ID for naming output folder (default: <PID>)",
-    )
-
     # Model hyperparameters
     parser.add_argument(
         "--task",
