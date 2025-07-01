@@ -115,11 +115,13 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
     return learning_rates
 
 
-def _make_and_save_parity(
+def make_and_save_parity(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
     out_png: str,
+    metrics: list[str] = ["mae", "r2"],
+    units: str | None = None,
 ) -> None:
     """
     Create a parity plot and save it to a file.
@@ -134,6 +136,10 @@ def _make_and_save_parity(
         Label for the y-axis.
     out_png : str
         Path of the PNG file in which to save the parity plot.
+    metrics : list[str]
+        A list of strings to be displayed in the plot. Default is ["mae", "r2"].
+    units : str | None
+        Units of the property. Default is None.
     """
 
     with plt.rc_context(
@@ -160,8 +166,8 @@ def _make_and_save_parity(
             bins="log",
         )
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel, fontsize=20, fontweight="bold")
+        ax.set_ylabel(ylabel, fontsize=20, fontweight="bold")
 
         # Keep axes square
         ax.set_box_aspect(1)
@@ -193,15 +199,39 @@ def _make_and_save_parity(
         cax.yaxis.set_ticks_position("left")
         cax.yaxis.set_label_position("left")
 
-        # get mae and r2 score
-        mae = np.abs(df["Actual"] - df["Predicted"]).mean()
-        r2 = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
-            (df["Actual"] - df["Actual"].mean()) ** 2
-        )
+        # Compute requested metrics
+        values = {}
+        for m in metrics:
+            m_lower = m.lower()
+            if m_lower == "mae":
+                values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
+            elif m_lower == "mse":
+                values["MSE"] = ((df["Actual"] - df["Predicted"]) ** 2).mean()
+            elif m_lower == "rmse":
+                values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"]) ** 2).mean())
+            elif m_lower == "r2":
+                values["$R^2$"] = 1 - np.sum(
+                    (df["Actual"] - df["Predicted"]) ** 2
+                ) / np.sum((df["Actual"] - df["Actual"].mean()) ** 2)
+            else:
+                raise ValueError(f"Unsupported metric: {m}")
+
+        # Assemble text for display
+        text_lines = []
+        for name, val in values.items():
+            if units and name == "MSE":
+                unit_str = f" $\\mathrm{{{units}}}^2$"
+            elif units and name != "$R^2$":
+                unit_str = f" $\\mathrm{{{units}}}$"
+            else:
+                unit_str = ""
+            text_lines.append(f"${name}: {val:.3f}{unit_str}$")
+        text = "\n".join(text_lines)
+
         ax.text(
             0.025,
             0.975,
-            f"MAE: {mae:.3f}\n$R^2$: {r2:.3f}",
+            text,
             transform=ax.transAxes,
             fontsize=18,
             ha="left",
@@ -286,7 +316,7 @@ def cgcnn_test(
 
     # Create parity plot
     df_full = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
-    _make_and_save_parity(df_full, xlabel, ylabel, plot_file)
+    make_and_save_parity(df_full, xlabel, ylabel, plot_file)
     logging.info(f"Parity plot has been saved to {plot_file}")
 
     # If axis limits are provided, save the csv file with the specified limits
@@ -298,7 +328,7 @@ def cgcnn_test(
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
-        _make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
+        make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
         logging.info(
             f"Parity plot clipped to {axis_limits} on Actual has been saved to {clipped_file}"
         )
