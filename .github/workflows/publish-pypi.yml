@@ -38,6 +38,13 @@ jobs:
         file: CHANGELOG.md
         github_token: ${{ secrets.GITHUB_TOKEN }}
         args: -l 2
+
+    - name: Downgrade heading level in changelog
+      run: |
+        sed -i \
+          -e 's/^## What'"'"'s Changed/### What'"'"'s Changed/g' \
+          -e 's/^## New Contributors/### New Contributors/g' \
+          CHANGELOG.md
   
     - name: Install the latest version of uv
       uses: astral-sh/setup-uv@v6
