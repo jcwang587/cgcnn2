@@ -120,6 +120,8 @@ def _make_and_save_parity(
     xlabel: str,
     ylabel: str,
     out_png: str,
+    metrics: list[str] = ["mae", "r2"],
+    units: str | None = None,
 ) -> None:
     """
     Create a parity plot and save it to a file.
@@ -134,6 +136,10 @@ def _make_and_save_parity(
         Label for the y-axis.
     out_png : str
         Path of the PNG file in which to save the parity plot.
+    metrics : list[str]
+        A list of strings to be displayed in the plot. Default is ["mae", "r2"].
+    units : str | None
+        Units of the property. Default is None.
     """
 
     with plt.rc_context(
@@ -193,15 +199,32 @@ def _make_and_save_parity(
         cax.yaxis.set_ticks_position("left")
         cax.yaxis.set_label_position("left")
 
-        # get mae and r2 score
-        mae = np.abs(df["Actual"] - df["Predicted"]).mean()
-        r2 = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
-            (df["Actual"] - df["Actual"].mean()) ** 2
-        )
+        # Compute requested metrics
+        values = {}
+        for m in metrics:
+            m_lower = m.lower()
+            if m_lower == "mae":
+                values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
+            elif m_lower == "mse":
+                values["MSE"] = ((df["Actual"] - df["Predicted"])**2).mean()
+            elif m_lower == "r2":
+                values["$R^2$"] = 1 - np.sum((df["Actual"] - df["Predicted"])**2) / np.sum(
+                    (df["Actual"] - df["Actual"].mean())**2
+                )
+            else:
+                raise ValueError(f"Unsupported metric: {m}")
+
+        # Assemble text for display
+        text_lines = []
+        for name, val in values.items():
+            unit_str = f" {units}" if units and name != "$R^2$" else ""
+            text_lines.append(f"{name}: {val:.3f}{unit_str}")
+        text = "\n".join(text_lines)
+
         ax.text(
             0.025,
             0.975,
-            f"MAE: {mae:.3f}\n$R^2$: {r2:.3f}",
+            text,
             transform=ax.transAxes,
             fontsize=18,
             ha="left",
