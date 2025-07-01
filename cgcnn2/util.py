@@ -207,6 +207,8 @@ def _make_and_save_parity(
                 values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
             elif m_lower == "mse":
                 values["MSE"] = ((df["Actual"] - df["Predicted"])**2).mean()
+            elif m_lower == "rmse":
+                values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"])**2).mean())
             elif m_lower == "r2":
                 values["$R^2$"] = 1 - np.sum((df["Actual"] - df["Predicted"])**2) / np.sum(
                     (df["Actual"] - df["Actual"].mean())**2
@@ -217,8 +219,13 @@ def _make_and_save_parity(
         # Assemble text for display
         text_lines = []
         for name, val in values.items():
-            unit_str = f" {units}" if units and name != "$R^2$" else ""
-            text_lines.append(f"{name}: {val:.3f}{unit_str}")
+            if units and name == "MSE":
+                unit_str = f" $\\mathrm{{{units}}}^2$"
+            elif units and name != "$R^2$":
+                unit_str = f" $\\mathrm{{{units}}}$"
+            else:
+                unit_str = ""
+            text_lines.append(f"${name}: {val:.3f}{unit_str}$")
         text = "\n".join(text_lines)
 
         ax.text(
