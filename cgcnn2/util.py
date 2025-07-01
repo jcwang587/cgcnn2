@@ -115,7 +115,7 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
     return learning_rates
 
 
-def _make_and_save_parity(
+def make_and_save_parity(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
@@ -316,7 +316,7 @@ def cgcnn_test(
 
     # Create parity plot
     df_full = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
-    _make_and_save_parity(df_full, xlabel, ylabel, plot_file)
+    make_and_save_parity(df_full, xlabel, ylabel, plot_file)
     logging.info(f"Parity plot has been saved to {plot_file}")
 
     # If axis limits are provided, save the csv file with the specified limits
@@ -328,7 +328,7 @@ def cgcnn_test(
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
-        _make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
+        make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
         logging.info(
             f"Parity plot clipped to {axis_limits} on Actual has been saved to {clipped_file}"
         )
