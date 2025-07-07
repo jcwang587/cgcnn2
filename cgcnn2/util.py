@@ -166,8 +166,8 @@ def make_and_save_parity(
             bins="log",
         )
 
-        ax.set_xlabel(xlabel, fontsize=20, fontweight="bold")
-        ax.set_ylabel(ylabel, fontsize=20, fontweight="bold")
+        ax.set_xlabel(xlabel, fontsize=20)
+        ax.set_ylabel(ylabel, fontsize=20)
 
         # Keep axes square
         ax.set_box_aspect(1)
