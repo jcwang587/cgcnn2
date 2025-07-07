@@ -220,12 +220,12 @@ def make_and_save_parity(
         text_lines = []
         for name, val in values.items():
             if unit and name == "MSE":
-                unit_str = f" $\\mathrm{{{unit}}}^2$"
+                unit_str = rf"\,\mathrm{{{unit}}}^2"
             elif unit and name != "$R^2$":
-                unit_str = f" $\\mathrm{{{unit}}}$"
+                unit_str = rf"\,\mathrm{{{unit}}}"
             else:
                 unit_str = ""
-            text_lines.append(f"${name}: {val:.3f}{unit_str}$")
+            text_lines.append(rf"${name}: {val:.3f}{unit_str}$")
         text = "\n".join(text_lines)
 
         ax.text(
