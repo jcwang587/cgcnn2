@@ -121,7 +121,7 @@ def make_and_save_parity(
     ylabel: str,
     out_png: str,
     metrics: list[str] = ["mae", "r2"],
-    units: str | None = None,
+    unit: str | None = None,
 ) -> None:
     """
     Create a parity plot and save it to a file.
@@ -138,8 +138,8 @@ def make_and_save_parity(
         Path of the PNG file in which to save the parity plot.
     metrics : list[str]
         A list of strings to be displayed in the plot. Default is ["mae", "r2"].
-    units : str | None
-        Units of the property. Default is None.
+    unit : str | None
+        Unit of the property. Default is None.
     """
 
     with plt.rc_context(
@@ -219,10 +219,10 @@ def make_and_save_parity(
         # Assemble text for display
         text_lines = []
         for name, val in values.items():
-            if units and name == "MSE":
-                unit_str = f" $\\mathrm{{{units}}}^2$"
-            elif units and name != "$R^2$":
-                unit_str = f" $\\mathrm{{{units}}}$"
+            if unit and name == "MSE":
+                unit_str = f" $\\mathrm{{{unit}}}^2$"
+            elif unit and name != "$R^2$":
+                unit_str = f" $\\mathrm{{{unit}}}$"
             else:
                 unit_str = ""
             text_lines.append(f"${name}: {val:.3f}{unit_str}$")
