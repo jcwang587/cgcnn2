@@ -210,7 +210,7 @@ def make_and_save_parity(
             elif m_lower == "rmse":
                 values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"]) ** 2).mean())
             elif m_lower == "r2":
-                values["$R^2$"] = 1 - np.sum(
+                values["R^2"] = 1 - np.sum(
                     (df["Actual"] - df["Predicted"]) ** 2
                 ) / np.sum((df["Actual"] - df["Actual"].mean()) ** 2)
             else:
@@ -221,7 +221,7 @@ def make_and_save_parity(
         for name, val in values.items():
             if unit and name == "MSE":
                 unit_str = rf"\,\mathrm{{{unit}}}^2"
-            elif unit and name != "$R^2$":
+            elif unit and name != "R^2":
                 unit_str = rf"\,\mathrm{{{unit}}}"
             else:
                 unit_str = ""
