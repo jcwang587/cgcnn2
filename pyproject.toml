@@ -1,6 +1,6 @@
 [project]
 name            = "cgcnn2"
-version         = "0.4.7"
+version         = "0.4.8"
 description     = "Reproduction of Crystal Graph Convolutional Neural Networks"
 readme          = "README.md"
 requires-python = ">=3.11,<3.13"
