@@ -225,7 +225,13 @@ def make_and_save_parity(
                 unit_str = rf"\,\mathrm{{{unit}}}"
             else:
                 unit_str = ""
-            text_lines.append(rf"${name}: {val:.3f}{unit_str}$")
+
+            if name == "R^2":
+                latex_name = r"R^2"
+            else:
+                latex_name = rf"\mathrm{{{name}}}"
+
+            text_lines.append(rf"${latex_name}: {val:.3f}{unit_str}$")
         text = "\n".join(text_lines)
 
         ax.text(
