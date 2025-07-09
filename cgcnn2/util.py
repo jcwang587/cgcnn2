@@ -47,6 +47,7 @@ PLOT_RC_PARAMS: dict[str, float | int] = {
 # Helper functions
 # ----------------------------------------------------------------------
 
+
 def setup_logging() -> None:
     """
     Sets up logging for the project.
