@@ -202,20 +202,13 @@ def make_and_save_hexbin(
     """
     Create a hexbin plot and save it to a file.
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame containing the actual and predicted values.
-    xlabel : str
-        Label for the x-axis.
-    ylabel : str
-        Label for the y-axis.
-    out_png : str
-        Path of the PNG file in which to save the hexbin plot.
-    metrics : list[str]
-        A list of strings to be displayed in the plot. Default is ["mae", "r2"].
-    unit : str | None
-        Unit of the property. Default is None.
+    Args:
+        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        out_png (str): Path of the PNG file in which to save the hexbin plot.
+        metrics (list[str]): A list of strings to be displayed in the plot. Default is ["mae", "r2"].
+        unit (str | None): Unit of the property. Default is None.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
@@ -299,25 +292,16 @@ def make_and_save_scatter(
     """
     Create a scatter plot and save it to a file.
 
-    Parameters
-    ----------
-    df : pd.DataFrame
-        DataFrame containing the actual and predicted values.
-    xlabel : str
-        Label for the x-axis.
-    ylabel : str
-        Label for the y-axis.
-    out_png : str
-        Path of the PNG file in which to save the scatter plot.
-    data_types : list[str]
-        A list of data types to be displayed in the plot. Default is ["train", "valid", "test"].
-    colors : list[str]
-        A list of colors to be used for the data types.
-        Default palette is adapted from `Looka 2025 <https://looka.com/blog/logo-color-trends/>`_ with 6 colors.
-    metrics : list[str]
-        A list of metrics to be displayed in the plot. Default is ["mae", "r2"].
-    unit : str | None
-        Unit of the property. Default is None.
+    Args:
+        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        xlabel (str): Label for the x-axis.
+        ylabel (str): Label for the y-axis.
+        out_png (str): Path of the PNG file in which to save the scatter plot.
+        data_types (list[str]): A list of data types to be displayed in the plot. Default is ["train", "valid", "test"].
+        colors (list[str]): A list of colors to be used for the data types.
+        Default palette is adapted from [Looka 2025](https://looka.com/blog/logo-color-trends/) with 6 colors.
+        metrics (list[str]): A list of metrics to be displayed in the plot. Default is ["mae", "r2"].
+        unit (str | None): Unit of the property. Default is None.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
