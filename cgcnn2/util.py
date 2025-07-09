@@ -188,27 +188,27 @@ def make_and_save_hexbin(
     ylabel : str
         Label for the y-axis.
     out_png : str
-        Path of the PNG file in which to save the parity plot.
+        Path of the PNG file in which to save the hexbin plot.
     metrics : list[str]
         A list of strings to be displayed in the plot. Default is ["mae", "r2"].
     unit : str | None
         Unit of the property. Default is None.
     """
 
-    with plt.rc_context(
-        {
-            "font.size": 18,
-            "axes.linewidth": 1.5,
-            "xtick.major.width": 1.5,
-            "ytick.major.width": 1.5,
-            "xtick.major.size": 5,
-            "ytick.major.size": 5,
-            "xtick.minor.width": 1,
-            "ytick.minor.width": 1,
-            "xtick.minor.size": 3,
-            "ytick.minor.size": 3,
-        }
-    ):
+    PLOT_RC_PARAMS = {
+        "font.size": 18,
+        "axes.linewidth": 1.5,
+        "xtick.major.width": 1.5,
+        "ytick.major.width": 1.5,
+        "xtick.major.size": 5,
+        "ytick.major.size": 5,
+        "xtick.minor.width": 1,
+        "ytick.minor.width": 1,
+        "xtick.minor.size": 3,
+        "ytick.minor.size": 3,
+    }
+
+    with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         hb = ax.hexbin(
             x="Actual",
@@ -298,7 +298,7 @@ def make_and_save_scatter(
     ylabel : str
         Label for the y-axis.
     out_png : str
-        Path of the PNG file in which to save the parity plot.
+        Path of the PNG file in which to save the scatter plot.
     data_types : list[str]
         A list of data types to be displayed in the plot. Default is ["train", "valid", "test"].
     colors : list[str]
@@ -310,20 +310,20 @@ def make_and_save_scatter(
         Unit of the property. Default is None.
     """
 
-    with plt.rc_context(
-        {
-            "font.size": 18,
-            "axes.linewidth": 1.5,
-            "xtick.major.width": 1.5,
-            "ytick.major.width": 1.5,
-            "xtick.major.size": 5,
-            "ytick.major.size": 5,
-            "xtick.minor.width": 1,
-            "ytick.minor.width": 1,
-            "xtick.minor.size": 3,
-            "ytick.minor.size": 3,
-        }
-    ):
+    PLOT_RC_PARAMS = {
+        "font.size": 18,
+        "axes.linewidth": 1.5,
+        "xtick.major.width": 1.5,
+        "ytick.major.width": 1.5,
+        "xtick.major.size": 5,
+        "ytick.major.size": 5,
+        "xtick.minor.width": 1,
+        "ytick.minor.width": 1,
+        "xtick.minor.size": 3,
+        "ytick.minor.size": 3,
+    }
+
+    with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
         for data_type in data_types:
@@ -332,7 +332,7 @@ def make_and_save_scatter(
                 x="Actual",
                 y="Predicted",
                 data=df_data_type,
-                c=colors[data_types.index(data_type)],
+                c=colors[data_types.index(data_type) % len(colors)],
                 alpha=0.5,
             )
 
