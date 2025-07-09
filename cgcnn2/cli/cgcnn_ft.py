@@ -20,8 +20,7 @@ from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):
-    """
-    Parses command-line arguments for the fine-tuning script.
+    """Parses command-line arguments for the fine-tuning script.
 
     Args:
         args (list, optional): List of command line arguments to parse. If None, sys.argv[1:] is used.

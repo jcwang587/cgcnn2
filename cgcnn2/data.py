@@ -17,8 +17,7 @@ from torch.utils.data import Dataset
 
 
 def collate_pool(dataset_list):
-    """
-    Collate a list of data and return a batch for predicting crystal properties.
+    """Collate a list of data and return a batch for predicting crystal properties.
 
     Args:
         dataset_list (list of tuples): List of tuples for each data point. Each tuple contains:
@@ -36,7 +35,6 @@ def collate_pool(dataset_list):
         batch_target (torch.Tensor): shape (N, 1) Target value for prediction
         batch_cif_ids (list of str or int): Unique IDs for each crystal
     """
-
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
     crystal_atom_idx, batch_target = [], []
     batch_cif_ids = []
@@ -64,21 +62,18 @@ def collate_pool(dataset_list):
 
 
 class GaussianDistance:
-    """
-    Expands the distance by Gaussian basis.
+    """Expands the distance by Gaussian basis.
 
     Unit: angstrom
     """
 
     def __init__(self, dmin, dmax, step, var=None):
+        """Args:
+        dmin (float): Minimum interatomic distance (center of the first Gaussian).
+        dmax (float): Maximum interatomic distance (center of the last Gaussian).
+        step (float): Spacing between consecutive Gaussian centers.
+        var (float, optional): Variance of each Gaussian. If None, defaults to step.
         """
-        Args:
-            dmin (float): Minimum interatomic distance (center of the first Gaussian).
-            dmax (float): Maximum interatomic distance (center of the last Gaussian).
-            step (float): Spacing between consecutive Gaussian centers.
-            var (float, optional): Variance of each Gaussian. If None, defaults to step.
-        """
-
         assert dmin < dmax
         assert dmax - dmin > step
         self.filter = np.arange(dmin, dmax + step, step)
@@ -87,8 +82,7 @@ class GaussianDistance:
         self.var = var
 
     def expand(self, distances):
-        """
-        Project each scalar distance onto a set of Gaussian basis functions.
+        """Project each scalar distance onto a set of Gaussian basis functions.
 
         Args:
             distances (np.ndarray): An array of interatomic distances.
@@ -96,7 +90,6 @@ class GaussianDistance:
         Returns:
             expanded_distance (np.ndarray): An array where the last dimension contains the Gaussian basis values for each input distance.
         """
-
         expanded_distance = np.exp(
             -((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2
         )
@@ -104,14 +97,12 @@ class GaussianDistance:
 
 
 class AtomInitializer:
-    """
-    Base class for initializing the vector representation for atoms.
+    """Base class for initializing the vector representation for atoms.
     Use one `AtomInitializer` per dataset.
     """
 
     def __init__(self, atom_types):
-        """
-        Initialize the atom types and embedding dictionary.
+        """Initialize the atom types and embedding dictionary.
 
         Args:
             atom_types (set): A set of unique atom types in the dataset.
@@ -120,8 +111,7 @@ class AtomInitializer:
         self._embedding = {}
 
     def get_atom_fea(self, atom_type):
-        """
-        Get the vector representation for an atom type.
+        """Get the vector representation for an atom type.
 
         Args:
             atom_type (str): The type of atom to get the vector representation for.
@@ -130,8 +120,7 @@ class AtomInitializer:
         return self._embedding[atom_type]
 
     def load_state_dict(self, state_dict):
-        """
-        Load the state dictionary for the atom initializer.
+        """Load the state dictionary for the atom initializer.
 
         Args:
             state_dict (dict): The state dictionary to load.
@@ -143,8 +132,7 @@ class AtomInitializer:
         }
 
     def state_dict(self) -> dict:
-        """
-        Get the state dictionary for the atom initializer.
+        """Get the state dictionary for the atom initializer.
 
         Returns:
             dict: The state dictionary.
@@ -152,8 +140,7 @@ class AtomInitializer:
         return self._embedding
 
     def decode(self, idx: int) -> str:
-        """
-        Decode an index to an atom type.
+        """Decode an index to an atom type.
 
         Args:
             idx (int): The index to decode.
@@ -169,8 +156,7 @@ class AtomInitializer:
 
 
 class AtomCustomJSONInitializer(AtomInitializer):
-    """
-    Initialize atom feature vectors using a JSON file, which is a python
+    """Initialize atom feature vectors using a JSON file, which is a python
     dictionary mapping from element number to a list representing the
     feature vector of the element.
 
@@ -189,8 +175,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
 
 
 class CIFData(Dataset):
-    """
-    The CIFData dataset is a wrapper for a dataset where the crystal structures
+    """The CIFData dataset is a wrapper for a dataset where the crystal structures
     are stored in the form of CIF files.
 
     id_prop.csv: a CSV file with two columns. The first column recodes a
@@ -248,8 +233,7 @@ class CIFData(Dataset):
         self._configure_cache()
 
     def set_cache_size(self, cache_size: Optional[int]) -> None:
-        """
-        Change the LRU-cache capacity on the fly.
+        """Change the LRU-cache capacity on the fly.
 
         Args:
             cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
@@ -260,9 +244,7 @@ class CIFData(Dataset):
         self._configure_cache()
 
     def clear_cache(self) -> None:
-        """
-        Clear the current cache.
-        """
+        """Clear the current cache."""
         if hasattr(self._cache_load, "cache_clear"):
             self._cache_load.cache_clear()
 
@@ -273,9 +255,7 @@ class CIFData(Dataset):
         return self._cache_load(idx)
 
     def _configure_cache(self) -> None:
-        """
-        Wrap `_raw_load_item` with an LRU cache.
-        """
+        """Wrap `_raw_load_item` with an LRU cache."""
         if self.cache_size is None:
             self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
         elif self.cache_size <= 0:
@@ -362,8 +342,7 @@ class CIFData(Dataset):
 
 
 class CIFData_NoTarget(Dataset):
-    """
-    The CIFData_NoTarget dataset is a wrapper for a dataset where the crystal
+    """The CIFData_NoTarget dataset is a wrapper for a dataset where the crystal
     structures are stored in the form of CIF files.
 
     atom_init.json: a JSON file that stores the initialization vector for each
@@ -458,8 +437,7 @@ def full_set_split(
     train_force_dir: str | None = None,
     random_seed: int = 0,
 ):
-    """
-    Split the full set into train, valid, and test sets into a temporary directory.
+    """Split the full set into train, valid, and test sets into a temporary directory.
 
     Args:
         full_set_dir (str): The path to the full set

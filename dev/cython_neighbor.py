@@ -9,14 +9,12 @@ from pymatgen.core import Structure
 
 
 class AtomInitializer(object):
-    """
-    Base class for initializing the vector representation for atoms.
+    """Base class for initializing the vector representation for atoms.
     Use one `AtomInitializer` per dataset.
     """
 
     def __init__(self, atom_types):
-        """
-        Initialize the atom types and embedding dictionary.
+        """Initialize the atom types and embedding dictionary.
 
         Args:
             atom_types (set): A set of unique atom types in the dataset.
@@ -25,8 +23,7 @@ class AtomInitializer(object):
         self._embedding = {}
 
     def get_atom_fea(self, atom_type):
-        """
-        Get the vector representation for an atom type.
+        """Get the vector representation for an atom type.
 
         Args:
             atom_type (str): The type of atom to get the vector representation for.
@@ -35,8 +32,7 @@ class AtomInitializer(object):
         return self._embedding[atom_type]
 
     def load_state_dict(self, state_dict):
-        """
-        Load the state dictionary for the atom initializer.
+        """Load the state dictionary for the atom initializer.
 
         Args:
             state_dict (dict): The state dictionary to load.
@@ -48,8 +44,7 @@ class AtomInitializer(object):
         }
 
     def state_dict(self) -> dict:
-        """
-        Get the state dictionary for the atom initializer.
+        """Get the state dictionary for the atom initializer.
 
         Returns:
             dict: The state dictionary.
@@ -57,8 +52,7 @@ class AtomInitializer(object):
         return self._embedding
 
     def decode(self, idx: int) -> str:
-        """
-        Decode an index to an atom type.
+        """Decode an index to an atom type.
 
         Args:
             idx (int): The index to decode.
@@ -74,8 +68,7 @@ class AtomInitializer(object):
 
 
 class AtomCustomJSONInitializer(AtomInitializer):
-    """
-    Initialize atom feature vectors using a JSON file, which is a python
+    """Initialize atom feature vectors using a JSON file, which is a python
     dictionary mapping from element number to a list representing the
     feature vector of the element.
 
@@ -94,21 +87,18 @@ class AtomCustomJSONInitializer(AtomInitializer):
 
 
 class GaussianDistance(object):
-    """
-    Expands the distance by Gaussian basis.
+    """Expands the distance by Gaussian basis.
 
     Unit: angstrom
     """
 
     def __init__(self, dmin, dmax, step, var=None):
+        """Args:
+        dmin (float): Minimum interatomic distance (center of the first Gaussian).
+        dmax (float): Maximum interatomic distance (center of the last Gaussian).
+        step (float): Spacing between consecutive Gaussian centers.
+        var (float, optional): Variance of each Gaussian. If None, defaults to step.
         """
-        Args:
-            dmin (float): Minimum interatomic distance (center of the first Gaussian).
-            dmax (float): Maximum interatomic distance (center of the last Gaussian).
-            step (float): Spacing between consecutive Gaussian centers.
-            var (float, optional): Variance of each Gaussian. If None, defaults to step.
-        """
-
         assert dmin < dmax
         assert dmax - dmin > step
         self.filter = np.arange(dmin, dmax + step, step)
@@ -117,8 +107,7 @@ class GaussianDistance(object):
         self.var = var
 
     def expand(self, distances):
-        """
-        Project each scalar distance onto a set of Gaussian basis functions.
+        """Project each scalar distance onto a set of Gaussian basis functions.
 
         Args:
             distances (np.ndarray): An array of interatomic distances.
@@ -126,7 +115,6 @@ class GaussianDistance(object):
         Returns:
             expanded_distance (np.ndarray): An array where the last dimension contains the Gaussian basis values for each input distance.
         """
-
         expanded_distance = np.exp(
             -((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2
         )

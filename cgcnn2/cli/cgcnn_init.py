@@ -9,15 +9,13 @@ from cgcnn2.util import id_prop_gen
 
 
 def atom_gen():
-    """
-    Copies the `atom_init.json` asset from the cgcnn2 package's asset folder to
+    """Copies the `atom_init.json` asset from the cgcnn2 package's asset folder to
     the current working directory.
 
     The file is expected to be located at:
       `cgcnn2/asset/atom_init.json`
     within the installed package.
     """
-
     if os.path.exists("atom_init.json"):
         answer = (
             input(
@@ -39,13 +37,11 @@ def atom_gen():
 
 
 def id_gen():
-    """
-    Generates an `id_prop.csv` file in the current working directory.
+    """Generates an `id_prop.csv` file in the current working directory.
 
     This function creates a CSV file with two columns: `id` (derived from CIF filenames)
     and `prop` (set to 0 for all entries).
     """
-
     if os.path.exists("id_prop.csv"):
         answer = (
             input(

@@ -3,15 +3,13 @@ import torch.nn as nn
 
 
 class ConvLayer(nn.Module):
-    """
-    Convolutional layer for graph data.
+    """Convolutional layer for graph data.
 
     Performs a convolutional operation on graphs, updating atom features based on their neighbors.
     """
 
     def __init__(self, atom_fea_len: int, nbr_fea_len: int) -> None:
-        """
-        Initialize the ConvLayer.
+        """Initialize the ConvLayer.
 
         Args:
             atom_fea_len (int): Number of atom hidden features.
@@ -30,8 +28,7 @@ class ConvLayer(nn.Module):
         self.softplus2 = nn.Softplus()
 
     def forward(self, atom_in_fea, nbr_fea, nbr_fea_idx):
-        """
-        Forward pass
+        """Forward pass.
 
         N: Total number of atoms in the batch
         M: Max number of neighbors
@@ -74,8 +71,7 @@ class ConvLayer(nn.Module):
 
 
 class CrystalGraphConvNet(nn.Module):
-    """
-    Create a crystal graph convolutional neural network for predicting total
+    """Create a crystal graph convolutional neural network for predicting total
     material properties.
     """
 
@@ -89,8 +85,7 @@ class CrystalGraphConvNet(nn.Module):
         n_h: int = 1,
         classification: bool = False,
     ) -> None:
-        """
-        Initialize CrystalGraphConvNet.
+        """Initialize CrystalGraphConvNet.
 
         Args:
             orig_atom_fea_len (int): Number of atom features in the input.
@@ -134,8 +129,7 @@ class CrystalGraphConvNet(nn.Module):
         nbr_fea_idx: torch.LongTensor,
         crystal_atom_idx: list[torch.LongTensor],
     ):
-        """
-        Forward pass
+        """Forward pass.
 
         N: Total number of atoms in the batch
         M: Max number of neighbors
@@ -174,8 +168,7 @@ class CrystalGraphConvNet(nn.Module):
     def pooling(
         self, atom_fea: torch.Tensor, crystal_atom_idx: list[torch.LongTensor]
     ) -> torch.Tensor:
-        """
-        Aggregate atom features into crystal-level features by mean pooling.
+        """Aggregate atom features into crystal-level features by mean pooling.
 
         Args:
             atom_fea (torch.Tensor): shape (N, atom_fea_len)

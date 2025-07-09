@@ -49,9 +49,7 @@ PLOT_RC_PARAMS: dict[str, float | int] = {
 
 
 def setup_logging() -> None:
-    """
-    Sets up logging for the project.
-    """
+    """Sets up logging for the project."""
     logging.basicConfig(
         stream=sys.stdout,
         level=logging.INFO,
@@ -66,8 +64,7 @@ def setup_logging() -> None:
 
 
 def get_local_version() -> str:
-    """
-    Retrieves the version of the project from the pyproject.toml file.
+    """Retrieves the version of the project from the pyproject.toml file.
 
     Returns:
         version (str): The version of the project.
@@ -84,13 +81,11 @@ def get_local_version() -> str:
 
 
 def output_id_gen() -> str:
-    """
-    Generates a unique output identifier based on current date and time.
+    """Generates a unique output identifier based on current date and time.
 
     Returns:
         folder_name (str): A string in format 'output_mmdd_HHMM' for current date/time.
     """
-
     now = datetime.now()
     timestamp = now.strftime("%m%d_%H%M")
     folder_name = f"output_{timestamp}"
@@ -104,7 +99,6 @@ def id_prop_gen(cif_dir: str) -> None:
     Args:
         cif_dir (str): Directory containing the CIF files.
     """
-
     cif_list = glob.glob(f"{cif_dir}/*.cif")
 
     id_prop_cif = pd.DataFrame(
@@ -122,8 +116,7 @@ def id_prop_gen(cif_dir: str) -> None:
 
 
 def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
-    """
-    Extracts learning rates from a PyTorch optimizer.
+    """Extracts learning rates from a PyTorch optimizer.
 
     Args:
         optimizer (torch.optim.Optimizer): The PyTorch optimizer to extract learning rates from.
@@ -131,7 +124,6 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
     Returns:
         learning_rates (list[float]): A list of learning rates for each parameter group.
     """
-
     learning_rates = []
     for param_group in optimizer.param_groups:
         learning_rates.append(param_group["lr"])
@@ -143,8 +135,7 @@ def metrics_text(
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> str:
-    """
-    Create a text string containing the metrics and their values.
+    """Create a text string containing the metrics and their values.
 
     Args:
         df (pd.DataFrame): DataFrame containing the actual and predicted values.
@@ -154,7 +145,6 @@ def metrics_text(
     Returns:
         text (str): A text string containing the metrics and their values.
     """
-
     values: dict[str, float] = {}
     for m in metrics:
         m_lower = m.lower()
@@ -199,8 +189,7 @@ def make_and_save_hexbin(
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
-    """
-    Create a hexbin plot and save it to a file.
+    """Create a hexbin plot and save it to a file.
 
     Args:
         df (pd.DataFrame): DataFrame containing the actual and predicted values.
@@ -210,7 +199,6 @@ def make_and_save_hexbin(
         metrics (list[str]): A list of strings to be displayed in the plot. Default is ["mae", "r2"].
         unit (str | None): Unit of the property. Default is None.
     """
-
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         hb = ax.hexbin(
@@ -289,8 +277,7 @@ def make_and_save_scatter(
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
-    """
-    Create a scatter plot and save it to a file.
+    """Create a scatter plot and save it to a file.
 
     Args:
         df (pd.DataFrame): DataFrame containing the actual and predicted values.
@@ -303,7 +290,6 @@ def make_and_save_scatter(
         metrics (list[str]): A list of metrics to be displayed in the plot. Default is ["mae", "r2"].
         unit (str | None): Unit of the property. Default is None.
     """
-
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
@@ -368,8 +354,7 @@ def cgcnn_test(
     axis_limits: list[float] | None = None,
     **kwargs: Any,
 ) -> None:
-    """
-    This function takes a pre-trained CGCNN model and a test dataset, runs
+    """This function takes a pre-trained CGCNN model and a test dataset, runs
     inference to generate predictions, creates a parity plot comparing predicted
     versus actual values, and writes the results to a CSV file.
 
@@ -389,7 +374,6 @@ def cgcnn_test(
         direct output of results. For programmatic downstream analysis, consider
         using the API functions instead, i.e. cgcnn_pred and cgcnn_descriptor.
     """
-
     # Extract optional plot labels from kwargs, with defaults
     xlabel = kwargs.get("xlabel", "Actual")
     ylabel = kwargs.get("ylabel", "Predicted")
@@ -457,8 +441,7 @@ def cgcnn_descriptor(
     device: str,
     verbose: int,
 ) -> tuple[list[float], list[torch.Tensor]]:
-    """
-    This function takes a pre-trained CGCNN model and a dataset, runs inference
+    """This function takes a pre-trained CGCNN model and a dataset, runs inference
     to generate predictions and features from the last layer, and returns the
     predictions and features. It is not necessary to have target values for the
     predicted set.
@@ -480,7 +463,6 @@ def cgcnn_descriptor(
         features (descriptors) generated by the model. For the command-line interface,
         consider using the cgcnn_pr script instead.
     """
-
     model.eval()
     targets_list = []
     outputs_list = []
@@ -523,8 +505,7 @@ def cgcnn_pred(
     cuda: bool = False,
     num_workers: int = 0,
 ) -> tuple[list[float], list[torch.Tensor]]:
-    """
-    This function takes the path to a pre-trained CGCNN model and a dataset,
+    """This function takes the path to a pre-trained CGCNN model and a dataset,
     runs inference to generate predictions, and returns the predictions. It is
     not necessary to have target values for the predicted set.
 
@@ -596,8 +577,7 @@ def cgcnn_pred(
 
 
 def unique_structures_clean(dataset_dir, delete_duplicates=False):
-    """
-    Checks for duplicate (structurally equivalent) structures in a directory
+    """Checks for duplicate (structurally equivalent) structures in a directory
     of CIF files using pymatgen's StructureMatcher and returns the count
     of unique structures.
 
@@ -634,16 +614,14 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
 
 
 class Normalizer:
-    """
-    Normalizes a PyTorch tensor and allows restoring it later.
+    """Normalizes a PyTorch tensor and allows restoring it later.
 
     This class keeps track of the mean and standard deviation of a tensor and provides methods
     to normalize and denormalize tensors using these statistics.
     """
 
     def __init__(self, tensor: torch.Tensor) -> None:
-        """
-        Initialize the Normalizer with a sample tensor to calculate mean and standard deviation.
+        """Initialize the Normalizer with a sample tensor to calculate mean and standard deviation.
 
         Args:
             tensor (torch.Tensor): Sample tensor to compute mean and standard deviation.
@@ -652,8 +630,7 @@ class Normalizer:
         self.std: torch.Tensor = torch.std(tensor)
 
     def norm(self, tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Normalize a tensor using the stored mean and standard deviation.
+        """Normalize a tensor using the stored mean and standard deviation.
 
         Args:
             tensor (torch.Tensor): Tensor to normalize.
@@ -664,8 +641,7 @@ class Normalizer:
         return (tensor - self.mean) / self.std
 
     def denorm(self, normed_tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Denormalize a tensor using the stored mean and standard deviation.
+        """Denormalize a tensor using the stored mean and standard deviation.
 
         Args:
             normed_tensor (torch.Tensor): Normalized tensor to denormalize.
@@ -676,8 +652,7 @@ class Normalizer:
         return normed_tensor * self.std + self.mean
 
     def state_dict(self) -> dict[str, torch.Tensor]:
-        """
-        Returns the state dictionary containing the mean and standard deviation.
+        """Returns the state dictionary containing the mean and standard deviation.
 
         Returns:
             dict[str, torch.Tensor]: State dictionary.
@@ -685,8 +660,7 @@ class Normalizer:
         return {"mean": self.mean, "std": self.std}
 
     def load_state_dict(self, state_dict: dict[str, torch.Tensor]) -> None:
-        """
-        Loads the mean and standard deviation from a state dictionary.
+        """Loads the mean and standard deviation from a state dictionary.
 
         Args:
             state_dict (dict[str, torch.Tensor]): State dictionary containing 'mean' and 'std'.
@@ -696,8 +670,7 @@ class Normalizer:
 
 
 def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
-    """
-    Prints the checkpoint information.
+    """Prints the checkpoint information.
 
     Args:
         checkpoint (dict[str, Any]): The checkpoint dictionary.
@@ -721,8 +694,7 @@ def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:
 
 
 def seed_everything(seed: int) -> None:
-    """
-    Seeds the random number generators for Python, NumPy, PyTorch, and PyTorch CUDA.
+    """Seeds the random number generators for Python, NumPy, PyTorch, and PyTorch CUDA.
 
     Args:
         seed (int): The seed value to use for random number generation.
