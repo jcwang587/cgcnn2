@@ -275,7 +275,14 @@ def make_and_save_scatter(
     ylabel: str,
     out_png: str,
     data_types: list[str] = ["train", "valid", "test"],
-    colors: list[str] = ["#137DC5", "#FACF39", "#BF1922", "#F7E8D3", "#B89FDC", "#0F0C08"],
+    colors: list[str] = [
+        "#137DC5",
+        "#FACF39",
+        "#BF1922",
+        "#F7E8D3",
+        "#B89FDC",
+        "#0F0C08",
+    ],
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
@@ -321,7 +328,7 @@ def make_and_save_scatter(
 
         for data_type in data_types:
             df_data_type = df[df["data_type"] == data_type]
-            sc = ax.scatter(
+            ax.scatter(
                 x="Actual",
                 y="Predicted",
                 data=df_data_type,
