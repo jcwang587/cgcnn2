@@ -275,6 +275,7 @@ def make_and_save_scatter(
     ylabel: str,
     out_png: str,
     data_types: list[str] = ["train", "valid", "test"],
+    colors: list[str] = ["#137DC5", "#FACF39", "#BF1922", "#F7E8D3", "#B89FDC", "#0F0C08"],
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
@@ -293,6 +294,9 @@ def make_and_save_scatter(
         Path of the PNG file in which to save the parity plot.
     data_types : list[str]
         A list of data types to be displayed in the plot. Default is ["train", "valid", "test"].
+    colors : list[str]
+        A list of colors to be used for the data types.
+        Default palette is adapted from `Looka 2025 <https://looka.com/blog/logo-color-trends/>`_ with 6 colors.
     metrics : list[str]
         A list of metrics to be displayed in the plot. Default is ["mae", "r2"].
     unit : str | None
@@ -321,7 +325,7 @@ def make_and_save_scatter(
                 x="Actual",
                 y="Predicted",
                 data=df_data_type,
-                cmap="viridis",
+                c=colors[data_types.index(data_type)],
                 alpha=0.5,
             )
 
@@ -351,39 +355,7 @@ def make_and_save_scatter(
         ax.set_ylim(ylim)
 
         # Compute requested metrics
-        values = {}
-        for m in metrics:
-            m_lower = m.lower()
-            if m_lower == "mae":
-                values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
-            elif m_lower == "mse":
-                values["MSE"] = ((df["Actual"] - df["Predicted"]) ** 2).mean()
-            elif m_lower == "rmse":
-                values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"]) ** 2).mean())
-            elif m_lower == "r2":
-                values["R^2"] = 1 - np.sum(
-                    (df["Actual"] - df["Predicted"]) ** 2
-                ) / np.sum((df["Actual"] - df["Actual"].mean()) ** 2)
-            else:
-                raise ValueError(f"Unsupported metric: {m}")
-
-        # Assemble text for display
-        text_lines = []
-        for name, val in values.items():
-            if unit and name == "MSE":
-                unit_str = rf"\,\mathrm{{{unit}}}^2"
-            elif unit and name != "R^2":
-                unit_str = rf"\,\mathrm{{{unit}}}"
-            else:
-                unit_str = ""
-
-            if name == "R^2":
-                latex_name = r"R^2"
-            else:
-                latex_name = rf"\mathrm{{{name}}}"
-
-            text_lines.append(rf"${latex_name}: {val:.3f}{unit_str}$")
-        text = "\n".join(text_lines)
+        text = metrics_text(df, metrics, unit)
 
         ax.text(
             0.025,
