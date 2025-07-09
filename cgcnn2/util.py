@@ -25,6 +25,28 @@ from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
 
+# ----------------------------------------------------------------------
+# Global variables
+# ----------------------------------------------------------------------
+
+PLOT_RC_PARAMS: dict[str, float | int] = {
+    "font.size": 18,
+    "axes.linewidth": 1.5,
+    "xtick.major.width": 1.5,
+    "ytick.major.width": 1.5,
+    "xtick.major.size": 5,
+    "ytick.major.size": 5,
+    "xtick.minor.width": 1,
+    "ytick.minor.width": 1,
+    "xtick.minor.size": 3,
+    "ytick.minor.size": 3,
+}
+
+
+# ----------------------------------------------------------------------
+# Helper functions
+# ----------------------------------------------------------------------
+
 def setup_logging() -> None:
     """
     Sets up logging for the project.
@@ -195,19 +217,6 @@ def make_and_save_hexbin(
         Unit of the property. Default is None.
     """
 
-    PLOT_RC_PARAMS = {
-        "font.size": 18,
-        "axes.linewidth": 1.5,
-        "xtick.major.width": 1.5,
-        "ytick.major.width": 1.5,
-        "xtick.major.size": 5,
-        "ytick.major.size": 5,
-        "xtick.minor.width": 1,
-        "ytick.minor.width": 1,
-        "xtick.minor.size": 3,
-        "ytick.minor.size": 3,
-    }
-
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         hb = ax.hexbin(
@@ -309,19 +318,6 @@ def make_and_save_scatter(
     unit : str | None
         Unit of the property. Default is None.
     """
-
-    PLOT_RC_PARAMS = {
-        "font.size": 18,
-        "axes.linewidth": 1.5,
-        "xtick.major.width": 1.5,
-        "ytick.major.width": 1.5,
-        "xtick.major.size": 5,
-        "ytick.major.size": 5,
-        "xtick.minor.width": 1,
-        "ytick.minor.width": 1,
-        "xtick.minor.size": 3,
-        "ytick.minor.size": 3,
-    }
 
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
