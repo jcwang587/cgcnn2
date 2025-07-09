@@ -301,7 +301,7 @@ def make_and_save_scatter(
             Default is ``["train", "valid", "test"]``.
         colors (list[str]): A list of colors to be used for the data types.  
             Default palette is adapted from
-            `Looka 2025 <https://looka.com/blog/logo-color-trends/>`_ with 6 colors.
+            [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
         metrics (list[str]): Metrics to display in the plot. Default is ``["mae", "r2"]``.
         unit (str | None): Unit of the property. Default is ``None``.
     """
