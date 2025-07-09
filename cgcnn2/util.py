@@ -148,8 +148,8 @@ def metrics_text(
 
     Args:
         df (pd.DataFrame): DataFrame containing the actual and predicted values.
-        metrics (list[str]): A list of metrics to be displayed in the plot. Default is ["mae", "r2"].
-        unit (str | None): Unit of the property. Default is None.
+        metrics (list[str]): A list of metrics to be displayed in the plot.
+        unit (str | None): Unit of the property.
 
     Returns:
         text (str): A text string containing the metrics and their values.
@@ -207,8 +207,8 @@ def make_and_save_hexbin(
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         out_png (str): Path of the PNG file in which to save the hexbin plot.
-        metrics (list[str]): A list of strings to be displayed in the plot. Default is ["mae", "r2"].
-        unit (str | None): Unit of the property. Default is None.
+        metrics (list[str]): A list of strings to be displayed in the plot.
+        unit (str | None): Unit of the property.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
@@ -298,12 +298,11 @@ def make_and_save_scatter(
         ylabel (str): Label for the y-axis.
         out_png (str): Path of the PNG file in which to save the scatter plot.
         data_types (list[str]): A list of data types to be displayed in the plot.
-            Default is ``["train", "valid", "test"]``.
-        colors (list[str]): A list of colors to be used for the data types.  
+        colors (list[str]): A list of colors to be used for the data types.
             Default palette is adapted from
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
-        metrics (list[str]): Metrics to display in the plot. Default is ``["mae", "r2"]``.
-        unit (str | None): Unit of the property. Default is ``None``.
+        metrics (list[str]): Metrics to display in the plot.
+        unit (str | None): Unit of the property.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
@@ -379,12 +378,12 @@ def cgcnn_test(
         model (torch.nn.Module): The pre-trained CGCNN model.
         loader (torch.utils.data.DataLoader): DataLoader for the dataset.
         device (str): The device ('cuda' or 'cpu') where the model will be run.
-        plot_file (str, optional): File path for saving the parity plot. Defaults to 'parity_plot.png'.
-        results_file (str, optional): File path for saving results as CSV. Defaults to 'results.csv'.
-        axis_limits (list, optional): Limits for x-axis (Actual values) of the parity plot. Defaults to None.
+        plot_file (str, optional): File path for saving the parity plot.
+        results_file (str, optional): File path for saving results as CSV.
+        axis_limits (list, optional): Limits for x-axis (Actual values) of the parity plot.
         **kwargs: Additional keyword arguments:
-            xlabel (str): x-axis label for the parity plot. Defaults to "Actual".
-            ylabel (str): y-axis label for the parity plot. Defaults to "Predicted".
+            xlabel (str): x-axis label for the parity plot.
+            ylabel (str): y-axis label for the parity plot.
 
     Notes:
         This function is intended for use in a command-line interface, providing
@@ -392,7 +391,7 @@ def cgcnn_test(
         using the API functions instead, i.e. cgcnn_pred and cgcnn_descriptor.
     """
 
-    # Extract optional plot labels from kwargs, with defaults
+    # Extract optional plot labels from kwargs
     xlabel = kwargs.get("xlabel", "Actual")
     ylabel = kwargs.get("ylabel", "Predicted")
 
@@ -533,9 +532,9 @@ def cgcnn_pred(
     Args:
         model_path (str): Path to the file containing the pre-trained model parameters.
         full_set (str): Path to the directory containing all CIF files for the dataset.
-        verbose (int, optional): Verbosity level of the output. Defaults to 4.
-        cuda (bool, optional): Whether to use CUDA. Defaults to False.
-        num_workers (int, optional): Number of subprocesses for data loading. Defaults to 0.
+        verbose (int): Verbosity level of the output.
+        cuda (bool): Whether to use CUDA.
+        num_workers (int): Number of subprocesses for data loading.
 
     Returns:
         tuple: A tuple containing:
@@ -605,7 +604,7 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
 
     Args:
         dataset_dir (str): The path to the dataset containing CIF files.
-        delete_duplicates (bool): Whether to delete the duplicate structures, default is False.
+        delete_duplicates (bool): Whether to delete the duplicate structures.
 
     Returns:
         grouped (list): A list of lists, where each sublist contains structurally equivalent structures.
