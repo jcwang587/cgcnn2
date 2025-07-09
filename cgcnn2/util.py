@@ -25,6 +25,29 @@ from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
 
+# ----------------------------------------------------------------------
+# Global variables
+# ----------------------------------------------------------------------
+
+PLOT_RC_PARAMS: dict[str, float | int] = {
+    "font.size": 18,
+    "axes.linewidth": 1.5,
+    "xtick.major.width": 1.5,
+    "ytick.major.width": 1.5,
+    "xtick.major.size": 5,
+    "ytick.major.size": 5,
+    "xtick.minor.width": 1,
+    "ytick.minor.width": 1,
+    "xtick.minor.size": 3,
+    "ytick.minor.size": 3,
+}
+
+
+# ----------------------------------------------------------------------
+# Helper functions
+# ----------------------------------------------------------------------
+
+
 def setup_logging() -> None:
     """
     Sets up logging for the project.
@@ -115,7 +138,60 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
     return learning_rates
 
 
-def make_and_save_parity(
+def metrics_text(
+    df: pd.DataFrame,
+    metrics: list[str] = ["mae", "r2"],
+    unit: str | None = None,
+) -> str:
+    """
+    Create a text string containing the metrics and their values.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        metrics (list[str]): A list of metrics to be displayed in the plot. Default is ["mae", "r2"].
+        unit (str | None): Unit of the property. Default is None.
+
+    Returns:
+        text (str): A text string containing the metrics and their values.
+    """
+
+    values: dict[str, float] = {}
+    for m in metrics:
+        m_lower = m.lower()
+        if m_lower == "mae":
+            values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
+        elif m_lower == "mse":
+            values["MSE"] = ((df["Actual"] - df["Predicted"]) ** 2).mean()
+        elif m_lower == "rmse":
+            values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"]) ** 2).mean())
+        elif m_lower == "r2":
+            values["R^2"] = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
+                (df["Actual"] - df["Actual"].mean()) ** 2
+            )
+        else:
+            raise ValueError(f"Unsupported metric: {m}")
+
+    text_lines: list[str] = []
+    for name, val in values.items():
+        if unit and name == "MSE":
+            unit_str = rf"\,\mathrm{{{unit}}}^2"
+        elif unit and name != "R^2":
+            unit_str = rf"\,\mathrm{{{unit}}}"
+        else:
+            unit_str = ""
+
+        if name == "R^2":
+            latex_name = r"R^2"
+        else:
+            latex_name = rf"\mathrm{{{name}}}"
+
+        text_lines.append(rf"${latex_name}: {val:.3f}{unit_str}$")
+    text = "\n".join(text_lines)
+
+    return text
+
+
+def make_and_save_hexbin(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
@@ -124,7 +200,7 @@ def make_and_save_parity(
     unit: str | None = None,
 ) -> None:
     """
-    Create a parity plot and save it to a file.
+    Create a hexbin plot and save it to a file.
 
     Parameters
     ----------
@@ -135,27 +211,14 @@ def make_and_save_parity(
     ylabel : str
         Label for the y-axis.
     out_png : str
-        Path of the PNG file in which to save the parity plot.
+        Path of the PNG file in which to save the hexbin plot.
     metrics : list[str]
         A list of strings to be displayed in the plot. Default is ["mae", "r2"].
     unit : str | None
         Unit of the property. Default is None.
     """
 
-    with plt.rc_context(
-        {
-            "font.size": 18,
-            "axes.linewidth": 1.5,
-            "xtick.major.width": 1.5,
-            "ytick.major.width": 1.5,
-            "xtick.major.size": 5,
-            "ytick.major.size": 5,
-            "xtick.minor.width": 1,
-            "ytick.minor.width": 1,
-            "xtick.minor.size": 3,
-            "ytick.minor.size": 3,
-        }
-    ):
+    with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         hb = ax.hexbin(
             x="Actual",
@@ -200,39 +263,103 @@ def make_and_save_parity(
         cax.yaxis.set_label_position("left")
 
         # Compute requested metrics
-        values = {}
-        for m in metrics:
-            m_lower = m.lower()
-            if m_lower == "mae":
-                values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
-            elif m_lower == "mse":
-                values["MSE"] = ((df["Actual"] - df["Predicted"]) ** 2).mean()
-            elif m_lower == "rmse":
-                values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"]) ** 2).mean())
-            elif m_lower == "r2":
-                values["R^2"] = 1 - np.sum(
-                    (df["Actual"] - df["Predicted"]) ** 2
-                ) / np.sum((df["Actual"] - df["Actual"].mean()) ** 2)
-            else:
-                raise ValueError(f"Unsupported metric: {m}")
+        text = metrics_text(df, metrics, unit)
 
-        # Assemble text for display
-        text_lines = []
-        for name, val in values.items():
-            if unit and name == "MSE":
-                unit_str = rf"\,\mathrm{{{unit}}}^2"
-            elif unit and name != "R^2":
-                unit_str = rf"\,\mathrm{{{unit}}}"
-            else:
-                unit_str = ""
+        ax.text(
+            0.025,
+            0.975,
+            text,
+            transform=ax.transAxes,
+            fontsize=18,
+            ha="left",
+            va="top",
+        )
 
-            if name == "R^2":
-                latex_name = r"R^2"
-            else:
-                latex_name = rf"\mathrm{{{name}}}"
+        plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+        plt.close(fig)
 
-            text_lines.append(rf"${latex_name}: {val:.3f}{unit_str}$")
-        text = "\n".join(text_lines)
+
+def make_and_save_scatter(
+    df: pd.DataFrame,
+    xlabel: str,
+    ylabel: str,
+    out_png: str,
+    data_types: list[str] = ["train", "valid", "test"],
+    colors: list[str] = [
+        "#137DC5",
+        "#FACF39",
+        "#BF1922",
+        "#F7E8D3",
+        "#B89FDC",
+        "#0F0C08",
+    ],
+    metrics: list[str] = ["mae", "r2"],
+    unit: str | None = None,
+) -> None:
+    """
+    Create a scatter plot and save it to a file.
+
+    Parameters
+    ----------
+    df : pd.DataFrame
+        DataFrame containing the actual and predicted values.
+    xlabel : str
+        Label for the x-axis.
+    ylabel : str
+        Label for the y-axis.
+    out_png : str
+        Path of the PNG file in which to save the scatter plot.
+    data_types : list[str]
+        A list of data types to be displayed in the plot. Default is ["train", "valid", "test"].
+    colors : list[str]
+        A list of colors to be used for the data types.
+        Default palette is adapted from `Looka 2025 <https://looka.com/blog/logo-color-trends/>`_ with 6 colors.
+    metrics : list[str]
+        A list of metrics to be displayed in the plot. Default is ["mae", "r2"].
+    unit : str | None
+        Unit of the property. Default is None.
+    """
+
+    with plt.rc_context(PLOT_RC_PARAMS):
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+
+        for data_type in data_types:
+            df_data_type = df[df["data_type"] == data_type]
+            ax.scatter(
+                x="Actual",
+                y="Predicted",
+                data=df_data_type,
+                c=colors[data_types.index(data_type) % len(colors)],
+                alpha=0.5,
+            )
+
+        ax.set_xlabel(xlabel, fontsize=20)
+        ax.set_ylabel(ylabel, fontsize=20)
+
+        # Keep axes square
+        ax.set_box_aspect(1)
+
+        # Get the current axis limits
+        xlim = ax.get_xlim()
+        ylim = ax.get_ylim()
+        min_val = min(xlim[0], ylim[0])
+        max_val = max(xlim[1], ylim[1])
+
+        # Plot y = x reference line (grey dashed)
+        ax.plot(
+            [min_val, max_val],
+            [min_val, max_val],
+            linestyle="--",
+            color="grey",
+            linewidth=2,
+        )
+
+        # Restore the original limits
+        ax.set_xlim(xlim)
+        ax.set_ylim(ylim)
+
+        # Compute requested metrics
+        text = metrics_text(df, metrics, unit)
 
         ax.text(
             0.025,
@@ -322,8 +449,8 @@ def cgcnn_test(
 
     # Create parity plot
     df_full = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
-    make_and_save_parity(df_full, xlabel, ylabel, plot_file)
-    logging.info(f"Parity plot has been saved to {plot_file}")
+    make_and_save_hexbin(df_full, xlabel, ylabel, plot_file)
+    logging.info(f"Hexbin plot has been saved to {plot_file}")
 
     # If axis limits are provided, save the csv file with the specified limits
     if axis_limits:
@@ -334,9 +461,9 @@ def cgcnn_test(
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
-        make_and_save_parity(df_clip, xlabel, ylabel, clipped_file)
+        make_and_save_hexbin(df_clip, xlabel, ylabel, clipped_file)
         logging.info(
-            f"Parity plot clipped to {axis_limits} on Actual has been saved to {clipped_file}"
+            f"Hexbin plot clipped to {axis_limits} on Actual has been saved to {clipped_file}"
         )
 
 
