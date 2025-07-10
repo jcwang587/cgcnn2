@@ -24,7 +24,6 @@ import cgcnn2
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
 
-
 # ----------------------------------------------------------------------
 # Global variables
 # ----------------------------------------------------------------------
@@ -138,7 +137,7 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
     return learning_rates
 
 
-def metrics_text(
+def _metrics_text(
     df: pd.DataFrame,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
@@ -191,11 +190,40 @@ def metrics_text(
     return text
 
 
+def _to_1d_array(df: pd.DataFrame | None, vec, name: str) -> tuple[np.ndarray, str]:
+    """
+    Resolve input to 1-D NumPy arrays and return a label for axes labels.
+
+    Args:
+        df (pd.DataFrame | None): DataFrame containing the actual and predicted values.
+        vec (str | pd.Series | np.ndarray): Vector to convert to a 1-D array.
+        name (str): Identifier used in error messages.
+
+    Returns:
+        arr (np.ndarray): 1-D narray.
+        label (str): str to use on the axis if caller did not supply xlabel / ylabel.
+    """
+    if isinstance(vec, str):
+        if df is None:
+            raise ValueError(f"{name!r} looks like a column name but `df` is None.")
+        return df[vec].to_numpy(), vec
+    elif isinstance(vec, (pd.Series, np.ndarray, list, tuple)):
+        arr = np.asarray(vec).ravel()
+        return arr, name
+    else:
+        raise TypeError(
+            f"{name!r} must be a column name, Series, or array-like; "
+            f"got type {type(vec).__name__!s}"
+        )
+
+
 def make_and_save_hexbin(
-    df: pd.DataFrame,
+    df: pd.DataFrame | None,
+    y_true: str | pd.Series | np.ndarray,
+    y_pred: str | pd.Series | np.ndarray,
     out_png: str,
-    xlabel: str,
-    ylabel: str,
+    xlabel: str | None = None,
+    ylabel: str | None = None,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
@@ -203,13 +231,23 @@ def make_and_save_hexbin(
     Create a hexbin plot and save it to a file.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        df (pd.DataFrame | None): DataFrame containing the actual and predicted values.
+        y_true (str | pd.Series | np.ndarray): True values.
+        y_pred (str | pd.Series | np.ndarray): Predicted values.
         out_png (str): Path of the PNG file in which to save the hexbin plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         metrics (list[str]): A list of strings to be displayed in the plot.
         unit (str | None): Unit of the property.
     """
+
+    y_true_arr, true_label = _to_1d_array(df, y_true, "y_true")
+    y_pred_arr, pred_label = _to_1d_array(df, y_pred, "y_pred")
+
+    xlabel = xlabel or true_label
+    ylabel = ylabel or pred_label
+
+    data = pd.DataFrame({"Actual": y_true_arr, "Predicted": y_pred_arr}, copy=False)
 
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
@@ -256,7 +294,7 @@ def make_and_save_hexbin(
         cax.yaxis.set_label_position("left")
 
         # Compute requested metrics
-        text = metrics_text(df, metrics, unit)
+        text = _metrics_text(df, metrics, unit)
 
         ax.text(
             0.025,
@@ -273,7 +311,9 @@ def make_and_save_hexbin(
 
 
 def make_and_save_scatter(
-    df: pd.DataFrame,
+    df: pd.DataFrame | None,
+    y_true: str | pd.Series | np.ndarray,
+    y_pred: str | pd.Series | np.ndarray,
     out_png: str,
     xlabel: str,
     ylabel: str,
@@ -293,7 +333,9 @@ def make_and_save_scatter(
     Create a scatter plot and save it to a file.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        df (pd.DataFrame | None): DataFrame containing the actual and predicted values.
+        y_true (str | pd.Series | np.ndarray): True values.
+        y_pred (str | pd.Series | np.ndarray): Predicted values.
         out_png (str): Path of the PNG file in which to save the scatter plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
@@ -305,15 +347,23 @@ def make_and_save_scatter(
         unit (str | None): Unit of the property.
     """
 
+    y_true_arr, true_label = _to_1d_array(df, y_true, "y_true")
+    y_pred_arr, pred_label = _to_1d_array(df, y_pred, "y_pred")
+
+    xlabel = xlabel or true_label
+    ylabel = ylabel or pred_label
+
+    data = pd.DataFrame({"Actual": y_true_arr, "Predicted": y_pred_arr}, copy=False)
+
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
         for data_type in data_types:
-            df_data_type = df[df["data_type"] == data_type]
+            data_type = data[data["data_type"] == data_type]
             ax.scatter(
                 x="Actual",
                 y="Predicted",
-                data=df_data_type,
+                data=data_type,
                 c=colors[data_types.index(data_type) % len(colors)],
                 alpha=0.5,
             )
@@ -344,7 +394,7 @@ def make_and_save_scatter(
         ax.set_ylim(ylim)
 
         # Compute requested metrics
-        text = metrics_text(df, metrics, unit)
+        text = _metrics_text(df, metrics, unit)
 
         ax.text(
             0.025,
