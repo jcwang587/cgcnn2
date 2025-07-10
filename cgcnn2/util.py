@@ -193,9 +193,9 @@ def metrics_text(
 
 def make_and_save_hexbin(
     df: pd.DataFrame,
+    out_png: str,
     xlabel: str,
     ylabel: str,
-    out_png: str,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
@@ -204,9 +204,9 @@ def make_and_save_hexbin(
 
     Args:
         df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        out_png (str): Path of the PNG file in which to save the hexbin plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
-        out_png (str): Path of the PNG file in which to save the hexbin plot.
         metrics (list[str]): A list of strings to be displayed in the plot.
         unit (str | None): Unit of the property.
     """
@@ -274,9 +274,9 @@ def make_and_save_hexbin(
 
 def make_and_save_scatter(
     df: pd.DataFrame,
+    out_png: str,
     xlabel: str,
     ylabel: str,
-    out_png: str,
     data_types: list[str] = ["train", "valid", "test"],
     colors: list[str] = [
         "#137DC5",
@@ -294,9 +294,9 @@ def make_and_save_scatter(
 
     Args:
         df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        out_png (str): Path of the PNG file in which to save the scatter plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
-        out_png (str): Path of the PNG file in which to save the scatter plot.
         data_types (list[str]): A list of data types to be displayed in the plot.
         colors (list[str]): A list of colors to be used for the data types.
             Default palette is adapted from
