@@ -247,7 +247,7 @@ def make_and_save_hexbin(
     xlabel = xlabel or true_label
     ylabel = ylabel or pred_label
 
-    data = pd.DataFrame({"Actual": y_true_arr, "Predicted": y_pred_arr}, copy=False)
+    pd.DataFrame({"Actual": y_true_arr, "Predicted": y_pred_arr}, copy=False)
 
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
