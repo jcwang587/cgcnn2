@@ -344,8 +344,16 @@ def make_and_save_scatter(
         ax.set_xlim(xlim)
         ax.set_ylim(ylim)
 
+        # Convert test data for metrics calculation
+        df_metrics = df.rename(
+            columns={
+                "true_test": "Actual",
+                "pred_test": "Predicted",
+            }
+        )
+
         # Compute requested metrics
-        text = metrics_text(df, metrics, unit)
+        text = metrics_text(df_metrics, metrics, unit)
 
         ax.text(
             0.025,
