@@ -277,7 +277,8 @@ def make_and_save_scatter(
     out_png: str,
     xlabel: str,
     ylabel: str,
-    data_types: list[str] = ["train", "valid", "test"],
+    true_types: list[str] = ["true_train", "true_valid", "true_test"],
+    pred_types: list[str] = ["pred_train", "pred_valid", "pred_test"],
     colors: list[str] = [
         "#137DC5",
         "#FACF39",
@@ -297,7 +298,8 @@ def make_and_save_scatter(
         out_png (str): Path of the PNG file in which to save the scatter plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
-        data_types (list[str]): A list of data types to be displayed in the plot.
+        true_types (list[str]): A list of true data types to be displayed in the plot.
+        pred_types (list[str]): A list of predicted data types to be displayed in the plot.
         colors (list[str]): A list of colors to be used for the data types.
             Default palette is adapted from
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
@@ -308,13 +310,12 @@ def make_and_save_scatter(
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
-        for data_type in data_types:
-            df_data_type = df[df["data_type"] == data_type]
+        for true_type, pred_type in zip(true_types, pred_types):
             ax.scatter(
-                x="Actual",
-                y="Predicted",
-                data=df_data_type,
-                c=colors[data_types.index(data_type) % len(colors)],
+                x=true_type,
+                y=pred_type,
+                data=df,
+                c=colors[true_types.index(true_type) % len(colors)],
                 alpha=0.5,
             )
 
