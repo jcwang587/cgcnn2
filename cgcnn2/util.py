@@ -287,6 +287,7 @@ def make_and_save_scatter(
         "#B89FDC",
         "#0F0C08",
     ],
+    legend_labels: list[str] | None = None,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
@@ -303,6 +304,7 @@ def make_and_save_scatter(
         colors (list[str]): A list of colors to be used for the data types.
             Default palette is adapted from
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
+        legend_labels (list[str] | None): A list of labels for the legend.
         metrics (list[str]): Metrics to display in the plot.
         unit (str | None): Unit of the property.
     """
@@ -364,6 +366,9 @@ def make_and_save_scatter(
             ha="left",
             va="top",
         )
+
+        if legend_labels:
+            ax.legend(legend_labels, loc="lower right", fontsize=18, frameon=False)
 
         plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
         plt.close(fig)
