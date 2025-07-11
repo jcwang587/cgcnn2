@@ -147,7 +147,7 @@ def metrics_text(
     Create a text string containing the metrics and their values.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        df (pd.DataFrame): DataFrame containing the true and pred values.
         metrics (list[str]): A list of metrics to be displayed in the plot.
         unit (str | None): Unit of the property.
 
@@ -159,14 +159,14 @@ def metrics_text(
     for m in metrics:
         m_lower = m.lower()
         if m_lower == "mae":
-            values["MAE"] = np.abs(df["Actual"] - df["Predicted"]).mean()
+            values["MAE"] = np.abs(df["true"] - df["pred"]).mean()
         elif m_lower == "mse":
-            values["MSE"] = ((df["Actual"] - df["Predicted"]) ** 2).mean()
+            values["MSE"] = ((df["true"] - df["pred"]) ** 2).mean()
         elif m_lower == "rmse":
-            values["RMSE"] = np.sqrt(((df["Actual"] - df["Predicted"]) ** 2).mean())
+            values["RMSE"] = np.sqrt(((df["true"] - df["pred"]) ** 2).mean())
         elif m_lower == "r2":
-            values["R^2"] = 1 - np.sum((df["Actual"] - df["Predicted"]) ** 2) / np.sum(
-                (df["Actual"] - df["Actual"].mean()) ** 2
+            values["R^2"] = 1 - np.sum((df["true"] - df["pred"]) ** 2) / np.sum(
+                (df["true"] - df["true"].mean()) ** 2
             )
         else:
             raise ValueError(f"Unsupported metric: {m}")
@@ -203,7 +203,7 @@ def make_and_save_hexbin(
     Create a hexbin plot and save it to a file.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        df (pd.DataFrame): DataFrame containing the true and pred values.
         out_png (str): Path of the PNG file in which to save the hexbin plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
@@ -214,8 +214,8 @@ def make_and_save_hexbin(
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         hb = ax.hexbin(
-            x="Actual",
-            y="Predicted",
+            x="true",
+            y="pred",
             data=df,
             gridsize=40,
             cmap="viridis",
@@ -287,6 +287,7 @@ def make_and_save_scatter(
         "#B89FDC",
         "#0F0C08",
     ],
+    legend_labels: list[str] | None = None,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
 ) -> None:
@@ -294,15 +295,16 @@ def make_and_save_scatter(
     Create a scatter plot and save it to a file.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the actual and predicted values.
+        df (pd.DataFrame): DataFrame containing the true and pred values.
         out_png (str): Path of the PNG file in which to save the scatter plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         true_types (list[str]): A list of true data types to be displayed in the plot.
-        pred_types (list[str]): A list of predicted data types to be displayed in the plot.
+        pred_types (list[str]): A list of pred data types to be displayed in the plot.
         colors (list[str]): A list of colors to be used for the data types.
             Default palette is adapted from
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
+        legend_labels (list[str] | None): A list of labels for the legend.
         metrics (list[str]): Metrics to display in the plot.
         unit (str | None): Unit of the property.
     """
@@ -347,8 +349,8 @@ def make_and_save_scatter(
         # Convert test data for metrics calculation
         df_metrics = df.rename(
             columns={
-                "true_test": "Actual",
-                "pred_test": "Predicted",
+                "true_test": "true",
+                "pred_test": "pred",
             }
         )
 
@@ -365,6 +367,14 @@ def make_and_save_scatter(
             va="top",
         )
 
+        if legend_labels is not None and len(legend_labels) != len(true_types):
+            raise ValueError(
+                f"legend_labels length ({len(legend_labels)}) must match number of data series ({len(true_types)})"
+            )
+
+        if legend_labels is not None:
+            ax.legend(legend_labels, loc="lower right", fontsize=18, frameon=False)
+
         plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
         plt.close(fig)
 
@@ -380,8 +390,8 @@ def cgcnn_test(
 ) -> None:
     """
     This function takes a pre-trained CGCNN model and a test dataset, runs
-    inference to generate predictions, creates a parity plot comparing predicted
-    versus actual values, and writes the results to a CSV file.
+    inference to generate predictions, creates a parity plot comparing pred
+    versus true values, and writes the results to a CSV file.
 
     Args:
         model (torch.nn.Module): The pre-trained CGCNN model.
@@ -389,7 +399,7 @@ def cgcnn_test(
         device (str): The device ('cuda' or 'cpu') where the model will be run.
         plot_file (str, optional): File path for saving the parity plot.
         results_file (str, optional): File path for saving results as CSV.
-        axis_limits (list, optional): Limits for x-axis (Actual values) of the parity plot.
+        axis_limits (list, optional): Limits for x-axis (true values) of the parity plot.
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot.
             ylabel (str): y-axis label for the parity plot.
@@ -401,8 +411,8 @@ def cgcnn_test(
     """
 
     # Extract optional plot labels from kwargs
-    xlabel = kwargs.get("xlabel", "Actual")
-    ylabel = kwargs.get("ylabel", "Predicted")
+    xlabel = kwargs.get("xlabel", "true")
+    ylabel = kwargs.get("ylabel", "pred")
 
     model.eval()
     targets_list = []
@@ -437,27 +447,26 @@ def cgcnn_test(
     sorted_rows = sorted(zip(cif_ids, targets_list, outputs_list), key=lambda x: x[0])
     with open(results_file, "w", newline="") as file:
         writer = csv.writer(file)
-        writer.writerow(["cif_id", "Actual", "Predicted"])
+        writer.writerow(["cif_id", "true", "pred"])
         writer.writerows(sorted_rows)
     logging.info(f"Prediction results have been saved to {results_file}")
 
     # Create parity plot
-    df_full = pd.DataFrame({"Actual": targets_list, "Predicted": outputs_list})
+    df_full = pd.DataFrame({"true": targets_list, "pred": outputs_list})
     make_and_save_hexbin(df_full, xlabel, ylabel, plot_file)
     logging.info(f"Hexbin plot has been saved to {plot_file}")
 
     # If axis limits are provided, save the csv file with the specified limits
     if axis_limits:
         df_clip = df_full[
-            (df_full["Actual"] >= axis_limits[0])
-            & (df_full["Actual"] <= axis_limits[1])
+            (df_full["true"] >= axis_limits[0]) & (df_full["true"] <= axis_limits[1])
         ]
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
         make_and_save_hexbin(df_clip, xlabel, ylabel, clipped_file)
         logging.info(
-            f"Hexbin plot clipped to {axis_limits} on Actual has been saved to {clipped_file}"
+            f"Hexbin plot clipped to {axis_limits} on true has been saved to {clipped_file}"
         )
 
 
@@ -471,7 +480,7 @@ def cgcnn_descriptor(
     This function takes a pre-trained CGCNN model and a dataset, runs inference
     to generate predictions and features from the last layer, and returns the
     predictions and features. It is not necessary to have target values for the
-    predicted set.
+    pred set.
 
     Args:
         model (torch.nn.Module): The trained CGCNN model.
@@ -514,7 +523,7 @@ def cgcnn_descriptor(
 
             index += 1
 
-            # Extract the actual values from cif_id and output tensor
+            # Extract the true values from cif_id and output tensor
             cif_id_value = cif_id[0] if cif_id and isinstance(cif_id, list) else cif_id
             prediction_value = output.item() if output.numel() == 1 else output.tolist()
 
@@ -536,7 +545,7 @@ def cgcnn_pred(
     """
     This function takes the path to a pre-trained CGCNN model and a dataset,
     runs inference to generate predictions, and returns the predictions. It is
-    not necessary to have target values for the predicted set.
+    not necessary to have target values for the pred set.
 
     Args:
         model_path (str): Path to the file containing the pre-trained model parameters.
