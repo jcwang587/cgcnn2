@@ -367,7 +367,12 @@ def make_and_save_scatter(
             va="top",
         )
 
-        if legend_labels:
+        if legend_labels is not None and len(legend_labels) != len(true_types):
+            raise ValueError(
+                f"legend_labels length ({len(legend_labels)}) must match number of data series ({len(true_types)})"
+            )
+
+        if legend_labels is not None:
             ax.legend(legend_labels, loc="lower right", fontsize=18, frameon=False)
 
         plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
