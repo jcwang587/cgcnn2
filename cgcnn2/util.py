@@ -459,8 +459,7 @@ def cgcnn_test(
     # If axis limits are provided, save the csv file with the specified limits
     if axis_limits:
         df_clip = df_full[
-            (df_full["true"] >= axis_limits[0])
-            & (df_full["true"] <= axis_limits[1])
+            (df_full["true"] >= axis_limits[0]) & (df_full["true"] <= axis_limits[1])
         ]
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
