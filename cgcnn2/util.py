@@ -275,7 +275,6 @@ def make_and_save_hexbin(
 
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
-        plt.close(fig)
 
     return fig, ax
 
@@ -389,7 +388,6 @@ def make_and_save_scatter(
 
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
-        plt.close(fig)
 
     return fig, ax
 
@@ -468,7 +466,7 @@ def cgcnn_test(
 
     # Create parity plot
     df_full = pd.DataFrame({"true": targets_list, "pred": outputs_list})
-    make_and_save_hexbin(df_full, xlabel, ylabel, plot_file)
+    make_and_save_hexbin(df_full, xlabel, ylabel, out_png=plot_file)
     logging.info(f"Hexbin plot has been saved to {plot_file}")
 
     # If axis limits are provided, save the csv file with the specified limits
@@ -479,7 +477,7 @@ def cgcnn_test(
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
-        make_and_save_hexbin(df_clip, xlabel, ylabel, clipped_file)
+        make_and_save_hexbin(df_clip, xlabel, ylabel, out_png=clipped_file)
         logging.info(
             f"Hexbin plot clipped to {axis_limits} on true has been saved to {clipped_file}"
         )
