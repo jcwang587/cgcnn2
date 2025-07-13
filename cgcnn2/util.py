@@ -341,13 +341,13 @@ def make_and_save_scatter(
         # Get the current axis limits
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
-        min_val = min(xlim[0], ylim[0])
-        max_val = max(xlim[1], ylim[1])
+        axis_min = min(xlim[0], ylim[0])
+        axis_max = max(xlim[1], ylim[1])
 
         # Plot y = x reference line (grey dashed)
         ax.plot(
-            [min_val, max_val],
-            [min_val, max_val],
+            [axis_min, axis_max],
+            [axis_min, axis_max],
             linestyle="--",
             color="grey",
             linewidth=2,
