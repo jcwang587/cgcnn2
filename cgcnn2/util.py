@@ -199,7 +199,7 @@ def make_and_save_hexbin(
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
     out_png: str | None = None,
-) -> None:
+) -> tuple[plt.Figure, plt.Axes]:
     """
     Create a hexbin plot and save it to a file.
 
@@ -209,7 +209,11 @@ def make_and_save_hexbin(
         ylabel (str): Label for the y-axis.
         metrics (list[str]): A list of strings to be displayed in the plot.
         unit (str | None): Unit of the property.
-        out_png (str): Path of the PNG file in which to save the hexbin plot.
+        out_png (str | None): Path of the PNG file in which to save the hexbin plot.
+
+    Returns:
+        fig (plt.Figure): The figure object.
+        ax (plt.Axes): The axes object.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
@@ -273,6 +277,8 @@ def make_and_save_hexbin(
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
         plt.close(fig)
 
+    return fig, ax
+
 
 def make_and_save_scatter(
     df: pd.DataFrame,
@@ -292,7 +298,7 @@ def make_and_save_scatter(
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
     out_png: str | None = None,
-) -> None:
+) -> tuple[plt.Figure, plt.Axes]:
     """
     Create a scatter plot and save it to a file.
 
@@ -308,7 +314,11 @@ def make_and_save_scatter(
         legend_labels (list[str] | None): A list of labels for the legend.
         metrics (list[str]): Metrics to display in the plot.
         unit (str | None): Unit of the property.
-        out_png (str): Path of the PNG file in which to save the scatter plot.
+        out_png (str | None): Path of the PNG file in which to save the scatter plot.
+
+    Returns:
+        fig (plt.Figure): The figure object.
+        ax (plt.Axes): The axes object.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
@@ -380,6 +390,8 @@ def make_and_save_scatter(
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
         plt.close(fig)
+
+    return fig, ax
 
 
 def cgcnn_test(
