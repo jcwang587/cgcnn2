@@ -194,22 +194,22 @@ def metrics_text(
 
 def make_and_save_hexbin(
     df: pd.DataFrame,
-    out_png: str,
     xlabel: str,
     ylabel: str,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
+    out_png: str | None = None,
 ) -> None:
     """
     Create a hexbin plot and save it to a file.
 
     Args:
         df (pd.DataFrame): DataFrame containing the true and pred values.
-        out_png (str): Path of the PNG file in which to save the hexbin plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         metrics (list[str]): A list of strings to be displayed in the plot.
         unit (str | None): Unit of the property.
+        out_png (str): Path of the PNG file in which to save the hexbin plot.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
@@ -269,13 +269,13 @@ def make_and_save_hexbin(
             va="top",
         )
 
-        plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+        if out_png is not None:
+            plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
         plt.close(fig)
 
 
 def make_and_save_scatter(
     df: pd.DataFrame,
-    out_png: str,
     xlabel: str,
     ylabel: str,
     true_types: list[str] = ["true_train", "true_valid", "true_test"],
@@ -291,13 +291,13 @@ def make_and_save_scatter(
     legend_labels: list[str] | None = None,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
+    out_png: str | None = None,
 ) -> None:
     """
     Create a scatter plot and save it to a file.
 
     Args:
         df (pd.DataFrame): DataFrame containing the true and pred values.
-        out_png (str): Path of the PNG file in which to save the scatter plot.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         true_types (list[str]): A list of true data types to be displayed in the plot.
@@ -308,6 +308,7 @@ def make_and_save_scatter(
         legend_labels (list[str] | None): A list of labels for the legend.
         metrics (list[str]): Metrics to display in the plot.
         unit (str | None): Unit of the property.
+        out_png (str): Path of the PNG file in which to save the scatter plot.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
@@ -376,7 +377,8 @@ def make_and_save_scatter(
         if legend_labels is not None:
             ax.legend(legend_labels, loc="lower right", fontsize=18, frameon=False)
 
-        plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+        if out_png is not None:
+            plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
         plt.close(fig)
 
 
@@ -384,8 +386,8 @@ def cgcnn_test(
     model: torch.nn.Module,
     loader: torch.utils.data.DataLoader,
     device: str,
-    plot_file: str = "parity_plot.png",
     results_file: str = "results.csv",
+    plot_file: str = "parity_plot.png",
     axis_limits: list[float] | None = None,
     **kwargs: Any,
 ) -> None:
@@ -398,8 +400,8 @@ def cgcnn_test(
         model (torch.nn.Module): The pre-trained CGCNN model.
         loader (torch.utils.data.DataLoader): DataLoader for the dataset.
         device (str): The device ('cuda' or 'cpu') where the model will be run.
-        plot_file (str, optional): File path for saving the parity plot.
         results_file (str, optional): File path for saving results as CSV.
+        plot_file (str, optional): File path for saving the parity plot.
         axis_limits (list, optional): Limits for x-axis (true values) of the parity plot.
         **kwargs: Additional keyword arguments:
             xlabel (str): x-axis label for the parity plot.
