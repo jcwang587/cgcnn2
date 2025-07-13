@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import argparse
 import csv
 import glob
@@ -23,7 +25,6 @@ import cgcnn2
 
 from .data import CIFData_NoTarget, collate_pool
 from .model import CrystalGraphConvNet
-
 
 # ----------------------------------------------------------------------
 # Global variables
