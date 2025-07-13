@@ -341,13 +341,13 @@ def make_and_save_scatter(
         # Get the current axis limits
         xlim = ax.get_xlim()
         ylim = ax.get_ylim()
-        min_val = min(xlim[0], ylim[0])
-        max_val = max(xlim[1], ylim[1])
+        axis_min = min(xlim[0], ylim[0])
+        axis_max = max(xlim[1], ylim[1])
 
         # Plot y = x reference line (grey dashed)
         ax.plot(
-            [min_val, max_val],
-            [min_val, max_val],
+            [axis_min, axis_max],
+            [axis_min, axis_max],
             linestyle="--",
             color="grey",
             linewidth=2,
@@ -378,12 +378,11 @@ def make_and_save_scatter(
             va="top",
         )
 
-        if legend_labels is not None and len(legend_labels) != len(true_types):
-            raise ValueError(
-                f"legend_labels length ({len(legend_labels)}) must match number of data series ({len(true_types)})"
-            )
-
         if legend_labels is not None:
+            if len(legend_labels) != len(true_types):
+                raise ValueError(
+                    f"legend_labels length ({len(legend_labels)}) must match number of data series ({len(true_types)})"
+                )
             ax.legend(legend_labels, loc="lower right", fontsize=18, frameon=False)
 
         if out_png is not None:
