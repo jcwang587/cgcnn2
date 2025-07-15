@@ -7,8 +7,8 @@ requires-python = ">=3.11,<3.13"
 authors         = [{ name = "Jiacheng Wang", email = "jiachengwang@umass.edu" },]
 maintainers     = [{ name = "Jiacheng Wang", email = "jiachengwang@umass.edu" },]
 license         = { text = "MIT" }
-homepage        = "https://github.com/jcwang587/cgcnn2/"
-repository      = "https://github.com/jcwang587/cgcnn2/"
+homepage        = "https://github.com/jcwang-dev/cgcnn2/"
+repository      = "https://github.com/jcwang-dev/cgcnn2/"
 keywords        = ["python", "graph-model", "fine-tuning", "computational-materials"]
 classifiers     = [
   "Development Status :: 1 - Planning",
