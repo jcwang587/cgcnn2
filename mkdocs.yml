@@ -67,7 +67,7 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jcwang587/cgcnn2 
+      link: https://github.com/jcwang-dev/cgcnn2 
 
 extra_javascript:
   - javascripts/mathjax.js
