@@ -1,6 +1,6 @@
 # CGCNN2
 
-[![Release](https://img.shields.io/github/v/release/jcwang587/cgcnn2)](https://github.com/jcwang587/cgcnn2/releases/latest)
+[![Release](https://img.shields.io/github/v/release/jcwang-dev/cgcnn2)](https://github.com/jcwang-dev/cgcnn2/releases/latest)
 [![PyPI Downloads](https://static.pepy.tech/badge/cgcnn2)](https://pepy.tech/projects/cgcnn2)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
