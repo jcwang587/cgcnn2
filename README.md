@@ -1,6 +1,6 @@
 # CGCNN2
 
-[![Release](https://img.shields.io/github/v/release/jcwang-dev/cgcnn2)](https://github.com/jcwang-dev/cgcnn2/releases/latest)
+[![Release](https://img.shields.io/github/v/release/jcwang587/cgcnn2)](https://github.com/jcwang587/cgcnn2/releases/latest)
 [![PyPI Downloads](https://static.pepy.tech/badge/cgcnn2)](https://pepy.tech/projects/cgcnn2)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 
@@ -26,7 +26,7 @@ pip install cgcnn2
 If you'd like to use the latest unreleased version on the main branch, you can install it directly from GitHub:
 
 ```bash
-pip install git+https://github.com/jcwang-dev/cgcnn2@main
+pip install git+https://github.com/jcwang587/cgcnn2@main
 ```
 
 ## Get Started
@@ -37,7 +37,7 @@ There are entry points for training, predicting, and fine-tuning CGCNN models. F
 cgcnn-tr --help
 ```
 
-Similarly, you can access the predicting and fine-tuning functionalities through `cgcnn-pr` and `cgcnn-ft` commands. A detailed user guide documentation is available at: [https://jcwang.dev/cgcnn2/](https://jcwang.dev/cgcnn2/)
+Similarly, you can access the predicting and fine-tuning functionalities through `cgcnn-pr` and `cgcnn-ft` commands. A detailed user guide documentation is available at: [https://jcwang587.github.io/cgcnn2/](https://jcwang587.github.io/cgcnn2/)
 
 ## References
 
