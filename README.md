@@ -37,7 +37,7 @@ There are entry points for training, predicting, and fine-tuning CGCNN models. F
 cgcnn-tr --help
 ```
 
-Similarly, you can access the predicting and fine-tuning functionalities through `cgcnn-pr` and `cgcnn-ft` commands. A detailed user guide documentation is available at: [https://jcwang587.github.io/cgcnn2/](https://jcwang587.github.io/cgcnn2/)
+Similarly, you can access the predicting and fine-tuning functionalities through `cgcnn-pr` and `cgcnn-ft` commands. A detailed user guide documentation is available at: [https://jcwang.dev/cgcnn2/](https://jcwang.dev/cgcnn2/)
 
 ## References
 
