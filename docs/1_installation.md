@@ -15,7 +15,7 @@ pip install cgcnn2
 If you'd like to use the latest unreleased version on the main branch, you can install it directly from GitHub:
 
 ```bash
-pip install git+https://github.com/jcwang-dev/cgcnn2@main
+pip install git+https://github.com/jcwang587/cgcnn2@main
 ```
 
 ## Dependencies
