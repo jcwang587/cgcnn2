@@ -1,3 +1,20 @@
+<a id="v0.5.0"></a>
+## [v0.5.0](https://github.com/jcwang587/cgcnn2/releases/tag/v0.5.0) - 2025-07-17
+
+## What's Changed
+* pre-commit autoupdate by [@pre-commit-ci](https://github.com/pre-commit-ci)[bot] in [#92](https://github.com/jcwang587/cgcnn2/pull/92)
+* Added new scatter plot visualization by [@jcwang587](https://github.com/jcwang587) in [#93](https://github.com/jcwang587/cgcnn2/pull/93)
+* Plotting functions return the plot objects by [@jcwang587](https://github.com/jcwang587) in [#98](https://github.com/jcwang587/cgcnn2/pull/98)
+* Improved variable naming for axis limits by [@jcwang587](https://github.com/jcwang587) in [#99](https://github.com/jcwang587/cgcnn2/pull/99)
+
+## New Contributors
+* [@pre-commit-ci](https://github.com/pre-commit-ci)[bot] made their first contribution in [#92](https://github.com/jcwang587/cgcnn2/pull/92)
+
+**Full Changelog**: https://github.com/jcwang587/cgcnn2/compare/v0.4.8...v0.5.0
+
+[Changes][v0.5.0]
+
+
 <a id="v0.4.8"></a>
 ## [v0.4.8](https://github.com/jcwang587/cgcnn2/releases/tag/v0.4.8) - 2025-07-07
 
@@ -159,6 +176,7 @@
 [Changes][v0.3.2]
 
 
+[v0.5.0]: https://github.com/jcwang587/cgcnn2/compare/v0.4.8...v0.5.0
 [v0.4.8]: https://github.com/jcwang587/cgcnn2/compare/v0.4.7...v0.4.8
 [v0.4.7]: https://github.com/jcwang587/cgcnn2/compare/v0.4.6...v0.4.7
 [v0.4.6]: https://github.com/jcwang587/cgcnn2/compare/v0.4.5...v0.4.6
