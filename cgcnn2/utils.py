@@ -432,11 +432,17 @@ def plot_convergence(
         if y2label is not None:
             y2 = df[y2label]
             ax2 = ax.twinx()
-            (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
+            (ln2,) = ax2.plot(x, y2, "--", label=y2label, color=colors[1])
             ax2.set_ylabel(y2label)
 
+            y1_ticks = ax.get_yticks()
+            y1_min, y1_max = ax.get_ylim()
+            y2_min, y2_max = ax2.get_ylim()
+
+            y2_ticks = y2_min + (y1_ticks - y1_min) * (y2_max - y2_min) / (y1_max - y1_min)
+            ax2.set_yticks(y2_ticks)
+            ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
             ax2.grid(False)
-            ax.set_axisbelow(True)
 
             lines.append(ln2)
             labels.append(y2label)
@@ -445,7 +451,7 @@ def plot_convergence(
         ax.set_ylabel(ylabel)
         ax.set_box_aspect(1)
         ax.grid(True, which="both", alpha=0.3)
-
+        ax.set_axisbelow(True)
         ax.legend(lines, labels, loc="center right")
 
         if out_png is not None:
