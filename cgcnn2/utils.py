@@ -13,10 +13,10 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import torch
-import matplotlib.ticker as mticker
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
@@ -436,32 +436,27 @@ def plot_convergence(
             y2 = df[y2label]
             ax2 = ax.twinx()
             (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
-            
+
             lines.append(ln2)
             labels.append(y2label)
-            
+
             y1_lim = ax.get_ylim()
             y2_lim = ax2.get_ylim()
-            
+
             ax.set_yticks(np.linspace(y1_lim[0], y1_lim[1], 6))
             ax2.set_yticks(np.linspace(y2_lim[0], y2_lim[1], 6))
             ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
             ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
             ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
             ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
-            
-            ax.set_ylabel(ylabel, rotation=0, ha="center", va="bottom")
-            ax.yaxis.set_label_coords(-0.07, 1.03)
 
-            ax2.set_ylabel(y2label, rotation=0, ha="center", va="bottom")
-            ax2.yaxis.set_label_coords(1.07, 1.03)
-        
+            ax.legend(lines, labels, loc="center right")
+
         else:
             ax.set_ylabel(ylabel)
-            
+
         ax.set_box_aspect(1)
         ax.grid(True, which="major", alpha=0.3)
-        ax.legend(lines, labels, loc="center right")
 
         if out_png is not None:
             fig.savefig(out_png, dpi=300, bbox_inches="tight")
