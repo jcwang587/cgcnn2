@@ -422,7 +422,7 @@ def make_and_save_convergence(
         y = df.iloc[:, 1]
 
         # Primary line (left y‑axis)
-        (ln1,) = ax.plot(x, y, label=ylabel)
+        (ln1,) = ax.plot(x, y, label=ylabel, color=colors[0])
 
         lines = [ln1]
         labels = [ylabel]
@@ -433,7 +433,7 @@ def make_and_save_convergence(
                 y2label = "secondary"
             y2 = df.iloc[:, 2]
             ax2 = ax.twinx()
-            (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label)
+            (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
             ax2.set_ylabel(y2label)
             lines.append(ln2)
             labels.append(y2label)
