@@ -447,21 +447,20 @@ def plot_convergence(
             ax2.set_yticks(np.linspace(y2_lim[0], y2_lim[1], 6))
             ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
             ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
-            ax.yaxis.set_minor_locator(mticker.AutoMinorLocator())
-            ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator())
+            ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
+            ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
             
             ax.set_ylabel(ylabel, rotation=0, ha="center", va="bottom")
-            ax.yaxis.set_label_coords(-0.07, 1.02)
+            ax.yaxis.set_label_coords(-0.07, 1.03)
 
             ax2.set_ylabel(y2label, rotation=0, ha="center", va="bottom")
-            ax2.yaxis.set_label_position("right")
-            ax2.yaxis.set_label_coords(1.07, 1.02)
+            ax2.yaxis.set_label_coords(1.07, 1.03)
         
         else:
             ax.set_ylabel(ylabel)
             
         ax.set_box_aspect(1)
-        ax.grid(True, which="both", alpha=0.3)
+        ax.grid(True, which="major", alpha=0.3)
         ax.legend(lines, labels, loc="center right")
 
         if out_png is not None:
