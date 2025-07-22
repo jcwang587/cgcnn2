@@ -32,15 +32,16 @@ from .model import CrystalGraphConvNet
 
 PLOT_RC_PARAMS: dict[str, float | int] = {
     "font.size": 18,
+    "axes.labelsize": 20,
     "axes.linewidth": 1.5,
-    "xtick.major.width": 1.5,
-    "ytick.major.width": 1.5,
     "xtick.major.size": 5,
-    "ytick.major.size": 5,
-    "xtick.minor.width": 1,
-    "ytick.minor.width": 1,
+    "xtick.major.width": 1.5,
     "xtick.minor.size": 3,
+    "xtick.minor.width": 1,
+    "ytick.major.size": 5,
+    "ytick.major.width": 1.5,
     "ytick.minor.size": 3,
+    "ytick.minor.width": 1,
 }
 
 
@@ -227,8 +228,8 @@ def make_and_save_hexbin(
             bins="log",
         )
 
-        ax.set_xlabel(xlabel, fontsize=20)
-        ax.set_ylabel(ylabel, fontsize=20)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
 
         # Keep axes square
         ax.set_box_aspect(1)
@@ -332,8 +333,8 @@ def make_and_save_scatter(
                 alpha=0.5,
             )
 
-        ax.set_xlabel(xlabel, fontsize=20)
-        ax.set_ylabel(ylabel, fontsize=20)
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
 
         # Keep axes square
         ax.set_box_aspect(1)
@@ -387,6 +388,66 @@ def make_and_save_scatter(
 
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+
+    return fig, ax
+
+
+def make_and_save_convergence(
+    df: pd.DataFrame,
+    xlabel: str,
+    ylabel: str,
+    y2label: str | None = None,
+    colors: list[str] = ["#137DC5", "#BF1922"],
+    out_png: str | None = None,
+) -> tuple[plt.Figure, plt.Axes]:
+    """
+    Create a convergence plot and save it to a file.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the true and pred values.
+        xlabel (str): Label for the x-axis (epochs)
+        ylabel (str): Label for the y-axis (metric)
+        y2label (str | None): Label for the y2-axis (metric)
+        out_png (str | None): Path of the PNG file in which to save the convergence plot.
+
+    Returns:
+        fig (plt.Figure): The figure object.
+        ax (plt.Axes): The axes object.
+    """
+
+    with plt.rc_context(PLOT_RC_PARAMS):
+        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+
+        x = df.iloc[:, 0]
+        y = df.iloc[:, 1]
+
+        # Primary line (left y‑axis)
+        (ln1,) = ax.plot(x, y, label=ylabel)
+
+        lines = [ln1]
+        labels = [ylabel]
+
+        # Optional secondary line (right y‑axis)
+        if df.shape[1] >= 3:
+            if y2label is None:
+                y2label = "secondary"
+            y2 = df.iloc[:, 2]
+            ax2 = ax.twinx()
+            (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label)
+            ax2.set_ylabel(y2label)
+            lines.append(ln2)
+            labels.append(y2label)
+
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
+        ax.set_box_aspect(1)
+        ax.grid(True, which="both", alpha=0.3)
+
+        # One combined legend
+        ax.legend(lines, labels, loc="best")
+
+        if out_png is not None:
+            fig.savefig(out_png, dpi=300, bbox_inches="tight")
 
     return fig, ax
 
