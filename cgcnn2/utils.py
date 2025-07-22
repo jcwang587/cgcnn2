@@ -10,7 +10,7 @@ import sys
 import tomllib
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -286,14 +286,14 @@ def plot_scatter(
     ylabel: str,
     true_types: list[str] = ["true_train", "true_valid", "true_test"],
     pred_types: list[str] = ["pred_train", "pred_valid", "pred_test"],
-    colors: list[str] = [
+    colors: Sequence[str] = (
         "#137DC5",
         "#FACF39",
         "#BF1922",
         "#F7E8D3",
         "#B89FDC",
         "#0F0C08",
-    ],
+    ),
     legend_labels: list[str] | None = None,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
@@ -397,14 +397,14 @@ def plot_convergence(
     xlabel: str,
     ylabel: str,
     y2label: str | None = None,
-    colors: list[str] = ["#137DC5", "#BF1922"],
+    colors: Sequence[str] = ("#137DC5", "#BF1922"),
     out_png: str | None = None,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
     Create a convergence plot and save it to a file.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the true and pred values.
+        df (pd.DataFrame): DataFrame containing the metrics values.
         xlabel (str): Label for the x-axis (epochs)
         ylabel (str): Label for the y-axis (metric)
         y2label (str | None): Label for the y2-axis (metric)
@@ -418,8 +418,8 @@ def plot_convergence(
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
-        x = df.iloc[:, 0]
-        y = df.iloc[:, 1]
+        x = df.index if df.index.dtype.kind in ("i", "u") else np.arange(len(df))
+        y = df.iloc[:, 0]
 
         # Primary line (left y‑axis)
         (ln1,) = ax.plot(x, y, label=ylabel, color=colors[0])
@@ -428,10 +428,8 @@ def plot_convergence(
         labels = [ylabel]
 
         # Optional secondary line (right y‑axis)
-        if df.shape[1] >= 3:
-            if y2label is None:
-                y2label = "secondary"
-            y2 = df.iloc[:, 2]
+        if y2label is not None:
+            y2 = df.iloc[:, 1]
             ax2 = ax.twinx()
             (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
             ax2.set_ylabel(y2label)
