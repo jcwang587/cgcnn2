@@ -434,6 +434,10 @@ def plot_convergence(
             ax2 = ax.twinx()
             (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
             ax2.set_ylabel(y2label)
+
+            ax2.grid(False)
+            ax.set_axisbelow(True)
+
             lines.append(ln2)
             labels.append(y2label)
 
@@ -442,7 +446,6 @@ def plot_convergence(
         ax.set_box_aspect(1)
         ax.grid(True, which="both", alpha=0.3)
 
-        # One combined legend
         ax.legend(lines, labels, loc="center right")
 
         if out_png is not None:
