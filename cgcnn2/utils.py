@@ -42,6 +42,8 @@ PLOT_RC_PARAMS: dict[str, float | int] = {
     "ytick.major.width": 1.5,
     "ytick.minor.size": 3,
     "ytick.minor.width": 1,
+    "legend.fontsize": 18,
+    "legend.frameon": False,
 }
 
 
@@ -269,7 +271,6 @@ def plot_hexbin(
             0.975,
             text,
             transform=ax.transAxes,
-            fontsize=18,
             ha="left",
             va="top",
         )
@@ -308,7 +309,7 @@ def plot_scatter(
         ylabel (str): Label for the y-axis.
         true_types (list[str]): A list of true data types to be displayed in the plot.
         pred_types (list[str]): A list of pred data types to be displayed in the plot.
-        colors (list[str]): A list of colors to be used for the data types.
+        colors (Sequence[str]): A list of colors to be used for the data types.
             Default palette is adapted from
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
         legend_labels (list[str] | None): A list of labels for the legend.
@@ -374,7 +375,6 @@ def plot_scatter(
             0.975,
             text,
             transform=ax.transAxes,
-            fontsize=18,
             ha="left",
             va="top",
         )
@@ -384,7 +384,7 @@ def plot_scatter(
                 raise ValueError(
                     f"legend_labels length ({len(legend_labels)}) must match number of data series ({len(true_types)})"
                 )
-            ax.legend(legend_labels, loc="lower right", fontsize=18, frameon=False)
+            ax.legend(legend_labels, loc="lower right")
 
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
@@ -408,6 +408,7 @@ def plot_convergence(
         xlabel (str): Label for the x-axis (epochs)
         ylabel (str): Label for the y-axis (metric)
         y2label (str | None): Label for the y2-axis (metric)
+        colors (Sequence[str]): Colors for the lines.
         out_png (str | None): Path of the PNG file in which to save the convergence plot.
 
     Returns:
@@ -418,8 +419,8 @@ def plot_convergence(
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
-        x = df.index if df.index.dtype.kind in ("i", "u") else np.arange(len(df))
-        y = df.iloc[:, 0]
+        x = df[xlabel]
+        y = df[ylabel]
 
         # Primary line (left y‑axis)
         (ln1,) = ax.plot(x, y, label=ylabel, color=colors[0])
@@ -429,7 +430,7 @@ def plot_convergence(
 
         # Optional secondary line (right y‑axis)
         if y2label is not None:
-            y2 = df.iloc[:, 1]
+            y2 = df[y2label]
             ax2 = ax.twinx()
             (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
             ax2.set_ylabel(y2label)
@@ -442,7 +443,7 @@ def plot_convergence(
         ax.grid(True, which="both", alpha=0.3)
 
         # One combined legend
-        ax.legend(lines, labels, loc="best")
+        ax.legend(lines, labels, loc="center right")
 
         if out_png is not None:
             fig.savefig(out_png, dpi=300, bbox_inches="tight")
