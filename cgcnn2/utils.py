@@ -453,9 +453,6 @@ def plot_convergence(
 
             ax.legend(lines, labels, loc="center right")
 
-            ax.yaxis.get_major_ticks()[0].label1.set_visible(False)
-            ax2.yaxis.get_major_ticks()[0].label1.set_visible(False)
-
             ax.spines["left"].set_color(colors[0])
             ax2.spines["left"].set_visible(False)
             ax2.spines["right"].set_color(colors[1])
@@ -467,7 +464,6 @@ def plot_convergence(
         else:
             ax.set_ylabel(ylabel)
 
-        ax.set_box_aspect(1)
         ax.grid(True, which="major", alpha=0.3)
 
         if out_png is not None:
