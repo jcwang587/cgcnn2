@@ -5,7 +5,7 @@ import os
 import shutil
 import sys
 
-from cgcnn2.util import id_prop_gen
+from cgcnn2.utils import id_prop_gen
 
 
 def atom_gen():
