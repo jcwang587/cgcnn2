@@ -14,6 +14,6 @@
 
 ## Utility Function
 
-::: cgcnn2.util
+::: cgcnn2.utils
     options:
       heading_level: 2
