@@ -13,6 +13,7 @@ from pathlib import Path
 from typing import Any, Sequence
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import torch
@@ -439,7 +440,9 @@ def plot_convergence(
             y1_min, y1_max = ax.get_ylim()
             y2_min, y2_max = ax2.get_ylim()
 
-            y2_ticks = y2_min + (y1_ticks - y1_min) * (y2_max - y2_min) / (y1_max - y1_min)
+            y2_ticks = y2_min + (y1_ticks - y1_min) * (y2_max - y2_min) / (
+                y1_max - y1_min
+            )
             ax2.set_yticks(y2_ticks)
             ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
             ax2.grid(False)
