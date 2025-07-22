@@ -451,6 +451,9 @@ def plot_convergence(
             ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
 
             ax.legend(lines, labels, loc="center right")
+            
+            ax.yaxis.get_major_ticks()[0].label1.set_visible(False)
+            ax2.yaxis.get_major_ticks()[0].label1.set_visible(False)
 
         else:
             ax.set_ylabel(ylabel)
