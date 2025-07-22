@@ -193,7 +193,7 @@ def metrics_text(
     return text
 
 
-def make_and_save_hexbin(
+def plot_hexbin(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
@@ -280,7 +280,7 @@ def make_and_save_hexbin(
     return fig, ax
 
 
-def make_and_save_scatter(
+def plot_scatter(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
@@ -392,7 +392,7 @@ def make_and_save_scatter(
     return fig, ax
 
 
-def make_and_save_convergence(
+def plot_convergence(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
@@ -526,7 +526,7 @@ def cgcnn_test(
 
     # Create parity plot
     df_full = pd.DataFrame({"true": targets_list, "pred": outputs_list})
-    make_and_save_hexbin(df_full, xlabel, ylabel, out_png=plot_file)
+    plot_hexbin(df_full, xlabel, ylabel, out_png=plot_file)
     logging.info(f"Hexbin plot has been saved to {plot_file}")
 
     # If axis limits are provided, save the csv file with the specified limits
@@ -537,7 +537,7 @@ def cgcnn_test(
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
-        make_and_save_hexbin(df_clip, xlabel, ylabel, out_png=clipped_file)
+        plot_hexbin(df_clip, xlabel, ylabel, out_png=clipped_file)
         logging.info(
             f"Hexbin plot clipped to {axis_limits} on true has been saved to {clipped_file}"
         )
