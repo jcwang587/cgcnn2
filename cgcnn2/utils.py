@@ -16,6 +16,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import torch
+import matplotlib.ticker as mticker
 from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
@@ -440,8 +441,11 @@ def plot_convergence(
             
             y1_lim = ax.get_ylim()
             y2_lim = ax2.get_ylim()
+            
             ax.set_yticks(np.linspace(y1_lim[0], y1_lim[1], 5))
             ax2.set_yticks(np.linspace(y2_lim[0], y2_lim[1], 5))
+            ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
+            ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
 
         ax.set_xlabel(xlabel)
         ax.set_ylabel(ylabel)
