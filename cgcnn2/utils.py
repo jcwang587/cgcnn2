@@ -437,7 +437,7 @@ def plot_convergence(
         if y2label is not None:
             y2 = df[y2label]
             ax2 = ax.twinx()
-            
+
             (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
 
             lines.append(ln2)
@@ -459,7 +459,7 @@ def plot_convergence(
             ax2.spines["left"].set_visible(False)
             ax2.spines["right"].set_color(colors[1])
             ax.spines["right"].set_visible(False)
-            
+
             ax.tick_params(axis="y", colors=colors[0], which="both")
             ax2.tick_params(axis="y", colors=colors[1], which="both")
 
