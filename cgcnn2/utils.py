@@ -10,9 +10,10 @@ import sys
 import tomllib
 from datetime import datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Sequence
 
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import numpy as np
 import pandas as pd
 import torch
@@ -42,6 +43,8 @@ PLOT_RC_PARAMS: dict[str, float | int] = {
     "ytick.major.width": 1.5,
     "ytick.minor.size": 3,
     "ytick.minor.width": 1,
+    "legend.fontsize": 18,
+    "legend.frameon": False,
 }
 
 
@@ -193,7 +196,7 @@ def metrics_text(
     return text
 
 
-def make_and_save_hexbin(
+def plot_hexbin(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
@@ -269,7 +272,6 @@ def make_and_save_hexbin(
             0.975,
             text,
             transform=ax.transAxes,
-            fontsize=18,
             ha="left",
             va="top",
         )
@@ -280,20 +282,20 @@ def make_and_save_hexbin(
     return fig, ax
 
 
-def make_and_save_scatter(
+def plot_scatter(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
     true_types: list[str] = ["true_train", "true_valid", "true_test"],
     pred_types: list[str] = ["pred_train", "pred_valid", "pred_test"],
-    colors: list[str] = [
+    colors: Sequence[str] = (
         "#137DC5",
         "#FACF39",
         "#BF1922",
         "#F7E8D3",
         "#B89FDC",
         "#0F0C08",
-    ],
+    ),
     legend_labels: list[str] | None = None,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
@@ -308,7 +310,7 @@ def make_and_save_scatter(
         ylabel (str): Label for the y-axis.
         true_types (list[str]): A list of true data types to be displayed in the plot.
         pred_types (list[str]): A list of pred data types to be displayed in the plot.
-        colors (list[str]): A list of colors to be used for the data types.
+        colors (Sequence[str]): A list of colors to be used for the data types.
             Default palette is adapted from
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
         legend_labels (list[str] | None): A list of labels for the legend.
@@ -374,7 +376,6 @@ def make_and_save_scatter(
             0.975,
             text,
             transform=ax.transAxes,
-            fontsize=18,
             ha="left",
             va="top",
         )
@@ -384,7 +385,7 @@ def make_and_save_scatter(
                 raise ValueError(
                     f"legend_labels length ({len(legend_labels)}) must match number of data series ({len(true_types)})"
                 )
-            ax.legend(legend_labels, loc="lower right", fontsize=18, frameon=False)
+            ax.legend(legend_labels, loc="lower right")
 
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
@@ -392,22 +393,25 @@ def make_and_save_scatter(
     return fig, ax
 
 
-def make_and_save_convergence(
+def plot_convergence(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
     y2label: str | None = None,
-    colors: list[str] = ["#137DC5", "#BF1922"],
+    colors: Sequence[str] = ("#137DC5", "#BF1922"),
+    xlabel_rotation: float = 0,
     out_png: str | None = None,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
     Create a convergence plot and save it to a file.
 
     Args:
-        df (pd.DataFrame): DataFrame containing the true and pred values.
+        df (pd.DataFrame): DataFrame containing the metrics values.
         xlabel (str): Label for the x-axis (epochs)
         ylabel (str): Label for the y-axis (metric)
         y2label (str | None): Label for the y2-axis (metric)
+        colors (Sequence[str]): Colors for the lines.
+        xlabel_rotation (float): Rotation of the x-axis label.
         out_png (str | None): Path of the PNG file in which to save the convergence plot.
 
     Returns:
@@ -418,8 +422,8 @@ def make_and_save_convergence(
     with plt.rc_context(PLOT_RC_PARAMS):
         fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
 
-        x = df.iloc[:, 0]
-        y = df.iloc[:, 1]
+        x = df[xlabel]
+        y = df[ylabel]
 
         # Primary line (left y‑axis)
         (ln1,) = ax.plot(x, y, label=ylabel, color=colors[0])
@@ -427,24 +431,42 @@ def make_and_save_convergence(
         lines = [ln1]
         labels = [ylabel]
 
+        ax.set_xlabel(xlabel, rotation=xlabel_rotation)
+
         # Optional secondary line (right y‑axis)
-        if df.shape[1] >= 3:
-            if y2label is None:
-                y2label = "secondary"
-            y2 = df.iloc[:, 2]
+        if y2label is not None:
+            y2 = df[y2label]
             ax2 = ax.twinx()
+
             (ln2,) = ax2.plot(x, y2, linestyle="--", label=y2label, color=colors[1])
-            ax2.set_ylabel(y2label)
+
             lines.append(ln2)
             labels.append(y2label)
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
-        ax.set_box_aspect(1)
-        ax.grid(True, which="both", alpha=0.3)
+            y1_lim = ax.get_ylim()
+            y2_lim = ax2.get_ylim()
 
-        # One combined legend
-        ax.legend(lines, labels, loc="best")
+            ax.set_yticks(np.linspace(y1_lim[0], y1_lim[1], 6))
+            ax2.set_yticks(np.linspace(y2_lim[0], y2_lim[1], 6))
+            ax.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
+            ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter("%.3g"))
+            ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
+            ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
+
+            ax.legend(lines, labels, loc="center right")
+
+            ax.spines["left"].set_color(colors[0])
+            ax2.spines["left"].set_visible(False)
+            ax2.spines["right"].set_color(colors[1])
+            ax.spines["right"].set_visible(False)
+
+            ax.tick_params(axis="y", colors=colors[0], which="both")
+            ax2.tick_params(axis="y", colors=colors[1], which="both")
+
+        else:
+            ax.set_ylabel(ylabel)
+
+        ax.grid(True, which="major", alpha=0.3)
 
         if out_png is not None:
             fig.savefig(out_png, dpi=300, bbox_inches="tight")
@@ -526,7 +548,7 @@ def cgcnn_test(
 
     # Create parity plot
     df_full = pd.DataFrame({"true": targets_list, "pred": outputs_list})
-    make_and_save_hexbin(df_full, xlabel, ylabel, out_png=plot_file)
+    plot_hexbin(df_full, xlabel, ylabel, out_png=plot_file)
     logging.info(f"Hexbin plot has been saved to {plot_file}")
 
     # If axis limits are provided, save the csv file with the specified limits
@@ -537,7 +559,7 @@ def cgcnn_test(
         clipped_file = plot_file.replace(
             ".png", f"_axis_limits_{axis_limits[0]}_{axis_limits[1]}.png"
         )
-        make_and_save_hexbin(df_clip, xlabel, ylabel, out_png=clipped_file)
+        plot_hexbin(df_clip, xlabel, ylabel, out_png=clipped_file)
         logging.info(
             f"Hexbin plot clipped to {axis_limits} on true has been saved to {clipped_file}"
         )
