@@ -399,7 +399,7 @@ def plot_convergence(
     ylabel: str,
     y2label: str | None = None,
     colors: Sequence[str] = ("#137DC5", "#BF1922"),
-    xlabel_rotation: float = 0,
+    xtick_rotation: float = 0,
     out_png: str | None = None,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
@@ -411,7 +411,7 @@ def plot_convergence(
         ylabel (str): Label for the y-axis (metric)
         y2label (str | None): Label for the y2-axis (metric)
         colors (Sequence[str]): Colors for the lines.
-        xlabel_rotation (float): Rotation of the x-axis label.
+        xtick_rotation (float): Rotation of the x-axis tick labels.
         out_png (str | None): Path of the PNG file in which to save the convergence plot.
 
     Returns:
@@ -430,8 +430,6 @@ def plot_convergence(
 
         lines = [ln1]
         labels = [ylabel]
-
-        ax.set_xlabel(xlabel, rotation=xlabel_rotation)
 
         # Optional secondary line (right y‑axis)
         if y2label is not None:
@@ -464,7 +462,10 @@ def plot_convergence(
             ax2.tick_params(axis="y", colors=colors[1], which="both")
 
         else:
+            ax.set_xlabel(xlabel)
             ax.set_ylabel(ylabel)
+
+        ax.tick_params(axis="x", rotation=xtick_rotation)
 
         ax.grid(True, which="major", alpha=0.3)
 
