@@ -222,7 +222,7 @@ def plot_hexbin(
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         metrics (list[str]): A list of strings to be displayed in the plot.
-        metrics_precision (int): Number of digits to display for the metrics.
+        metrics_precision (int): Number of decimal places to display for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the hexbin plot.
@@ -329,7 +329,7 @@ def plot_scatter(
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
         legend_labels (list[str] | None): A list of labels for the legend.
         metrics (list[str]): Metrics to display in the plot.
-        metrics_precision (int): Number of digits to display for the metrics.
+        metrics_precision (int): Number of decimal places to display for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the scatter plot.
@@ -414,6 +414,8 @@ def plot_convergence(
     xlabel: str,
     ylabel: str,
     y2label: str | None = None,
+    ylabel_precision: int = 3,
+    y2label_precision: int = 3,
     colors: Sequence[str] = ("#137DC5", "#BF1922"),
     xtick_rotation: float = 0,
     out_png: str | None = None,
@@ -426,6 +428,8 @@ def plot_convergence(
         xlabel (str): Label for the x-axis (epochs)
         ylabel (str): Label for the y-axis (metric)
         y2label (str | None): Label for the y2-axis (metric)
+        ylabel_precision (int): Number of decimal places to display for the y-axis label.
+        y2label_precision (int): Number of decimal places to display for the y2-axis label.
         colors (Sequence[str]): Colors for the lines.
         xtick_rotation (float): Rotation of the x-axis tick labels.
         out_png (str | None): Path of the PNG file in which to save the convergence plot.
@@ -462,7 +466,10 @@ def plot_convergence(
 
             ax.set_yticks(np.linspace(y1_lim[0], y1_lim[1], 6))
             ax2.set_yticks(np.linspace(y2_lim[0], y2_lim[1], 6))
-
+            
+            ax.yaxis.set_major_formatter(mticker.FormatStrFormatter(f"%.{ylabel_precision}f"))
+            ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter(f"%.{y2label_precision}f"))
+            
             ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
             ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
 
