@@ -146,7 +146,7 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
 def metrics_text(
     df: pd.DataFrame,
     metrics: list[str] = ["mae", "r2"],
-    metrics_digits: int = 3,
+    metrics_precision: int = 3,
     unit: str | None = None,
     unit_scale: float = 1.0,
 ) -> str:
@@ -156,7 +156,7 @@ def metrics_text(
     Args:
         df (pd.DataFrame): DataFrame containing the true and pred values.
         metrics (list[str]): A list of metrics to be displayed in the plot.
-        metrics_digits (int): Number of digits to display for the metrics.
+        metrics_precision (int): Number of digits to display for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
     Returns:
@@ -195,7 +195,7 @@ def metrics_text(
         else:
             latex_name = rf"\mathrm{{{name}}}"
 
-        text_lines.append(rf"${latex_name}: {val:.{metrics_digits}f}{unit_str}$")
+        text_lines.append(rf"${latex_name}: {val:.{metrics_precision}f}{unit_str}$")
     text = "\n".join(text_lines)
 
     return text
@@ -206,7 +206,7 @@ def plot_hexbin(
     xlabel: str,
     ylabel: str,
     metrics: list[str] = ["mae", "r2"],
-    metrics_digits: int = 3,
+    metrics_precision: int = 3,
     unit: str | None = None,
     unit_scale: float = 1.0,
     out_png: str | None = None,
@@ -219,7 +219,7 @@ def plot_hexbin(
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         metrics (list[str]): A list of strings to be displayed in the plot.
-        metrics_digits (int): Number of digits to display for the metrics.
+        metrics_precision (int): Number of digits to display for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the hexbin plot.
@@ -274,7 +274,7 @@ def plot_hexbin(
         cax.yaxis.set_label_position("left")
 
         # Compute requested metrics
-        text = metrics_text(df, metrics, metrics_digits, unit, unit_scale)
+        text = metrics_text(df, metrics, metrics_precision, unit, unit_scale)
 
         ax.text(
             0.025,
@@ -307,7 +307,7 @@ def plot_scatter(
     ),
     legend_labels: list[str] | None = None,
     metrics: list[str] = ["mae", "r2"],
-    metrics_digits: int = 3,
+    metrics_precision: int = 3,
     unit: str | None = None,
     unit_scale: float = 1.0,
     out_png: str | None = None,
@@ -326,7 +326,7 @@ def plot_scatter(
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
         legend_labels (list[str] | None): A list of labels for the legend.
         metrics (list[str]): Metrics to display in the plot.
-        metrics_digits (int): Number of digits to display for the metrics.
+        metrics_precision (int): Number of digits to display for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the scatter plot.
@@ -382,7 +382,7 @@ def plot_scatter(
         )
 
         # Compute requested metrics
-        text = metrics_text(df_metrics, metrics, metrics_digits, unit, unit_scale)
+        text = metrics_text(df_metrics, metrics, metrics_precision, unit, unit_scale)
 
         ax.text(
             0.025,
