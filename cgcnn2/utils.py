@@ -466,10 +466,14 @@ def plot_convergence(
 
             ax.set_yticks(np.linspace(y1_lim[0], y1_lim[1], 6))
             ax2.set_yticks(np.linspace(y2_lim[0], y2_lim[1], 6))
-            
-            ax.yaxis.set_major_formatter(mticker.FormatStrFormatter(f"%.{ylabel_precision}"))
-            ax2.yaxis.set_major_formatter(mticker.FormatStrFormatter(f"%.{y2label_precision}"))
-            
+
+            ax.yaxis.set_major_formatter(
+                mticker.FormatStrFormatter(f"%.{ylabel_precision}")
+            )
+            ax2.yaxis.set_major_formatter(
+                mticker.FormatStrFormatter(f"%.{y2label_precision}")
+            )
+
             ax.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
             ax2.yaxis.set_minor_locator(mticker.AutoMinorLocator(2))
 
