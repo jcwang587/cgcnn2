@@ -169,7 +169,9 @@ def metrics_text(
         elif m_lower == "mse":
             values["MSE"] = np.mean((df["true"] - df["pred"]) ** 2) * unit_scale
         elif m_lower == "rmse":
-            values["RMSE"] = np.sqrt(np.mean((df["true"] - df["pred"]) ** 2)) * unit_scale
+            values["RMSE"] = (
+                np.sqrt(np.mean((df["true"] - df["pred"]) ** 2)) * unit_scale
+            )
         elif m_lower == "r2":
             values["R^2"] = 1 - np.sum((df["true"] - df["pred"]) ** 2) / np.sum(
                 (df["true"] - df["true"].mean()) ** 2
