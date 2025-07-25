@@ -147,6 +147,7 @@ def metrics_text(
     df: pd.DataFrame,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
+    unit_scale: float = 1.0,
 ) -> str:
     """
     Create a text string containing the metrics and their values.
@@ -155,7 +156,7 @@ def metrics_text(
         df (pd.DataFrame): DataFrame containing the true and pred values.
         metrics (list[str]): A list of metrics to be displayed in the plot.
         unit (str | None): Unit of the property.
-
+        unit_scale (float): Scale factor for the unit.
     Returns:
         text (str): A text string containing the metrics and their values.
     """
@@ -164,11 +165,11 @@ def metrics_text(
     for m in metrics:
         m_lower = m.lower()
         if m_lower == "mae":
-            values["MAE"] = np.mean(np.abs(df["true"] - df["pred"]))
+            values["MAE"] = np.mean(np.abs(df["true"] - df["pred"])) * unit_scale
         elif m_lower == "mse":
-            values["MSE"] = np.mean((df["true"] - df["pred"]) ** 2)
+            values["MSE"] = np.mean((df["true"] - df["pred"]) ** 2) * unit_scale
         elif m_lower == "rmse":
-            values["RMSE"] = np.sqrt(np.mean((df["true"] - df["pred"]) ** 2))
+            values["RMSE"] = np.sqrt(np.mean((df["true"] - df["pred"]) ** 2)) * unit_scale
         elif m_lower == "r2":
             values["R^2"] = 1 - np.sum((df["true"] - df["pred"]) ** 2) / np.sum(
                 (df["true"] - df["true"].mean()) ** 2
@@ -202,6 +203,7 @@ def plot_hexbin(
     ylabel: str,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
+    unit_scale: float = 1.0,
     out_png: str | None = None,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
@@ -213,6 +215,7 @@ def plot_hexbin(
         ylabel (str): Label for the y-axis.
         metrics (list[str]): A list of strings to be displayed in the plot.
         unit (str | None): Unit of the property.
+        unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the hexbin plot.
 
     Returns:
@@ -265,7 +268,7 @@ def plot_hexbin(
         cax.yaxis.set_label_position("left")
 
         # Compute requested metrics
-        text = metrics_text(df, metrics, unit)
+        text = metrics_text(df, metrics, unit, unit_scale)
 
         ax.text(
             0.025,
@@ -299,6 +302,7 @@ def plot_scatter(
     legend_labels: list[str] | None = None,
     metrics: list[str] = ["mae", "r2"],
     unit: str | None = None,
+    unit_scale: float = 1.0,
     out_png: str | None = None,
 ) -> tuple[plt.Figure, plt.Axes]:
     """
@@ -316,6 +320,7 @@ def plot_scatter(
         legend_labels (list[str] | None): A list of labels for the legend.
         metrics (list[str]): Metrics to display in the plot.
         unit (str | None): Unit of the property.
+        unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the scatter plot.
 
     Returns:
@@ -369,7 +374,7 @@ def plot_scatter(
         )
 
         # Compute requested metrics
-        text = metrics_text(df_metrics, metrics, unit)
+        text = metrics_text(df_metrics, metrics, unit, unit_scale)
 
         ax.text(
             0.025,
