@@ -198,7 +198,7 @@ def metrics_text(
         if name == "R^2":
             text_lines.append(rf"${latex_name}: {val:.3f}{unit_str}$")
         else:
-            text_lines.append(rf"${latex_name}: {val:.{metrics_precision}f}{unit_str}$")
+            text_lines.append(rf"${latex_name}: {val:.{metrics_precision}}{unit_str}$")
     text = "\n".join(text_lines)
 
     return text
