@@ -164,11 +164,11 @@ def metrics_text(
     for m in metrics:
         m_lower = m.lower()
         if m_lower == "mae":
-            values["MAE"] = np.abs(df["true"] - df["pred"]).mean()
+            values["MAE"] = np.mean(np.abs(df["true"] - df["pred"]))
         elif m_lower == "mse":
-            values["MSE"] = ((df["true"] - df["pred"]) ** 2).mean()
+            values["MSE"] = np.mean((df["true"] - df["pred"]) ** 2)
         elif m_lower == "rmse":
-            values["RMSE"] = np.sqrt(((df["true"] - df["pred"]) ** 2).mean())
+            values["RMSE"] = np.sqrt(np.mean((df["true"] - df["pred"]) ** 2))
         elif m_lower == "r2":
             values["R^2"] = 1 - np.sum((df["true"] - df["pred"]) ** 2) / np.sum(
                 (df["true"] - df["true"].mean()) ** 2
