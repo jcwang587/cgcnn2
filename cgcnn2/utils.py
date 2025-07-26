@@ -649,7 +649,7 @@ def cgcnn_descriptor(
             cif_id_value = cif_id[0] if cif_id and isinstance(cif_id, list) else cif_id
             prediction_value = output.item() if output.numel() == 1 else output.tolist()
 
-            if verbose >= 4:
+            if verbose >= 10:
                 logging.info(
                     f"index: {index} | cif id: {cif_id_value} | prediction: {prediction_value}"
                 )
@@ -660,7 +660,7 @@ def cgcnn_descriptor(
 def cgcnn_pred(
     model_path: str,
     full_set: str,
-    verbose: int = 4,
+    verbose: int = 101,
     cuda: bool = False,
     num_workers: int = 0,
 ) -> tuple[list[float], list[torch.Tensor]]:
@@ -716,7 +716,7 @@ def cgcnn_pred(
     normalizer.load_state_dict(checkpoint["normalizer"])
     model.load_state_dict(checkpoint["state_dict"])
 
-    if verbose >= 3:
+    if verbose >= 100:
         print_checkpoint_info(checkpoint, model_path)
 
     device = "cuda" if cuda else "cpu"
