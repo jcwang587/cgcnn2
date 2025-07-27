@@ -98,3 +98,9 @@ skip-magic-trailing-comma = false
 line-ending = "auto"
 docstring-code-format = false
 docstring-code-line-length = "dynamic"
+
+[tool.pyproject-fmt]
+column_width = 120
+indent = 2
+keep_full_version = false
+max_supported_python = "3.12"
