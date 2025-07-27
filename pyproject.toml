@@ -1,21 +1,25 @@
+[build-system]
+build-backend = "uv_build"
+
+requires = [ "uv-build>=0.7.10" ]
+
 [project]
-name            = "cgcnn2"
-version         = "0.5.1"
-description     = "Reproduction of Crystal Graph Convolutional Neural Networks"
-readme          = "README.md"
+name = "cgcnn2"
+version = "0.5.1"
+description = "Reproduction of Crystal Graph Convolutional Neural Networks"
+readme = "README.md"
+keywords = [ "computational-materials", "fine-tuning", "graph-model", "python" ]
+license = { text = "MIT" }
+maintainers = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
+authors = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
 requires-python = ">=3.11,<3.13"
-authors         = [{ name = "Jiacheng Wang", email = "jiachengwang@umass.edu" },]
-maintainers     = [{ name = "Jiacheng Wang", email = "jiachengwang@umass.edu" },]
-license         = { text = "MIT" }
-homepage        = "https://github.com/jcwang-dev/cgcnn2/"
-repository      = "https://github.com/jcwang-dev/cgcnn2/"
-keywords        = ["python", "graph-model", "fine-tuning", "computational-materials"]
-classifiers     = [
+classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
-  "Operating System :: OS Independent",
 ]
 
 dependencies = [
@@ -23,78 +27,76 @@ dependencies = [
   "numpy",
   "pandas",
   "pymatgen>=2025.1.9",
-  "torch>=2.2.0",
+  "torch>=2.2",
 ]
+optional-dependencies.dev = [
+  "pytest>=8.3",
+  "pytest-cov>=6",
+]
+scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 # pymatgen tracks the first release of the current year
 # torch tracks the first release of the last year
 
-[project.optional-dependencies]
-dev = [
-  "pytest>=8.3.0",
-  "pytest-cov>=6.0.0",
+scripts.cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
+scripts.cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
+scripts.cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
+scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
+homepage = "https://github.com/jcwang-dev/cgcnn2/"
+repository = "https://github.com/jcwang-dev/cgcnn2/"
+
+[tool.ruff]
+target-version = "py311"
+
+line-length = 88
+indent-width = 4
+exclude = [
+  ".bzr",
+  ".direnv",
+  ".eggs",
+  ".git",
+  ".git-rewrite",
+  ".hg",
+  ".ipynb_checkpoints",
+  ".mypy_cache",
+  ".nox",
+  ".pants.d",
+  ".pyenv",
+  ".pytest_cache",
+  ".pytype",
+  ".ruff_cache",
+  ".svn",
+  ".tox",
+  ".venv",
+  ".vscode",
+  "__pypackages__",
+  "_build",
+  "buck-out",
+  "build",
+  "dist",
+  "node_modules",
+  "site-packages",
+  "venv",
 ]
+format.indent-style = "space"
+format.quote-style = "double"
+format.line-ending = "auto"
+format.skip-magic-trailing-comma = false
+format.docstring-code-line-length = "dynamic"
+format.docstring-code-format = false
+lint.select = [ "E4", "E7", "E9", "F" ]
+lint.ignore = [  ]
+lint.fixable = [ "ALL" ]
+lint.unfixable = [  ]
+lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 
-[project.scripts]
-cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
-cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
-cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
-atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
-id-gen   = "cgcnn2.cli.cgcnn_init:id_gen"
-
-[build-system]
-requires = ["uv_build>=0.7.10"]
-build-backend = "uv_build"
+[tool.pyproject-fmt]
+column_width = 120
+indent = 2
+keep_full_version = false
+max_supported_python = "3.12"
 
 [tool.uv.build-backend]
 module-name = "cgcnn2"
 module-root = ""
-source-exclude = ["dev/**"]
-wheel-exclude = ["dev/**"]
-
-[tool.ruff]
-exclude = [
-    ".bzr",
-    ".direnv",
-    ".eggs",
-    ".git",
-    ".git-rewrite",
-    ".hg",
-    ".ipynb_checkpoints",
-    ".mypy_cache",
-    ".nox",
-    ".pants.d",
-    ".pyenv",
-    ".pytest_cache",
-    ".pytype",
-    ".ruff_cache",
-    ".svn",
-    ".tox",
-    ".venv",
-    ".vscode",
-    "__pypackages__",
-    "_build",
-    "buck-out",
-    "build",
-    "dist",
-    "node_modules",
-    "site-packages",
-    "venv",
-]
-line-length = 88
-indent-width = 4
-target-version = "py311"
-
-[tool.ruff.lint]
-select = ["E4", "E7", "E9", "F"]
-ignore = []
-fixable = ["ALL"]
-unfixable = []
-dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
-[tool.ruff.format]
-quote-style = "double"
-indent-style = "space"
-skip-magic-trailing-comma = false
-line-ending = "auto"
-docstring-code-format = false
-docstring-code-line-length = "dynamic"
+source-exclude = [ "dev/**" ]
+wheel-exclude = [ "dev/**" ]
