@@ -3,6 +3,7 @@
 [![Release](https://img.shields.io/github/v/release/jcwang587/cgcnn2)](https://github.com/jcwang587/cgcnn2/releases/latest)
 [![PyPI Downloads](https://static.pepy.tech/badge/cgcnn2)](https://pepy.tech/projects/cgcnn2)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/jcwang587/cgcnn2?utm_source=oss&utm_medium=github&utm_campaign=jcwang587%2Fcgcnn2&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 As the original Crystal Graph Convolutional Neural Networks (CGCNN) repository is no longer actively maintained, this repository is a reproduction of [CGCNN](https://github.com/txie-93/cgcnn) by Xie *et al*. It includes necessary updates for deprecated components and a few additional functions to ensure smooth operation. Despite its age, CGCNN remains a straightforward and fast deep learning framework that is easy to learn and use.
 
