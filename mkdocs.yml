@@ -2,7 +2,6 @@ site_name: cgcnn2
 site_url: https://jcwang-dev.github.io/cgcnn2
 repo_url: https://github.com/jcwang-dev/cgcnn2
 repo_name: cgcnn2
-
 theme:
   name: material
   features:
@@ -25,7 +24,6 @@ theme:
       toggle:
         icon: material/toggle-switch
         name: Switch to light mode
-
 markdown_extensions:
   - pymdownx.highlight
   - pymdownx.superfences
@@ -43,7 +41,6 @@ markdown_extensions:
       permalink: true
   - attr_list
   - md_in_html
-
 plugins:
   - search
   - git-revision-date-localized
@@ -54,7 +51,6 @@ plugins:
             docstring_style: google
             show_root_heading: true
             show_source: true
-
 nav:
   - Home: index.md
   - Installation: 1_installation.md
@@ -63,12 +59,10 @@ nav:
   - Examples: 4_examples.md
   - API Reference: 5_api_reference.md
   - Changelog: changelog.md
-  
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jcwang-dev/cgcnn2 
-
+      link: https://github.com/jcwang-dev/cgcnn2
 extra_javascript:
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js
