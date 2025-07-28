@@ -18,3 +18,10 @@ repos:
     rev: v0.17.0
     hooks:
       - id: yamlfmt
+  - repo: https://github.com/hukkin/mdformat
+    rev: v0.7.22
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-black
