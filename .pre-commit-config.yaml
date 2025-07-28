@@ -17,3 +17,7 @@ repos:
     hooks:
     - id: pyproject-fmt
 
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.17.0
+    hooks:
+      - id: yamlfmt
