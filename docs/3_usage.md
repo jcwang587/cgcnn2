@@ -2,7 +2,7 @@
 
 ## Basic Usage
 
-Here's a basic tutorial on going through the prediction script using the functions provided by the package. 
+Here's a basic tutorial on going through the prediction script using the functions provided by the package.
 
 ### 1. Importing the package
 
@@ -28,11 +28,11 @@ To input material structures into CGCNN, you need to define a custom dataset. Be
 Organize these files in a directory (`root_dir`) with the following structure:
 
 1. `id_prop.csv` (optional for prediction):
-    A CSV with two columns, the first column is a unique material ID, and the second column is the corresponding target property value.
-2. `atom_init.json`:
-    A `JSON` file that provides the initialization vector for each element. You can use the example at `/cgcnn2/asset/atom_init.json` from the original CGCNN repository; it should work for most applications.
-3. `CIF` files:
-    One `.cif` file per material, named `ID.cif`, where `ID` matches the entries in `id_prop.csv`.
+   A CSV with two columns, the first column is a unique material ID, and the second column is the corresponding target property value.
+1. `atom_init.json`:
+   A `JSON` file that provides the initialization vector for each element. You can use the example at `/cgcnn2/asset/atom_init.json` from the original CGCNN repository; it should work for most applications.
+1. `CIF` files:
+   One `.cif` file per material, named `ID.cif`, where `ID` matches the entries in `id_prop.csv`.
 
 Once your `root_dir` (for example, `/examples/data/sample_regression`) contains these files, you can load the dataset using the `CIFData` class:
 
@@ -64,7 +64,7 @@ orig_atom_fea_len = atom_graph[0].shape[-1]
 nbr_fea_len = atom_graph[1].shape[-1]
 ```
 
-where `dataset[0]` is a tuple of `(atom_graph, target, cif_id)`, where `atom_graph` is a tuple of `(atom_fea, nbr_fea, nbr_fea_idx)`, `target` is the target property value, and `cif_id` is the unique ID of the material. The `atom_graph` tuple contains the atom features, neighbor features, and neighbor indices, and the dimensions of these features given by `orig_atom_fea_len` and `nbr_fea_len` are needed to initialize the model. 
+where `dataset[0]` is a tuple of `(atom_graph, target, cif_id)`, where `atom_graph` is a tuple of `(atom_fea, nbr_fea, nbr_fea_idx)`, `target` is the target property value, and `cif_id` is the unique ID of the material. The `atom_graph` tuple contains the atom features, neighbor features, and neighbor indices, and the dimensions of these features given by `orig_atom_fea_len` and `nbr_fea_len` are needed to initialize the model.
 
 Besides, we need some information about the pre-trained model architecture, which can be done by:
 
@@ -121,7 +121,7 @@ You can view the training hyperparameters by using the `--help` flag with both t
 Most of the hyperparameters are shared between these two scripts, including:
 
 - `batch-size`: Specifies the number of samples that are grouped together and processed in one forward/backward pass during both training and fine-tuning. At each step, the DataLoader will pull `batch-size` examples from the dataset, feed them through the model, compute the loss, and then perform a gradient update. Choosing the right `batch-size` involves a trade-off between memory usage, computational efficiency, and optimization dynamics.
-By default, we set `batch-size = 256` as a balance between speed and memory requirements on modern GPUs. If you run into OOM errors, try reducing this value; if you have excess memory and want to speed up training, experiment with increasing it.
+  By default, we set `batch-size = 256` as a balance between speed and memory requirements on modern GPUs. If you run into OOM errors, try reducing this value; if you have excess memory and want to speed up training, experiment with increasing it.
 
 - `learning-rate`: Determines the step size used by the optimizer to update model weights at each gradient step. A higher learning rate makes larger jumps in parameter space, potentially speeding up initial convergence but risking instability or divergence. A lower rate yields more precise, stable updates at the cost of slower training. By default, we set learning-rate = 1e-2 as a good starting point for most graph-based models. If loss oscillates or diverges, try reducing it; if training stalls, consider increasing it or adding a scheduler.
 
@@ -132,8 +132,9 @@ By default, we set `batch-size = 256` as a balance between speed and memory requ
 ```bash
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 ```
- 
+
 ### Early Stopping
+
 Both the training and fine-tuning scripts implement an early stopping strategy that halts training if the validation loss fails to improve for a specified number of consecutive epochs.
 
 - `stop-patience`: Defines how many consecutive epochs without any decrease in validation loss are allowed before training is terminated. Default is `None`, which means no early stopping.
@@ -146,5 +147,3 @@ There is a learning rate scheduler for the training and finetuning scripts, whic
 - `patience`: How many epochs to wait before reducing the learning rate.
 
 You can check more details in the [PyTorch documentation](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html).
-
-

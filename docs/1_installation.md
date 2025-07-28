@@ -22,18 +22,20 @@ pip install git+https://github.com/jcwang587/cgcnn2@main
 
 The package requires the following dependencies:
 
-* [matplotlib](https://matplotlib.org/)
-* [NumPy](https://numpy.org/)
-* [pandas](https://pandas.pydata.org/)
-* [pymatgen](https://pymatgen.org/)
-* [PyTorch](https://pytorch.org/)
+- [matplotlib](https://matplotlib.org/)
+- [NumPy](https://numpy.org/)
+- [pandas](https://pandas.pydata.org/)
+- [pymatgen](https://pymatgen.org/)
+- [PyTorch](https://pytorch.org/)
 
 These will be automatically installed when you install the package.
 
 ## Verifying Installation
 
 To verify your installation, launch the Python interpreter and run:
+
 ```python
 import cgcnn2
+
 print(cgcnn2.__version__)
-``` 
+```
