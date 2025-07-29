@@ -181,6 +181,12 @@ class AtomCustomJSONInitializer(AtomInitializer):
     """
 
     def __init__(self, elem_embedding_file):
+        """
+        Initialize atom feature embeddings from a JSON file mapping element numbers to feature vectors.
+        
+        Parameters:
+            elem_embedding_file (str): Path to a JSON file where keys are element numbers and values are feature vectors.
+        """
         with open(elem_embedding_file) as f:
             elem_embedding = json.load(f)
         elem_embedding = {int(key): value for key, value in elem_embedding.items()}
