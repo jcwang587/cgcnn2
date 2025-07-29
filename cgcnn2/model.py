@@ -33,26 +33,22 @@ class ConvLayer(nn.Module):
 
     def forward(self, atom_in_fea, nbr_fea, nbr_fea_idx):
         """
-        Forward pass
+        Perform one message-passing / convolution step over the graph.
 
-        N: Total number of atoms in the batch
-        M: Max number of neighbors
+        `N`: Total number of atoms in the batch
+        `M`: Max number of neighbors
 
         Args:
-            atom_in_fea (torch.Tensor): Variable(torch.Tensor) shape (N, atom_fea_len)
-              Atom hidden features before convolution
-            nbr_fea (torch.Tensor): Variable(torch.Tensor) shape (N, M, nbr_fea_len)
-              Bond features of each atom's M neighbors
-            nbr_fea_idx (torch.LongTensor): shape (N, M)
-              Indices of M neighbors of each atom
+            atom_in_fea (torch.Tensor): Tensor of shape `(N, atom_fea_len)` containing the atom features before convolution.
+            nbr_fea (torch.Tensor): Tensor of shape `(N, M, nbr_fea_len)` holding the bond features for each atom's `M` neighbors.
+            nbr_fea_idx (torch.LongTensor): Tensor of shape `(N, M)` with the indices of the `M` neighbors of each atom.
 
         Returns:
-            atom_out_fea (nn.Variable): shape (N, atom_fea_len)
-              Atom hidden features after convolution
+            atom_out_fea (torch.Tensor): Tensor of shape `(N, atom_fea_len)` with the atom features after convolution.
 
         """
         N, M = nbr_fea_idx.shape
-        # convolution
+        # Convolution
         atom_nbr_fea = atom_in_fea[nbr_fea_idx, :]
         total_nbr_fea = torch.cat(
             [
@@ -71,8 +67,8 @@ class ConvLayer(nn.Module):
         nbr_core = self.softplus1(nbr_core)
         nbr_sumed = torch.sum(nbr_filter * nbr_core, dim=1)
         nbr_sumed = self.bn2(nbr_sumed)
-        out = self.softplus2(atom_in_fea + nbr_sumed)
-        return out
+        atom_out_fea = self.softplus2(atom_in_fea + nbr_sumed)
+        return atom_out_fea
 
 
 class CrystalGraphConvNet(nn.Module):
