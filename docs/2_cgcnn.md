@@ -8,7 +8,7 @@ The Crystal Graph Convolutional Neural Network (CGCNN) is a deep learning framew
 
 ## Graph Representation
 
-The main idea in CGCNN is to represent the crystal structure by a crystal graph that encodes both atomic information and bonding interactions between atoms. A crystal graph $\mathcal{G}$ is an udirected multigraph which is defined by nodes representing atoms and edges representing connections between atoms in a crystal.
+The main idea in CGCNN is to represent the crystal structure by a crystal graph that encodes both atomic information and bonding interactions between atoms. A crystal graph $\mathcal{G}$ is an undirected multigraph which is defined by nodes representing atoms and edges representing connections between atoms in a crystal.
 
 Each node $i$ is represented by a feature vector $v_i$, encoding the property of the atom corresponding to node $i$. Similarly, each edge $(i,j)_k$ is represented by a feature vector $u_{(i,j)_k}$ corresponding to the $k$th bond connecting atom $i$ and atom $j$.
 
@@ -70,7 +70,7 @@ $$
 v_c = \text{Pool}(v_0^{(0)}, v_1^{(0)}, \ldots, v_N^{(0)}, \ldots, v_N^{(R)}) \tag{2}
 $$
 
-that satisfies permutational invariance with respect to atom indexing and size invariance with respect to unit cell choice. In this work, a normalized summation is used as the pooling function for simplicity, but other functions can also be used. In addition to the convolutional and pooling layers, two fully connected hidden layers with the depths of $L_1$ and $L_2$ are added to capture the complex mapping between crystal structure and property. Finally, an output layer is used to connect the $L_2$ hidden layer to predict the target property $\hat{y}$.
+that is invariant under permutations of atom indices and independent of the choice of unit cell. In this work, a normalized summation is used as the pooling function for simplicity, but other functions can also be used. In addition to the convolutional and pooling layers, two fully connected hidden layers with the depths of $L_1$ and $L_2$ are added to capture the complex mapping between crystal structure and property. Finally, an output layer is used to connect the $L_2$ hidden layer to predict the target property $\hat{y}$.
 
 ```mermaid
 graph LR
