@@ -195,14 +195,14 @@ class CIFData(Dataset):
     The CIFData dataset is a wrapper for a dataset where the crystal structures
     are stored in the form of CIF files.
 
-    `id_prop.csv`: a CSV file with two columns. The first column recodes a
-    unique ID for each crystal, and the second column recodes the value of
+    `id_prop.csv`: a CSV file with two columns. The first column records a
+    unique ID for each crystal, and the second column records the value of
     target property.
 
     `atom_init.json`: a JSON file that stores the initialization vector for each
     element.
 
-    `ID.cif`: a CIF file that recodes the crystal structure, where ID is the
+    `ID.cif`: a CIF file that records the crystal structure, where ID is the
     unique ID for the crystal.
 
     Args:
@@ -371,7 +371,7 @@ class CIFData_NoTarget(Dataset):
     `atom_init.json`: a JSON file that stores the initialization vector for each
     element.
 
-    `ID.cif`: a CIF file that recodes the crystal structure, where ID is the
+    `ID.cif`: a CIF file that records the crystal structure, where ID is the
     unique ID for the crystal.
 
     Args:
