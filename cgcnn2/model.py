@@ -19,7 +19,7 @@ class ConvLayer(nn.Module):
             atom_fea_len (int): Number of atom hidden features.
             nbr_fea_len (int): Number of bond (neighbor) features.
         """
-        super(ConvLayer, self).__init__()
+        super().__init__()
         self.atom_fea_len = atom_fea_len
         self.nbr_fea_len = nbr_fea_len
         self.fc_full = nn.Linear(
@@ -33,26 +33,22 @@ class ConvLayer(nn.Module):
 
     def forward(self, atom_in_fea, nbr_fea, nbr_fea_idx):
         """
-        Forward pass
+        Forward pass.
 
-        N: Total number of atoms in the batch
-        M: Max number of neighbors
+        `N`: Total number of atoms in the batch
+        `M`: Max number of neighbors
 
         Args:
-            atom_in_fea (torch.Tensor): Variable(torch.Tensor) shape (N, atom_fea_len)
-              Atom hidden features before convolution
-            nbr_fea (torch.Tensor): Variable(torch.Tensor) shape (N, M, nbr_fea_len)
-              Bond features of each atom's M neighbors
-            nbr_fea_idx (torch.LongTensor): shape (N, M)
-              Indices of M neighbors of each atom
+            atom_in_fea (torch.Tensor): Tensor of shape `(N, atom_fea_len)` containing the atom features before convolution.
+            nbr_fea (torch.Tensor): Tensor of shape `(N, M, nbr_fea_len)` holding the bond features for each atom's `M` neighbors.
+            nbr_fea_idx (torch.LongTensor): Tensor of shape `(N, M)` with the indices of the `M` neighbors of each atom.
 
         Returns:
-            atom_out_fea (nn.Variable): shape (N, atom_fea_len)
-              Atom hidden features after convolution
+            atom_out_fea (torch.Tensor): Tensor of shape `(N, atom_fea_len)` with the atom features after convolution.
 
         """
         N, M = nbr_fea_idx.shape
-        # convolution
+        # Convolution
         atom_nbr_fea = atom_in_fea[nbr_fea_idx, :]
         total_nbr_fea = torch.cat(
             [
@@ -71,8 +67,8 @@ class ConvLayer(nn.Module):
         nbr_core = self.softplus1(nbr_core)
         nbr_sumed = torch.sum(nbr_filter * nbr_core, dim=1)
         nbr_sumed = self.bn2(nbr_sumed)
-        out = self.softplus2(atom_in_fea + nbr_sumed)
-        return out
+        atom_out_fea = self.softplus2(atom_in_fea + nbr_sumed)
+        return atom_out_fea
 
 
 class CrystalGraphConvNet(nn.Module):
@@ -103,7 +99,7 @@ class CrystalGraphConvNet(nn.Module):
             n_h (int): Number of hidden layers after pooling
             classification (bool): Whether to use classification or regression
         """
-        super(CrystalGraphConvNet, self).__init__()
+        super().__init__()
         self.classification = classification
         self.embedding = nn.Linear(orig_atom_fea_len, atom_fea_len)
         self.convs = nn.ModuleList(
@@ -137,24 +133,23 @@ class CrystalGraphConvNet(nn.Module):
         crystal_atom_idx: list[torch.LongTensor],
     ):
         """
-        Forward pass
+        Forward pass.
 
-        N: Total number of atoms in the batch
-        M: Max number of neighbors
-        N0: Total number of crystals in the batch
+        `N`: Total number of atoms in the batch
+        `M`: Max number of neighbors
+        `N0`: Total number of crystals in the batch
 
         Args:
-            atom_fea (torch.Tensor): Variable(torch.Tensor) shape (N, orig_atom_fea_len)
-              Atom features from atom type
-            nbr_fea (torch.Tensor): Variable(torch.Tensor) shape (N, M, nbr_fea_len)
-              Bond features of each atom's M neighbors
-            nbr_fea_idx (torch.LongTensor): shape (N, M)
-              Indices of M neighbors of each atom
-            crystal_atom_idx (list of torch.LongTensor): Mapping from the crystal idx to atom idx
+            atom_fea (torch.Tensor): Tensor of shape `(N, orig_atom_fea_len)` containing the atom features from atom type.
+            nbr_fea (torch.Tensor): Tensor of shape `(N, M, nbr_fea_len)` containing the bond features of each atom's `M` neighbors.
+            nbr_fea_idx (torch.LongTensor): Tensor of shape `(N, M)` containing the indices of the `M` neighbors of each atom.
+            crystal_atom_idx (list of torch.LongTensor): Mapping from the crystal index to atom index.
 
         Returns:
-            prediction (nn.Variable): shape (N, )
-              Atom hidden features after convolution
+            out (torch.Tensor):
+                • `(n_crystals, 2)` if `classification=True`, containing log-probabilities.
+                • `(n_crystals, 1)` if `classification=False`, containing the regression output.
+            crys_fea (torch.Tensor): Tensor of shape `(n_crystals, h_fea_len)` containing the pooled crystal embeddings.
 
         """
         atom_fea = self.embedding(atom_fea)
@@ -180,16 +175,11 @@ class CrystalGraphConvNet(nn.Module):
         Aggregate atom features into crystal-level features by mean pooling.
 
         Args:
-            atom_fea (torch.Tensor): shape (N, atom_fea_len)
-                Atom embeddings for all atoms in the batch.
-            crystal_atom_idx (list[torch.LongTensor]):
-                crystal_atom_idx[i] contains the indices of atoms belonging
-                to the i-th crystal.  The concatenated indices must cover
-                every atom exactly once.
+            atom_fea (torch.Tensor): Tensor of shape `(N, atom_fea_len)` containing the atom embeddings for all atoms in the batch.
+            crystal_atom_idx (list[torch.LongTensor]): List of tensors, where `crystal_atom_idx[i]` contains the indices of atoms belonging to the `i`-th crystal. The concatenated indices must cover every atom exactly once.
 
         Returns:
-            mean_fea (torch.Tensor): shape (n_crystals, atom_fea_len)
-                Mean-pooled crystal embeddings.
+            mean_fea (torch.Tensor): Tensor of shape `(n_crystals, atom_fea_len)` containing the mean-pooled crystal embeddings.
         """
         assert sum(len(idx) for idx in crystal_atom_idx) == atom_fea.shape[0]
         mean_fea = torch.stack(
