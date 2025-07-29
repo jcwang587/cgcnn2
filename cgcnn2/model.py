@@ -19,7 +19,7 @@ class ConvLayer(nn.Module):
             atom_fea_len (int): Number of atom hidden features.
             nbr_fea_len (int): Number of bond (neighbor) features.
         """
-        super(ConvLayer, self).__init__()
+        super().__init__()
         self.atom_fea_len = atom_fea_len
         self.nbr_fea_len = nbr_fea_len
         self.fc_full = nn.Linear(
@@ -103,7 +103,7 @@ class CrystalGraphConvNet(nn.Module):
             n_h (int): Number of hidden layers after pooling
             classification (bool): Whether to use classification or regression
         """
-        super(CrystalGraphConvNet, self).__init__()
+        super().__init__()
         self.classification = classification
         self.embedding = nn.Linear(orig_atom_fea_len, atom_fea_len)
         self.convs = nn.ModuleList(
