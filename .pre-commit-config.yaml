@@ -30,5 +30,9 @@ repos:
     rev: v5.0.0
     hooks:
       - id: end-of-file-fixer
-      - id: pretty-format-json
       - id: trailing-whitespace
+      - id: pretty-format-json
+        args:
+          - "--autofix"
+          - "--indent=2"
+          - "--no-sort-keys"
