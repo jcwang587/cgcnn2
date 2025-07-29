@@ -4,11 +4,9 @@
 
 ::: cgcnn2.data
 
-
 <!---## Model Framework-->
 
 ::: cgcnn2.model
-
 
 <!---## Utility Function-->
 

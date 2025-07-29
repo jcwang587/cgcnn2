@@ -15,7 +15,7 @@ Each node $i$ is represented by a feature vector $v_i$, encoding the property of
 The crystal graph is unlike normal graphs since it allows multiple edges between the same pair of end nodes, a characteristic for crystal graphs due to their periodicity, in contrast to molecular graphs.
 
 <div class="grid" markdown>
-<model-viewer 
+<model-viewer
     src="../assets/nacl.glb"
     alt="NaCl Crystal Structure"
     auto-rotate
