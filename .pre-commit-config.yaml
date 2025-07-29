@@ -2,7 +2,6 @@ ci:
   autoupdate_schedule: monthly
   autofix_commit_msg: pre-commit auto-fixes
   autoupdate_commit_msg: pre-commit autoupdate
-
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.2
@@ -11,9 +10,18 @@ repos:
         args: [--fix, --unsafe-fixes]
         language_version: python3.11
       - id: ruff-format
-
   - repo: https://github.com/tox-dev/pyproject-fmt
     rev: "v2.6.0"
     hooks:
-    - id: pyproject-fmt
-
+      - id: pyproject-fmt
+  - repo: https://github.com/google/yamlfmt
+    rev: v0.17.0
+    hooks:
+      - id: yamlfmt
+  - repo: https://github.com/hukkin/mdformat
+    rev: 0.7.22
+    hooks:
+      - id: mdformat
+        additional_dependencies:
+          - mdformat-gfm
+          - mdformat-black
