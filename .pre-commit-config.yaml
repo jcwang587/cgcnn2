@@ -34,5 +34,5 @@ repos:
       - id: pretty-format-json
         args:
           - "--autofix"
-          - "--indent=1"
+          - "--indent=4"
           - "--no-sort-keys"
