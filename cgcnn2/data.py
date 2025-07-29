@@ -177,10 +177,16 @@ class AtomCustomJSONInitializer(AtomInitializer):
     feature vector of the element.
 
     Args:
-        elem_embedding_file (str): The path to the .json file
+        elem_embedding_file (str): The path to the `.json` file
     """
 
     def __init__(self, elem_embedding_file):
+        """
+        Initialize atom feature embeddings from a JSON file mapping element numbers to feature vectors.
+
+        Parameters:
+            elem_embedding_file (str): Path to a JSON file where keys are element numbers and values are feature vectors.
+        """
         with open(elem_embedding_file) as f:
             elem_embedding = json.load(f)
         elem_embedding = {int(key): value for key, value in elem_embedding.items()}
@@ -195,14 +201,14 @@ class CIFData(Dataset):
     The CIFData dataset is a wrapper for a dataset where the crystal structures
     are stored in the form of CIF files.
 
-    id_prop.csv: a CSV file with two columns. The first column recodes a
-    unique ID for each crystal, and the second column recodes the value of
+    `id_prop.csv`: a CSV file with two columns. The first column records a
+    unique ID for each crystal, and the second column records the value of
     target property.
 
-    atom_init.json: a JSON file that stores the initialization vector for each
+    `atom_init.json`: a JSON file that stores the initialization vector for each
     element.
 
-    ID.cif: a CIF file that recodes the crystal structure, where ID is the
+    `ID.cif`: a CIF file that records the crystal structure, where ID is the
     unique ID for the crystal.
 
     Args:
@@ -368,10 +374,10 @@ class CIFData_NoTarget(Dataset):
     The CIFData_NoTarget dataset is a wrapper for a dataset where the crystal
     structures are stored in the form of CIF files.
 
-    atom_init.json: a JSON file that stores the initialization vector for each
+    `atom_init.json`: a JSON file that stores the initialization vector for each
     element.
 
-    ID.cif: a CIF file that recodes the crystal structure, where ID is the
+    `ID.cif`: a CIF file that records the crystal structure, where ID is the
     unique ID for the crystal.
 
     Args:
