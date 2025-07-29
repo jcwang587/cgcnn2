@@ -146,9 +146,9 @@ class CrystalGraphConvNet(nn.Module):
             crystal_atom_idx (list of torch.LongTensor): Mapping from the crystal index to atom index.
 
         Returns:
-            out (torch.Tensor):  
-                • `(n_crystals, 2)` if `classification=True`, containing log-probabilities.  
-                • `(n_crystals, 1)` if `classification=False`, containing the regression output.  
+            out (torch.Tensor):
+                • `(n_crystals, 2)` if `classification=True`, containing log-probabilities.
+                • `(n_crystals, 1)` if `classification=False`, containing the regression output.
             crys_fea (torch.Tensor): Tensor of shape `(n_crystals, h_fea_len)` containing the pooled crystal embeddings.
 
         """
