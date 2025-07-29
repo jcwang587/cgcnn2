@@ -70,7 +70,7 @@ $$
 v_c = \\text{Pool}(v_0^{(0)}, v_1^{(0)}, \\ldots, v_N^{(0)}, \\ldots, v_N^{(R)}) \\tag{2}
 $$
 
-that satisfies permutational invariance with respect to atom indexing and size invariance with respect to unit cell choice. In this work, a normalized summation is used as the pooling function for simplicity, but other functions can also be used. In addition to the convolutional and pooling layers, two fully connected hidden layers with the depths of $L_1$ and $L_2$ are added to capture the complex mapping between crystal structure and property. Finally, an output layer is used to connect the $L_2$ hidden layer to predict the target property $\\hat{y}$.
+that satisfies permutational invariance relative to atom indexing and size invariance relative to unit-cell choice. In this work, a normalized summation is used as the pooling function for simplicity, but other functions can also be used. In addition to the convolutional and pooling layers, two fully connected hidden layers with the depths of $L_1$ and $L_2$ are added to capture the complex mapping between crystal structure and property. Finally, an output layer is used to connect the $L_2$ hidden layer to predict the target property $\\hat{y}$.
 
 ```mermaid
 graph LR
