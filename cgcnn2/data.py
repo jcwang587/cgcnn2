@@ -177,7 +177,7 @@ class AtomCustomJSONInitializer(AtomInitializer):
     feature vector of the element.
 
     Args:
-        elem_embedding_file (str): The path to the .json file
+        elem_embedding_file (str): The path to the `.json` file
     """
 
     def __init__(self, elem_embedding_file):
