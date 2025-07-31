@@ -246,8 +246,8 @@ def plot_hexbin(
             bins="log",
         )
 
-        ax.set_xlabel(xlabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
-        ax.set_ylabel(ylabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
 
         # Keep axes square
         ax.set_box_aspect(1)
@@ -289,7 +289,6 @@ def plot_hexbin(
             transform=ax.transAxes,
             ha="left",
             va="top",
-            fontsize=PLOT_RC_PARAMS["font.size"],
         )
 
         if out_png is not None:
@@ -355,8 +354,8 @@ def plot_scatter(
                 alpha=0.5,
             )
 
-        ax.set_xlabel(xlabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
-        ax.set_ylabel(ylabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
+        ax.set_xlabel(xlabel)
+        ax.set_ylabel(ylabel)
 
         # Keep axes square
         ax.set_box_aspect(1)
@@ -398,7 +397,6 @@ def plot_scatter(
             transform=ax.transAxes,
             ha="left",
             va="top",
-            fontsize=PLOT_RC_PARAMS["font.size"],
         )
 
         if legend_labels is not None:
@@ -493,8 +491,8 @@ def plot_convergence(
             ax2.tick_params(axis="y", colors=colors[1], which="both")
 
         else:
-            ax.set_xlabel(xlabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
-            ax.set_ylabel(ylabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
+            ax.set_xlabel(xlabel)
+            ax.set_ylabel(ylabel)
 
         ax.tick_params(axis="x", rotation=xtick_rotation)
 
