@@ -208,6 +208,7 @@ def plot_hexbin(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
+    ax: plt.Axes | None = None,
     metrics: list[str] = ["mae", "r2"],
     metrics_precision: str = "3f",
     unit: str | None = None,
@@ -221,19 +222,21 @@ def plot_hexbin(
         df (pd.DataFrame): DataFrame containing the true and pred values.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
+        ax (plt.Axes | None): Axes object to plot the hexbin on.
         metrics (list[str]): A list of strings to be displayed in the plot.
         metrics_precision (str): Format string for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the hexbin plot.
 
-    Returns:
-        fig (plt.Figure): The figure object.
-        ax (plt.Axes): The axes object.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
-        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        else:
+            fig = ax.get_figure()
+
         hb = ax.hexbin(
             x="true",
             y="pred",
@@ -291,13 +294,12 @@ def plot_hexbin(
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
 
-    return fig, ax
-
 
 def plot_scatter(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
+    ax: plt.Axes | None = None,
     true_types: list[str] = ["true_train", "true_valid", "true_test"],
     pred_types: list[str] = ["pred_train", "pred_valid", "pred_test"],
     colors: Sequence[str] = (
@@ -322,6 +324,7 @@ def plot_scatter(
         df (pd.DataFrame): DataFrame containing the true and pred values.
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
+        ax (plt.Axes | None): Axes object to plot the scatter on.
         true_types (list[str]): A list of true data types to be displayed in the plot.
         pred_types (list[str]): A list of pred data types to be displayed in the plot.
         colors (Sequence[str]): A list of colors to be used for the data types.
@@ -334,13 +337,13 @@ def plot_scatter(
         unit_scale (float): Scale factor for the unit.
         out_png (str | None): Path of the PNG file in which to save the scatter plot.
 
-    Returns:
-        fig (plt.Figure): The figure object.
-        ax (plt.Axes): The axes object.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
-        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        else:
+            fig = ax.get_figure()
 
         for true_type, pred_type in zip(true_types, pred_types):
             ax.scatter(
@@ -406,13 +409,12 @@ def plot_scatter(
         if out_png is not None:
             plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
 
-    return fig, ax
-
 
 def plot_convergence(
     df: pd.DataFrame,
     xlabel: str,
     ylabel: str,
+    ax: plt.Axes | None = None,
     y2label: str | None = None,
     ylabel_precision: str = "3f",
     y2label_precision: str = "3f",
@@ -427,6 +429,7 @@ def plot_convergence(
         df (pd.DataFrame): DataFrame containing the metrics values.
         xlabel (str): Label for the x-axis (epochs)
         ylabel (str): Label for the y-axis (metric)
+        ax (plt.Axes | None): Axes object to plot the convergence on.
         y2label (str | None): Label for the y2-axis (metric)
         ylabel_precision (str): Format string for the y-axis label.
         y2label_precision (str): Format string for the y2-axis label.
@@ -434,13 +437,13 @@ def plot_convergence(
         xtick_rotation (float): Rotation of the x-axis tick labels.
         out_png (str | None): Path of the PNG file in which to save the convergence plot.
 
-    Returns:
-        fig (plt.Figure): The figure object.
-        ax (plt.Axes): The axes object.
     """
 
     with plt.rc_context(PLOT_RC_PARAMS):
-        fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        if ax is None:
+            fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
+        else:
+            fig = ax.get_figure()
 
         x = df[xlabel]
         y = df[ylabel]
@@ -497,8 +500,6 @@ def plot_convergence(
 
         if out_png is not None:
             fig.savefig(out_png, dpi=300, bbox_inches="tight")
-
-    return fig, ax
 
 
 def cgcnn_test(
