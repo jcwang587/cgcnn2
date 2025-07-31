@@ -235,7 +235,7 @@ def plot_hexbin(
         if ax is None:
             fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         else:
-            fig = ax.get_figure()
+            ax.get_figure()
 
         hb = ax.hexbin(
             x="true",
@@ -343,7 +343,7 @@ def plot_scatter(
         if ax is None:
             fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         else:
-            fig = ax.get_figure()
+            ax.get_figure()
 
         for true_type, pred_type in zip(true_types, pred_types):
             ax.scatter(
