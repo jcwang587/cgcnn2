@@ -214,7 +214,7 @@ def plot_hexbin(
     unit: str | None = None,
     unit_scale: float = 1.0,
     out_png: str | None = None,
-) -> tuple[plt.Figure, plt.Axes]:
+) -> None:
     """
     Create a hexbin plot and save it to a file.
 
@@ -317,7 +317,7 @@ def plot_scatter(
     unit: str | None = None,
     unit_scale: float = 1.0,
     out_png: str | None = None,
-) -> tuple[plt.Figure, plt.Axes]:
+) -> None:
     """
     Create a scatter plot and save it to a file.
 
@@ -423,7 +423,7 @@ def plot_convergence(
     colors: Sequence[str] = ("#137DC5", "#BF1922"),
     xtick_rotation: float = 0,
     out_png: str | None = None,
-) -> tuple[plt.Figure, plt.Axes]:
+) -> None:
     """
     Create a convergence plot and save it to a file.
 
