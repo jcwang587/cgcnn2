@@ -10,12 +10,12 @@ There are three main modules available in the package:
 
 - `cgcnn2.data`: For loading and preprocessing the data.
 - `cgcnn2.model`: Building blocks for the CGCNN model.
-- `cgcnn2.util`: Some utility functions.
+- `cgcnn2.utils`: Some utility functions.
 
 ```python
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.util import cgcnn_test
+from cgcnn2.utils import cgcnn_test
 ```
 
 ### 2. Data Preparation
