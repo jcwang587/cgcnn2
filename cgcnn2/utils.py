@@ -289,6 +289,7 @@ def plot_hexbin(
             transform=ax.transAxes,
             ha="left",
             va="top",
+            fontsize=PLOT_RC_PARAMS["font.size"],
         )
 
         if out_png is not None:
@@ -397,6 +398,7 @@ def plot_scatter(
             transform=ax.transAxes,
             ha="left",
             va="top",
+            fontsize=PLOT_RC_PARAMS["font.size"],
         )
 
         if legend_labels is not None:
