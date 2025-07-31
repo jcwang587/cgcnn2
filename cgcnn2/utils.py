@@ -246,8 +246,8 @@ def plot_hexbin(
             bins="log",
         )
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
+        ax.set_ylabel(ylabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
 
         # Keep axes square
         ax.set_box_aspect(1)
@@ -355,8 +355,8 @@ def plot_scatter(
                 alpha=0.5,
             )
 
-        ax.set_xlabel(xlabel)
-        ax.set_ylabel(ylabel)
+        ax.set_xlabel(xlabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
+        ax.set_ylabel(ylabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
 
         # Keep axes square
         ax.set_box_aspect(1)
@@ -493,8 +493,8 @@ def plot_convergence(
             ax2.tick_params(axis="y", colors=colors[1], which="both")
 
         else:
-            ax.set_xlabel(xlabel)
-            ax.set_ylabel(ylabel)
+            ax.set_xlabel(xlabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
+            ax.set_ylabel(ylabel, fontsize=PLOT_RC_PARAMS["axes.labelsize"])
 
         ax.tick_params(axis="x", rotation=xtick_rotation)
 
