@@ -5,7 +5,7 @@ requires = [ "uv-build>=0.7.10" ]
 
 [project]
 name = "cgcnn2"
-version = "0.5.1"
+version = "0.5.2"
 description = "Reproduction of Crystal Graph Convolutional Neural Networks"
 readme = "README.md"
 keywords = [ "computational-materials", "fine-tuning", "graph-model", "python" ]
