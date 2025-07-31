@@ -213,6 +213,7 @@ def plot_hexbin(
     metrics_precision: str = "3f",
     unit: str | None = None,
     unit_scale: float = 1.0,
+    subfigure_label: str | None = None,
     out_png: str | None = None,
 ) -> None:
     """
@@ -227,6 +228,7 @@ def plot_hexbin(
         metrics_precision (str): Format string for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
+        subfigure_label (str | None): Label for the subfigure.
         out_png (str | None): Path of the PNG file in which to save the hexbin plot.
 
     """
@@ -281,6 +283,9 @@ def plot_hexbin(
 
         # Compute requested metrics
         text = metrics_text(df, metrics, metrics_precision, unit, unit_scale)
+
+        if subfigure_label is not None:
+            text = f"{subfigure_label}\n{text}"
 
         ax.text(
             0.025,
