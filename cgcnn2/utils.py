@@ -213,6 +213,7 @@ def plot_hexbin(
     metrics_precision: str = "3f",
     unit: str | None = None,
     unit_scale: float = 1.0,
+    subfigure_label: str | None = None,
     out_png: str | None = None,
 ) -> None:
     """
@@ -227,6 +228,7 @@ def plot_hexbin(
         metrics_precision (str): Format string for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
+        subfigure_label (str | None): Label for the subfigure.
         out_png (str | None): Path of the PNG file in which to save the hexbin plot.
 
     """
@@ -282,6 +284,9 @@ def plot_hexbin(
         # Compute requested metrics
         text = metrics_text(df, metrics, metrics_precision, unit, unit_scale)
 
+        if subfigure_label is not None:
+            text = f"{subfigure_label}\n{text}"
+
         ax.text(
             0.025,
             0.975,
@@ -315,6 +320,7 @@ def plot_scatter(
     metrics_precision: str = "3f",
     unit: str | None = None,
     unit_scale: float = 1.0,
+    subfigure_label: str | None = None,
     out_png: str | None = None,
 ) -> None:
     """
@@ -335,6 +341,7 @@ def plot_scatter(
         metrics_precision (str): Format string for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
+        subfigure_label (str | None): Label for the subfigure.
         out_png (str | None): Path of the PNG file in which to save the scatter plot.
 
     """
@@ -390,6 +397,9 @@ def plot_scatter(
         # Compute requested metrics
         text = metrics_text(df_metrics, metrics, metrics_precision, unit, unit_scale)
 
+        if subfigure_label is not None:
+            text = f"{subfigure_label}\n{text}"
+
         ax.text(
             0.025,
             0.975,
@@ -420,6 +430,7 @@ def plot_convergence(
     y2label_precision: str = "3f",
     colors: Sequence[str] = ("#137DC5", "#BF1922"),
     xtick_rotation: float = 0,
+    subfigure_label: str | None = None,
     out_png: str | None = None,
 ) -> None:
     """
@@ -435,6 +446,7 @@ def plot_convergence(
         y2label_precision (str): Format string for the y2-axis label.
         colors (Sequence[str]): Colors for the lines.
         xtick_rotation (float): Rotation of the x-axis tick labels.
+        subfigure_label (str | None): Label for the subfigure.
         out_png (str | None): Path of the PNG file in which to save the convergence plot.
 
     """
@@ -497,6 +509,16 @@ def plot_convergence(
         ax.tick_params(axis="x", rotation=xtick_rotation)
 
         ax.grid(True, which="major", alpha=0.3)
+
+        if subfigure_label is not None:
+            ax.text(
+                0.025,
+                0.975,
+                subfigure_label,
+                transform=ax.transAxes,
+                ha="left",
+                va="top",
+            )
 
         if out_png is not None:
             fig.savefig(out_png, dpi=300, bbox_inches="tight")
