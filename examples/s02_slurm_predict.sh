@@ -7,8 +7,8 @@
 #SBATCH --mem=20G
 #SBATCH --time=24:00:00
 #SBATCH --job-name=cgcnn2
-#SBATCH --output stdout.%j
-#SBATCH --error stderr.%j
+#SBATCH --output output_%j/stdout.%j
+#SBATCH --error output_%j/stderr.%j
 #SBATCH --partition=gpu
 
 #######################################################################
@@ -31,8 +31,5 @@ srun --unbuffered cgcnn-pr \
 	--full-set $FULLSET \
 	--job-id $SLURM_JOB_ID \
 	--random-seed 42
-
-mv stdout.${SLURM_JOB_ID} $OUTDIR
-mv stderr.${SLURM_JOB_ID} $OUTDIR
 
 exit 0
