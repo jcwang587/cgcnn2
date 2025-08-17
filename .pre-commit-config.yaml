@@ -40,3 +40,10 @@ repos:
     rev: v1.17.1
     hooks:
       - id: mypy
+  - repo: local
+    hooks:
+    - id: ty-check
+      name: ty check
+      entry: ty check
+      language: python
+      additional_dependencies: [ty]
