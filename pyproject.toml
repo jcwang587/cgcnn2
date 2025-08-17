@@ -101,5 +101,10 @@ module-root = ""
 source-exclude = [ "dev/**" ]
 wheel-exclude = [ "dev/**" ]
 
-[tool.ty.environment]
-python = ".venv"
+[tool.ty.rules]
+unresolved-import = "ignore"
+unresolved-attribute = "ignore"
+missing-argument = "ignore"
+
+[dependency-groups]
+dev = ["pre-commit>=4.3.0", "ty>=0.0.1a18"]
