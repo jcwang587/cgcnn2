@@ -100,3 +100,6 @@ module-name = "cgcnn2"
 module-root = ""
 source-exclude = [ "dev/**" ]
 wheel-exclude = [ "dev/**" ]
+
+[tool.ty.environment]
+python = ".venv"
