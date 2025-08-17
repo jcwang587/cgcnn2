@@ -44,6 +44,9 @@ scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 homepage = "https://github.com/jcwang-dev/cgcnn2/"
 repository = "https://github.com/jcwang-dev/cgcnn2/"
 
+[dependency-groups]
+dev = [ "pre-commit>=4.3", "ty>=0.0.1a18" ]
+
 [tool.ruff]
 target-version = "py311"
 
@@ -105,6 +108,3 @@ wheel-exclude = [ "dev/**" ]
 unresolved-import = "ignore"
 unresolved-attribute = "ignore"
 missing-argument = "ignore"
-
-[dependency-groups]
-dev = ["pre-commit>=4.3.0", "ty>=0.0.1a18"]
