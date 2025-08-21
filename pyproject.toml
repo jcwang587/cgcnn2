@@ -12,7 +12,7 @@ keywords = [ "computational-materials", "fine-tuning", "graph-model", "python" ]
 license = { text = "MIT" }
 maintainers = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
 authors = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
@@ -20,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 
 dependencies = [
@@ -29,20 +30,19 @@ dependencies = [
   "pymatgen>=2025.1.9",
   "torch>=2.2",
 ]
-optional-dependencies.dev = [
-  "pytest>=8.3",
-  "pytest-cov>=6",
-]
-scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
+urls.homepage = "https://github.com/jcwang-dev/cgcnn2/"
+urls.repository = "https://github.com/jcwang-dev/cgcnn2/"
 # pymatgen tracks the first release of the current year
 # torch tracks the first release of the last year
 
+scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 scripts.cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 scripts.cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
 scripts.cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
-homepage = "https://github.com/jcwang-dev/cgcnn2/"
-repository = "https://github.com/jcwang-dev/cgcnn2/"
+
+[dependency-groups]
+dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.1a18" ]
 
 [tool.ruff]
 target-version = "py311"
@@ -93,10 +93,18 @@ lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 column_width = 120
 indent = 2
 keep_full_version = false
-max_supported_python = "3.12"
+max_supported_python = "3.13"
 
 [tool.uv.build-backend]
 module-name = "cgcnn2"
 module-root = ""
 source-exclude = [ "dev/**" ]
 wheel-exclude = [ "dev/**" ]
+
+[tool.ty.environment]
+python = ".venv"
+
+[tool.ty.rules]
+unresolved-import = "error"
+unresolved-attribute = "error"
+missing-argument = "error"

@@ -5,3 +5,8 @@ __pycache__
 .ruff_cache
 stdout_*
 stderr_*
+.venv/
+.env/
+.tox/
+build/
+dist/

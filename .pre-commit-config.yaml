@@ -2,6 +2,7 @@ ci:
   autoupdate_schedule: monthly
   autofix_commit_msg: pre-commit auto-fixes
   autoupdate_commit_msg: pre-commit autoupdate
+  skip: [ty-check]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.12.7
@@ -40,3 +41,12 @@ repos:
     rev: v1.17.1
     hooks:
       - id: mypy
+  - repo: local
+    hooks:
+      - id: ty-check
+        name: ty check
+        entry: ty check .
+        language: python
+        language_version: python3.11
+        additional_dependencies: [ty]
+        pass_filenames: false

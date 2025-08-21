@@ -19,13 +19,15 @@ jobs:
       contents: write
       pull-requests: write
       id-token: write
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13"]
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
+        with: {python-version: "3.13"}
       - name: Generate changelog
         uses: rhysd/changelog-from-release/action@v3
         with:
