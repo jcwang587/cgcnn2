@@ -2,27 +2,27 @@ from __future__ import annotations
 
 import argparse
 import csv
+from datetime import datetime
 import glob
 import logging
 import os
+from pathlib import Path
 import random
 import sys
 import tomllib
-from datetime import datetime
-from pathlib import Path
-from typing import Any, Sequence
+from typing import Any, Optional, Sequence
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 import numpy as np
 import pandas as pd
-import torch
-from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
+import torch
 from torch.utils.data import DataLoader
-from typing import Optional
 from torch.version import cuda as _torch_cuda_version
+
 import cgcnn2
 
 from .data import CIFData_NoTarget, collate_pool

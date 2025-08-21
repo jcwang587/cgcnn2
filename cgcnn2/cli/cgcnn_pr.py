@@ -4,6 +4,8 @@ import os
 import sys
 
 import torch
+from torch.utils.data import DataLoader
+
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.utils import (
@@ -12,7 +14,6 @@ from cgcnn2.utils import (
     seed_everything,
     setup_logging,
 )
-from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):

@@ -2,10 +2,10 @@ import io
 import json
 import warnings
 
-import numpy as np
-import torch
 from line_profiler import LineProfiler
+import numpy as np
 from pymatgen.core import Structure
+import torch
 
 
 class AtomInitializer(object):

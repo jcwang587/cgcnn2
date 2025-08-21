@@ -1,16 +1,17 @@
 import argparse
 import logging
 import os
-import sys
 from pprint import pformat
 from random import sample
+import sys
 
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
+
 from cgcnn2.data import CIFData, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.utils import Normalizer, cgcnn_test, get_lr, seed_everything, setup_logging
-from torch.utils.data import DataLoader
 
 
 def parse_arguments(args=None):
