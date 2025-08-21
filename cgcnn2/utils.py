@@ -21,7 +21,8 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 from pymatgen.analysis.structure_matcher import StructureMatcher
 from pymatgen.core.structure import Structure
 from torch.utils.data import DataLoader
-
+from typing import Optional
+from torch.version import cuda as _torch_cuda_version
 import cgcnn2
 
 from .data import CIFData_NoTarget, collate_pool
@@ -65,9 +66,12 @@ def setup_logging() -> None:
     )
     logging.captureWarnings(True)
 
+    torch_ver: str = getattr(torch, "__version__", "unknown")
+    cuda_ver: Optional[str] = _torch_cuda_version
+
     logging.info(f"cgcnn2 version: {cgcnn2.__version__}")
-    logging.info(f"cuda version: {torch.version.cuda}")
-    logging.info(f"torch version: {torch.__version__}")
+    logging.info(f"cuda version: {cuda_ver}")
+    logging.info(f"torch version: {torch_ver}")
 
 
 def get_local_version() -> str:

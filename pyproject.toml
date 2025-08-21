@@ -93,7 +93,7 @@ lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 column_width = 120
 indent = 2
 keep_full_version = false
-max_supported_python = "3.12"
+max_supported_python = "3.13"
 
 [tool.uv.build-backend]
 module-name = "cgcnn2"
@@ -101,7 +101,10 @@ module-root = ""
 source-exclude = [ "dev/**" ]
 wheel-exclude = [ "dev/**" ]
 
+[tool.ty.environment]
+python = ".venv"
+
 [tool.ty.rules]
-unresolved-import = "ignore"
-unresolved-attribute = "ignore"
+unresolved-import = "error"
+unresolved-attribute = "error"
 missing-argument = "error"

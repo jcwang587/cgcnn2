@@ -17,6 +17,8 @@ from cgcnn2.utils import (
     setup_logging,
 )
 from torch.utils.data import DataLoader
+from typing import Optional
+from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 def parse_arguments(args=None):
@@ -416,7 +418,7 @@ def main():
     )
 
     # Initialize the scheduler
-    scheduler = None
+    scheduler: Optional[ReduceLROnPlateau] = None
 
     # Define the loss function
     criterion = nn.MSELoss(reduction="none")
@@ -425,7 +427,7 @@ def main():
     if args.lr_patience:
         lr_patience = int(float(args.lr_patience))
         factor = float(args.lr_factor)
-        scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        scheduler = ReduceLROnPlateau(
             optimizer, mode="min", factor=factor, patience=int(lr_patience)
         )
         logging.info(
@@ -505,7 +507,7 @@ def main():
         avg_train_loss = train_loss / len(train_loader)
         avg_valid_loss = valid_loss / len(valid_loader)
 
-        if args.lr_patience:
+        if scheduler is not None:
             scheduler.step(avg_valid_loss)
 
         lr = get_lr(optimizer)
