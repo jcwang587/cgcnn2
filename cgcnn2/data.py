@@ -8,13 +8,13 @@ import os
 import random
 import shutil
 import tempfile
-import warnings
 from typing import Optional
+import warnings
 
 import numpy as np
 import pandas as pd
-import torch
 from pymatgen.core.structure import Structure
+import torch
 from torch.utils.data import Dataset
 
 

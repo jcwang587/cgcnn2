@@ -1,11 +1,15 @@
 import argparse
 import logging
 import os
-import sys
 from pprint import pformat
+import sys
+from typing import Optional
 
 import torch
 import torch.nn as nn
+from torch.optim.lr_scheduler import ReduceLROnPlateau
+from torch.utils.data import DataLoader
+
 from cgcnn2.data import CIFData, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.utils import (
@@ -16,9 +20,6 @@ from cgcnn2.utils import (
     seed_everything,
     setup_logging,
 )
-from torch.utils.data import DataLoader
-from typing import Optional
-from torch.optim.lr_scheduler import ReduceLROnPlateau
 
 
 def parse_arguments(args=None):
