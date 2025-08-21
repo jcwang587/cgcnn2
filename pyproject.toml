@@ -12,7 +12,7 @@ keywords = [ "computational-materials", "fine-tuning", "graph-model", "python" ]
 license = { text = "MIT" }
 maintainers = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
 authors = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 classifiers = [
   "Development Status :: 1 - Planning",
   "Intended Audience :: Science/Research",
@@ -20,6 +20,7 @@ classifiers = [
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
 ]
 
 dependencies = [
@@ -41,7 +42,7 @@ scripts.cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 
 [dependency-groups]
-dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ty>=0.0.1a18" ]
+dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.1a18" ]
 
 [tool.ruff]
 target-version = "py311"
@@ -103,4 +104,4 @@ wheel-exclude = [ "dev/**" ]
 [tool.ty.rules]
 unresolved-import = "ignore"
 unresolved-attribute = "ignore"
-missing-argument = "ignore"
+missing-argument = "error"
