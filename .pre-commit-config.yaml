@@ -44,6 +44,8 @@ repos:
     hooks:
       - id: ty-check
         name: ty check
-        entry: ty check
+        entry: ty check .
         language: python
+        language_version: python3.11
         additional_dependencies: [ty]
+        pass_filenames: false
