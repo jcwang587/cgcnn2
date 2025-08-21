@@ -29,23 +29,19 @@ dependencies = [
   "pymatgen>=2025.1.9",
   "torch>=2.2",
 ]
-optional-dependencies.dev = [
-  "pytest>=8.3",
-  "pytest-cov>=6",
-]
-scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
+urls.homepage = "https://github.com/jcwang-dev/cgcnn2/"
+urls.repository = "https://github.com/jcwang-dev/cgcnn2/"
 # pymatgen tracks the first release of the current year
 # torch tracks the first release of the last year
 
+scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 scripts.cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 scripts.cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
 scripts.cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
-homepage = "https://github.com/jcwang-dev/cgcnn2/"
-repository = "https://github.com/jcwang-dev/cgcnn2/"
 
 [dependency-groups]
-dev = [ "pre-commit>=4.3", "ty>=0.0.1a18" ]
+dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ty>=0.0.1a18" ]
 
 [tool.ruff]
 target-version = "py311"
