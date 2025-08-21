@@ -45,7 +45,7 @@ scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.1a18" ]
 
 [tool.ruff]
-target-version = "py311"
+target-version = "py313"
 
 line-length = 88
 indent-width = 4
