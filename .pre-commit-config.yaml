@@ -5,22 +5,22 @@ ci:
   skip: [ty-check]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.7
+    rev: v0.14.3
     hooks:
       - id: ruff
         args: [--fix, --unsafe-fixes]
         language_version: python3.11
       - id: ruff-format
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "v2.6.0"
+    rev: "v2.11.0"
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/google/yamlfmt
-    rev: v0.17.2
+    rev: v0.20.0
     hooks:
       - id: yamlfmt
   - repo: https://github.com/hukkin/mdformat
-    rev: 0.7.22
+    rev: 1.0.0
     hooks:
       - id: mdformat
         additional_dependencies:
@@ -28,7 +28,7 @@ repos:
           - mdformat-black
           - mdformat-myst
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: end-of-file-fixer
       - id: trailing-whitespace
@@ -38,7 +38,7 @@ repos:
           - "--indent=4"
           - "--no-sort-keys"
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.17.1
+    rev: v1.18.2
     hooks:
       - id: mypy
   - repo: local
