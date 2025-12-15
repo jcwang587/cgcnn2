@@ -1,7 +1,6 @@
 <a id="v0.5.3"></a>
 ## [v0.5.3](https://github.com/jcwang587/cgcnn2/releases/tag/v0.5.3) - 2025-12-15
 
-## What's Changed
 * simplify examples by [@jcwang587](https://github.com/jcwang587) in [#125](https://github.com/jcwang587/cgcnn2/pull/125)
 * Add a local `ty` pre-commit hook to run static checks by [@jcwang587](https://github.com/jcwang587) in [#126](https://github.com/jcwang587/cgcnn2/pull/126)
 * Add `ruff`’s `isort` rules by [@jcwang587](https://github.com/jcwang587) in [#127](https://github.com/jcwang587/cgcnn2/pull/127)
