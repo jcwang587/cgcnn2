@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+    <url>
+         <loc>https://jcwang-dev.github.io/cgcnn2/</loc>
+         <lastmod>2025-12-15</lastmod>
+    </url>
+    <url>
+         <loc>https://jcwang-dev.github.io/cgcnn2/1_installation/</loc>
+         <lastmod>2025-12-15</lastmod>
+    </url>
+    <url>
+         <loc>https://jcwang-dev.github.io/cgcnn2/2_cgcnn/</loc>
+         <lastmod>2025-12-15</lastmod>
+    </url>
+    <url>
+         <loc>https://jcwang-dev.github.io/cgcnn2/3_usage/</loc>
+         <lastmod>2025-12-15</lastmod>
+    </url>
+    <url>
+         <loc>https://jcwang-dev.github.io/cgcnn2/4_examples/</loc>
+         <lastmod>2025-12-15</lastmod>
+    </url>
+    <url>
+         <loc>https://jcwang-dev.github.io/cgcnn2/5_api_reference/</loc>
+         <lastmod>2025-12-15</lastmod>
+    </url>
+    <url>
+         <loc>https://jcwang-dev.github.io/cgcnn2/changelog/</loc>
+         <lastmod>2025-12-15</lastmod>
+    </url>
+</urlset>
