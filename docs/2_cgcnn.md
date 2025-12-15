@@ -4,7 +4,7 @@
 
 ## Introduction
 
-The Crystal Graph Convolutional Neural Network (CGCNN) is a deep learning framework designed for predicting material properties based on their crystal structures. It was introduced in the paper ["Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties"](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301).
+The Crystal Graph Convolutional Neural Network (CGCNN) is a deep learning framework designed for predicting material properties based on their crystal structures. It was introduced in the paper ["Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties"](https://dx.doi.org/10.1103/PhysRevLett.120.145301).
 
 ## Graph Representation
 
@@ -103,5 +103,5 @@ where:
 
 ## References
 
-1. [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301)
+1. [Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties](https://dx.doi.org/10.1103/PhysRevLett.120.145301)
 1. [CGCNN GitHub Repository](https://github.com/txie-93/cgcnn)
