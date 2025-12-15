@@ -6,8 +6,8 @@ This directory includes several pre-trained CGCNN models that one can use to pre
 
 ### Regression
 
-| File                        | Property         | Units    | Data Ref.                                           | Model Ref.                                                      |
-| --------------------------- | ---------------- | -------- | --------------------------------------------------- | --------------------------------------------------------------- |
+| File                        | Property         | Units    | Data Ref.                                                      | Model Ref.                                                                         |
+| --------------------------- | ---------------- | -------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `formation-energy-per-atom` | Formation Energy | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
 | `final-energy-per-atom`     | Absolute Energy  | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
 | `band-gap`                  | Band Gap         | eV       | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
@@ -18,8 +18,8 @@ This directory includes several pre-trained CGCNN models that one can use to pre
 
 ### Classification
 
-| File                        | Positive | Negative      | Data Ref.                                           | Model Ref.                                                      |
-| --------------------------- | -------- | ------------- | --------------------------------------------------- | --------------------------------------------------------------- |
+| File                        | Positive | Negative      | Data Ref.                                                      | Model Ref.                                                                         |
+| --------------------------- | -------- | ------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
 | `semi-metal-classification` | Metal    | Semiconductor | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
 
 ## Before using pre-trained models
