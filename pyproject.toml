@@ -1,6 +1,5 @@
 [build-system]
 build-backend = "uv_build"
-
 requires = [ "uv-build>=0.7.10" ]
 
 [project]
@@ -22,7 +21,6 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
 ]
-
 dependencies = [
   "matplotlib",
   "numpy",
@@ -34,7 +32,6 @@ urls.homepage = "https://github.com/jcwang-dev/cgcnn2/"
 urls.repository = "https://github.com/jcwang-dev/cgcnn2/"
 # pymatgen tracks the first release of the current year
 # torch tracks the first release of the last year
-
 scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 scripts.cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 scripts.cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
@@ -44,15 +41,14 @@ scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 [dependency-groups]
 dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.1a18" ]
 
-[tool.uv.build-backend]
-module-name = "cgcnn2"
-module-root = ""
-source-exclude = [ "dev/**" ]
-wheel-exclude = [ "dev/**" ]
+[tool.uv]
+build-backend.module-name = "cgcnn2"
+build-backend.module-root = ""
+build-backend.source-exclude = [ "dev/**" ]
+build-backend.wheel-exclude = [ "dev/**" ]
 
 [tool.ruff]
 target-version = "py313"
-
 line-length = 88
 indent-width = 4
 exclude = [
@@ -90,11 +86,10 @@ format.skip-magic-trailing-comma = false
 format.docstring-code-line-length = "dynamic"
 format.docstring-code-format = false
 lint.select = [ "E4", "E7", "E9", "F", "I" ]
-lint.ignore = [  ]
+lint.ignore = []
 lint.fixable = [ "ALL" ]
-lint.unfixable = [  ]
+lint.unfixable = []
 lint.dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
-
 lint.isort.combine-as-imports = true
 lint.isort.force-sort-within-sections = true
 lint.isort.known-first-party = [ "cgcnn2" ]
@@ -105,10 +100,8 @@ indent = 2
 keep_full_version = false
 max_supported_python = "3.13"
 
-[tool.ty.environment]
-python = ".venv"
-
-[tool.ty.rules]
-unresolved-import = "error"
-unresolved-attribute = "error"
-missing-argument = "error"
+[tool.ty]
+environment.python = ".venv"
+rules.unresolved-import = "error"
+rules.unresolved-attribute = "error"
+rules.missing-argument = "error"
