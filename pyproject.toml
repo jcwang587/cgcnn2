@@ -102,6 +102,6 @@ max_supported_python = "3.13"
 
 [tool.ty]
 environment.python = ".venv"
-rules.unresolved-import = "error"
-rules.unresolved-attribute = "error"
 rules.missing-argument = "error"
+rules.unresolved-attribute = "error"
+rules.unresolved-import = "error"
