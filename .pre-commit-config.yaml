@@ -5,18 +5,18 @@ ci:
   skip: [ty]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.7
+    rev: v0.15.15
     hooks:
       - id: ruff-check
         args: [--fix, --unsafe-fixes]
         language_version: python3.11
       - id: ruff-format
   - repo: https://github.com/tox-dev/pyproject-fmt
-    rev: "v2.11.1"
+    rev: "v2.23.0"
     hooks:
       - id: pyproject-fmt
   - repo: https://github.com/google/yamlfmt
-    rev: v0.20.0
+    rev: v0.21.0
     hooks:
       - id: yamlfmt
   - repo: https://github.com/hukkin/mdformat
@@ -38,7 +38,7 @@ repos:
           - "--indent=4"
           - "--no-sort-keys"
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.19.0
+    rev: v2.1.0
     hooks:
       - id: mypy
   - repo: https://github.com/astral-sh/ty-pre-commit
