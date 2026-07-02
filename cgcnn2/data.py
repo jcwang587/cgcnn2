@@ -8,7 +8,6 @@ import os
 import random
 import shutil
 import tempfile
-from typing import Optional
 import warnings
 
 import numpy as np
@@ -24,11 +23,12 @@ def collate_pool(dataset_list):
 
     Args:
         dataset_list (list of tuples): List of tuples for each data point. Each tuple contains:
-        atom_fea (torch.Tensor): shape (n_i, atom_fea_len) Atom features for each atom in the crystal
-        nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len) Bond features for each atom's M neighbors
-        nbr_fea_idx (torch.LongTensor): shape (n_i, M) Indices of M neighbors of each atom
-        target (torch.Tensor): shape (1, ) Target value for prediction
-        cif_id (str or int) Unique ID for the crystal
+
+            - atom_fea (torch.Tensor): shape (n_i, atom_fea_len) Atom features for each atom in the crystal
+            - nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len) Bond features for each atom's M neighbors
+            - nbr_fea_idx (torch.LongTensor): shape (n_i, M) Indices of M neighbors of each atom
+            - target (torch.Tensor): shape (1, ) Target value for prediction
+            - cif_id (str or int): Unique ID for the crystal
 
     Returns:
         batch_atom_fea (torch.Tensor): shape (N, orig_atom_fea_len) Atom features from atom type
@@ -48,7 +48,7 @@ def collate_pool(dataset_list):
         batch_atom_fea.append(atom_fea)
         batch_nbr_fea.append(nbr_fea)
         batch_nbr_fea_idx.append(nbr_fea_idx + base_idx)
-        new_idx = torch.LongTensor(np.arange(n_i) + base_idx)
+        new_idx = torch.arange(base_idx, base_idx + n_i, dtype=torch.long)
         crystal_atom_idx.append(new_idx)
         batch_target.append(target)
         batch_cif_ids.append(cif_id)
@@ -255,7 +255,7 @@ class CIFData(Dataset):
         self.cache_size = cache_size
         self._configure_cache()
 
-    def set_cache_size(self, cache_size: Optional[int]) -> None:
+    def set_cache_size(self, cache_size: int | None) -> None:
         """
         Change the LRU-cache capacity on the fly.
 
@@ -302,16 +302,15 @@ class CIFData(Dataset):
                 for i in range(len(crystal))
             ]
         )
-        atom_fea = torch.Tensor(atom_fea)
         all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
         all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
         nbr_fea_idx, nbr_fea = [], []
         for nbr in all_nbrs:
             if len(nbr) < self.max_num_nbr:
                 warnings.warn(
-                    "{} not find enough neighbors to build graph. "
+                    f"{cif_id} not find enough neighbors to build graph. "
                     "If it happens frequently, consider increase "
-                    "radius.".format(cif_id),
+                    "radius.",
                     stacklevel=2,
                 )
                 nbr_fea_idx.append(
@@ -326,10 +325,10 @@ class CIFData(Dataset):
                 nbr_fea.append(list(map(lambda x: x[1], nbr[: self.max_num_nbr])))
         nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
         nbr_fea = self.gdf.expand(nbr_fea)
-        atom_fea = torch.Tensor(atom_fea)
-        nbr_fea = torch.Tensor(nbr_fea)
-        nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
-        target = torch.Tensor([float(target)])
+        atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
+        nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
+        nbr_fea_idx = torch.as_tensor(nbr_fea_idx, dtype=torch.long)
+        target = torch.tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
     def _load_item_fast(self, idx):
@@ -341,7 +340,7 @@ class CIFData(Dataset):
                 for i in range(len(crystal))
             ]
         )
-        atom_fea = torch.Tensor(atom_fea)
+        atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
         center_idx, neigh_idx, _images, dists = crystal.get_neighbor_list(self.radius)
         n_sites = len(crystal)
         bucket = [[] for _ in range(n_sites)]
@@ -364,7 +363,7 @@ class CIFData(Dataset):
             nbr_fea.append(dvec + [self.radius + 1.0] * pad)
         nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
         nbr_fea = self.gdf.expand(np.array(nbr_fea))
-        nbr_fea = torch.Tensor(nbr_fea)
+        nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
         target = torch.tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
@@ -414,12 +413,18 @@ class CIFData_NoTarget(Dataset):
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+        # Per-instance cache: decorating `__getitem__` directly would keep a
+        # class-level cache that holds every instance alive for the process
+        # lifetime.
+        self._cache_load = functools.lru_cache(maxsize=None)(self._load_item)
 
     def __len__(self):
         return len(self.id_prop_data)
 
-    @functools.lru_cache(maxsize=None)  # Cache loaded structures
     def __getitem__(self, idx):
+        return self._cache_load(idx)
+
+    def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
         atom_fea = np.vstack(
@@ -428,16 +433,15 @@ class CIFData_NoTarget(Dataset):
                 for i in range(len(crystal))
             ]
         )
-        atom_fea = torch.Tensor(atom_fea)
         all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
         all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
         nbr_fea_idx, nbr_fea = [], []
         for nbr in all_nbrs:
             if len(nbr) < self.max_num_nbr:
                 warnings.warn(
-                    "{} not find enough neighbors to build graph. "
+                    f"{cif_id} not find enough neighbors to build graph. "
                     "If it happens frequently, consider increase "
-                    "radius.".format(cif_id),
+                    "radius.",
                     stacklevel=2,
                 )
                 nbr_fea_idx.append(
@@ -452,10 +456,10 @@ class CIFData_NoTarget(Dataset):
                 nbr_fea.append(list(map(lambda x: x[1], nbr[: self.max_num_nbr])))
         nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
         nbr_fea = self.gdf.expand(nbr_fea)
-        atom_fea = torch.Tensor(atom_fea)
-        nbr_fea = torch.Tensor(nbr_fea)
-        nbr_fea_idx = torch.LongTensor(nbr_fea_idx)
-        target = torch.Tensor([float(target)])
+        atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
+        nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
+        nbr_fea_idx = torch.as_tensor(nbr_fea_idx, dtype=torch.long)
+        target = torch.tensor([float(target)])
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
@@ -487,7 +491,7 @@ def full_set_split(
         names=["cif_id", "property"],
     )
 
-    rng = np.random.RandomState(random_seed)
+    rng = np.random.default_rng(random_seed)
     df_shuffle = df.sample(frac=1.0, random_state=rng).reset_index(drop=True)
 
     n_total = len(df_shuffle)

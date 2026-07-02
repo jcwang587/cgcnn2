@@ -1,7 +1,7 @@
 [build-system]
 build-backend = "uv_build"
 
-requires = [ "uv-build>=0.7.10" ]
+requires = [ "uv-build>=0.7.10,<0.12" ]
 
 [project]
 name = "cgcnn2"
@@ -12,26 +12,28 @@ keywords = [ "computational-materials", "fine-tuning", "graph-model", "python" ]
 license = { text = "MIT" }
 maintainers = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
 authors = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
-requires-python = ">=3.11,<3.14"
+requires-python = ">=3.11,<3.15"
 classifiers = [
-  "Development Status :: 1 - Planning",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
   "Operating System :: OS Independent",
   "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
 ]
 
 dependencies = [
   "matplotlib",
   "numpy",
   "pandas",
-  "pymatgen>=2025.1.9",
-  "torch>=2.2",
+  "pymatgen>=2026.3.23",
+  "torch>=2.6",
 ]
-urls.homepage = "https://github.com/jcwang-dev/cgcnn2/"
-urls.repository = "https://github.com/jcwang-dev/cgcnn2/"
+urls.documentation = "https://jcwang.dev/cgcnn2/"
+urls.homepage = "https://github.com/jcwang587/cgcnn2/"
+urls.repository = "https://github.com/jcwang587/cgcnn2/"
 # pymatgen tracks the first release of the current year
 # torch tracks the first release of the last year
 
@@ -51,8 +53,7 @@ source-exclude = [ "dev/**" ]
 wheel-exclude = [ "dev/**" ]
 
 [tool.ruff]
-target-version = "py313"
-
+# target-version is inferred from requires-python (>=3.11)
 line-length = 88
 indent-width = 4
 exclude = [
@@ -103,7 +104,7 @@ lint.isort.known-first-party = [ "cgcnn2" ]
 column_width = 120
 indent = 2
 keep_full_version = false
-max_supported_python = "3.13"
+max_supported_python = "3.14"
 
 [tool.ty.environment]
 python = ".venv"

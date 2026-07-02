@@ -7,7 +7,7 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.14.7
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix, --unsafe-fixes]
         language_version: python3.11
       - id: ruff-format

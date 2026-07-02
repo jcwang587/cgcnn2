@@ -30,7 +30,8 @@ def atom_gen():
             return
 
     try:
-        with resources.path("cgcnn2.asset", "atom_init.json") as src_path:
+        source = resources.files("cgcnn2") / "asset" / "atom_init.json"
+        with resources.as_file(source) as src_path:
             dest_path = os.path.join(os.getcwd(), "atom_init.json")
             shutil.copy(src_path, dest_path)
     except Exception as e:

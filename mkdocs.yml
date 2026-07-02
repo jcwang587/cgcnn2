@@ -1,6 +1,6 @@
 site_name: cgcnn2
-site_url: https://jcwang-dev.github.io/cgcnn2
-repo_url: https://github.com/jcwang-dev/cgcnn2
+site_url: https://jcwang.dev/cgcnn2/
+repo_url: https://github.com/jcwang587/cgcnn2
 repo_name: cgcnn2
 theme:
   name: material
@@ -26,8 +26,8 @@ theme:
         name: Switch to light mode
 markdown_extensions:
   - pymdownx.highlight
-  - pymdownx.superfences
-  - pymdownx.tabbed
+  - pymdownx.tabbed:
+      alternate_style: true
   - pymdownx.tasklist
   - pymdownx.emoji
   - pymdownx.arithmatex:
@@ -62,7 +62,7 @@ nav:
 extra:
   social:
     - icon: fontawesome/brands/github
-      link: https://github.com/jcwang-dev/cgcnn2
+      link: https://github.com/jcwang587/cgcnn2
 extra_javascript:
   - javascripts/mathjax.js
   - https://unpkg.com/mathjax@3/es5/tex-mml-chtml.js

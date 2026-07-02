@@ -72,7 +72,7 @@ Besides, we need some information about the pre-trained model architecture, whic
 import torch
 import argparse
 
-checkpoint = torch.load(args.model_path, map_location=args.device)
+checkpoint = torch.load(args.model_path, map_location=args.device, weights_only=False)
 model_args = argparse.Namespace(**checkpoint["args"])
 atom_fea_len = model_args.atom_fea_len
 n_conv = model_args.n_conv
@@ -80,7 +80,7 @@ h_fea_len = model_args.h_fea_len
 n_h = model_args.n_h
 ```
 
-where `atom_fea_len`, `n_conv`, `h_fea_len`, and `n_h` are the dimensions of the atom features, the number of convolutional layers, the dimension of the hidden features, and the number of hidden layers, respectively. Now, we can initialize the model by:
+where `atom_fea_len`, `n_conv`, `h_fea_len`, and `n_h` are the dimensions of the atom features, the number of convolutional layers, the dimension of the hidden features, and the number of hidden layers, respectively. Since PyTorch 2.6, `torch.load` defaults to `weights_only=True`, so `weights_only=False` is required to load full CGCNN checkpoints; only load checkpoint files from sources you trust. Now, we can initialize the model by:
 
 ```python
 model = CrystalGraphConvNet(
@@ -111,7 +111,7 @@ cgcnn_test(
     model=model,
     loader=loader,
     device=device,
-    plot_file=os.path.join(output_folder, "parity_plot.svg"),
+    plot_file=os.path.join(output_folder, "parity_plot.png"),
 )
 ```
 
@@ -146,4 +146,4 @@ There is a learning rate scheduler for the training and finetuning scripts, whic
 - `factor`: The factor by which the learning rate will be reduced. `new_lr = lr * factor`
 - `patience`: How many epochs to wait before reducing the learning rate.
 
-You can check more details in the [PyTorch documentation](https://pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html).
+You can check more details in the [PyTorch documentation](https://docs.pytorch.org/docs/stable/generated/torch.optim.lr_scheduler.ReduceLROnPlateau.html).
