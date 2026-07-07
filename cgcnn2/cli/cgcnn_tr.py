@@ -471,7 +471,9 @@ def main():
     # --------------------
     # TEST WITH BEST MODEL
     # --------------------
-    best_checkpoint = torch.load(os.path.join(output_folder, "best_model.ckpt"))
+    best_checkpoint = torch.load(
+        os.path.join(output_folder, "best_model.ckpt"), weights_only=False
+    )
     model.load_state_dict(best_checkpoint["state_dict"])
     normalizer.load_state_dict(best_checkpoint["normalizer"])
 

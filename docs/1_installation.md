@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-- Python 3.11 or higher
+- Python 3.11–3.14
 
 ## Installation Steps
 
@@ -10,6 +10,12 @@ It is recommended to first check your available CUDA version (or CPU only) and i
 
 ```bash
 pip install cgcnn2
+```
+
+or, if you manage your project with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv add cgcnn2
 ```
 
 If you'd like to use the latest unreleased version on the main branch, you can install it directly from GitHub:

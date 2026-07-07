@@ -22,11 +22,17 @@ The package provides the following major functions:
 
 ## Installation
 
-Make sure you have a Python interpreter, preferably version 3.11 or higher. Then, you can simply install cgcnn2 from
+Make sure you have a Python interpreter, version 3.11 to 3.14. Then, you can simply install cgcnn2 from
 PyPI using `pip`:
 
 ```bash
 pip install cgcnn2
+```
+
+or, if you manage your project with [uv](https://docs.astral.sh/uv/):
+
+```bash
+uv add cgcnn2
 ```
 
 If you'd like to use the latest unreleased version on the main branch, you can install it directly from GitHub:

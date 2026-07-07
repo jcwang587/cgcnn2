@@ -2,12 +2,12 @@ ci:
   autoupdate_schedule: monthly
   autofix_commit_msg: pre-commit auto-fixes
   autoupdate_commit_msg: pre-commit autoupdate
-  skip: [ty-check]
+  skip: [ty]
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     rev: v0.15.20
     hooks:
-      - id: ruff
+      - id: ruff-check
         args: [--fix, --unsafe-fixes]
         language_version: python3.11
       - id: ruff-format
@@ -41,12 +41,9 @@ repos:
     rev: v2.1.0
     hooks:
       - id: mypy
-  - repo: local
+  - repo: https://github.com/astral-sh/ty-pre-commit
+    rev: v0.0.56
     hooks:
-      - id: ty-check
-        name: ty check
-        entry: ty check .
-        language: python
-        language_version: python3.11
-        additional_dependencies: [ty]
-        pass_filenames: false
+      - id: ty
+        # --isolated: don't create/update uv.lock or the local .venv
+        args: [--isolated]

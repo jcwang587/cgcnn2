@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import argparse
+from collections.abc import Sequence
 import csv
 from datetime import datetime
 import glob
 import logging
 import os
-from pathlib import Path
 import random
 import sys
-import tomllib
-from typing import Any, Optional, Sequence
+from typing import Any
 
 import matplotlib.pyplot as plt
 import matplotlib.ticker as mticker
@@ -67,29 +66,11 @@ def setup_logging() -> None:
     logging.captureWarnings(True)
 
     torch_ver: str = getattr(torch, "__version__", "unknown")
-    cuda_ver: Optional[str] = _torch_cuda_version
+    cuda_ver: str | None = _torch_cuda_version
 
     logging.info(f"cgcnn2 version: {cgcnn2.__version__}")
     logging.info(f"cuda version: {cuda_ver}")
     logging.info(f"torch version: {torch_ver}")
-
-
-def get_local_version() -> str:
-    """
-    Retrieves the version of the project from the pyproject.toml file.
-
-    Returns:
-        version (str): The version of the project.
-    """
-    project_root = Path(__file__).parents[2]
-    toml_path = project_root / "pyproject.toml"
-    try:
-        with toml_path.open("rb") as f:
-            data = tomllib.load(f)
-            version = data["project"]["version"]
-        return version
-    except Exception:
-        return "unknown"
 
 
 def output_id_gen() -> str:
@@ -149,7 +130,7 @@ def get_lr(optimizer: torch.optim.Optimizer) -> list[float]:
 
 def metrics_text(
     df: pd.DataFrame,
-    metrics: list[str] = ["mae", "r2"],
+    metrics: Sequence[str] = ("mae", "r2"),
     metrics_precision: str = "3f",
     unit: str | None = None,
     unit_scale: float = 1.0,
@@ -159,7 +140,7 @@ def metrics_text(
 
     Args:
         df (pd.DataFrame): DataFrame containing the true and pred values.
-        metrics (list[str]): A list of metrics to be displayed in the plot.
+        metrics (Sequence[str]): A list of metrics to be displayed in the plot.
         metrics_precision (str): Format string for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
@@ -213,7 +194,7 @@ def plot_hexbin(
     xlabel: str,
     ylabel: str,
     ax: plt.Axes | None = None,
-    metrics: list[str] = ["mae", "r2"],
+    metrics: Sequence[str] = ("mae", "r2"),
     metrics_precision: str = "3f",
     unit: str | None = None,
     unit_scale: float = 1.0,
@@ -228,7 +209,7 @@ def plot_hexbin(
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         ax (plt.Axes | None): Axes object to plot the hexbin on.
-        metrics (list[str]): A list of strings to be displayed in the plot.
+        metrics (Sequence[str]): A list of strings to be displayed in the plot.
         metrics_precision (str): Format string for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
@@ -241,7 +222,9 @@ def plot_hexbin(
         if ax is None:
             fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         else:
-            ax.get_figure()
+            fig = ax.get_figure()
+            if not isinstance(fig, plt.Figure):
+                raise TypeError("`ax` must be attached to a top-level Figure")
 
         hb = ax.hexbin(
             x="true",
@@ -281,7 +264,7 @@ def plot_hexbin(
         cax = inset_axes(
             ax, width="3.5%", height="70%", loc="lower right", borderpad=0.5
         )
-        plt.colorbar(hb, cax=cax)
+        fig.colorbar(hb, cax=cax)
         cax.yaxis.set_ticks_position("left")
         cax.yaxis.set_label_position("left")
 
@@ -301,7 +284,7 @@ def plot_hexbin(
         )
 
         if out_png is not None:
-            plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+            fig.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
 
 
 def plot_scatter(
@@ -309,8 +292,8 @@ def plot_scatter(
     xlabel: str,
     ylabel: str,
     ax: plt.Axes | None = None,
-    true_types: list[str] = ["true_train", "true_valid", "true_test"],
-    pred_types: list[str] = ["pred_train", "pred_valid", "pred_test"],
+    true_types: Sequence[str] = ("true_train", "true_valid", "true_test"),
+    pred_types: Sequence[str] = ("pred_train", "pred_valid", "pred_test"),
     colors: Sequence[str] = (
         "#137DC5",
         "#FACF39",
@@ -320,7 +303,7 @@ def plot_scatter(
         "#0F0C08",
     ),
     legend_labels: list[str] | None = None,
-    metrics: list[str] = ["mae", "r2"],
+    metrics: Sequence[str] = ("mae", "r2"),
     metrics_precision: str = "3f",
     unit: str | None = None,
     unit_scale: float = 1.0,
@@ -335,13 +318,13 @@ def plot_scatter(
         xlabel (str): Label for the x-axis.
         ylabel (str): Label for the y-axis.
         ax (plt.Axes | None): Axes object to plot the scatter on.
-        true_types (list[str]): A list of true data types to be displayed in the plot.
-        pred_types (list[str]): A list of pred data types to be displayed in the plot.
+        true_types (Sequence[str]): A list of true data types to be displayed in the plot.
+        pred_types (Sequence[str]): A list of pred data types to be displayed in the plot.
         colors (Sequence[str]): A list of colors to be used for the data types.
             Default palette is adapted from
             [Looka 2025](https://looka.com/blog/logo-color-trends/) with six colors.
         legend_labels (list[str] | None): A list of labels for the legend.
-        metrics (list[str]): Metrics to display in the plot.
+        metrics (Sequence[str]): Metrics to display in the plot.
         metrics_precision (str): Format string for the metrics.
         unit (str | None): Unit of the property.
         unit_scale (float): Scale factor for the unit.
@@ -354,7 +337,9 @@ def plot_scatter(
         if ax is None:
             fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         else:
-            ax.get_figure()
+            fig = ax.get_figure()
+            if not isinstance(fig, plt.Figure):
+                raise TypeError("`ax` must be attached to a top-level Figure")
 
         for true_type, pred_type in zip(true_types, pred_types):
             ax.scatter(
@@ -421,7 +406,7 @@ def plot_scatter(
             ax.legend(legend_labels, loc="lower right")
 
         if out_png is not None:
-            plt.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
+            fig.savefig(out_png, format="png", dpi=300, bbox_inches="tight")
 
 
 def plot_convergence(
@@ -460,6 +445,8 @@ def plot_convergence(
             fig, ax = plt.subplots(figsize=(8, 6), layout="constrained")
         else:
             fig = ax.get_figure()
+            if not isinstance(fig, plt.Figure):
+                raise TypeError("`ax` must be attached to a top-level Figure")
 
         x = df[xlabel]
         y = df[ylabel]
@@ -656,8 +643,8 @@ def cgcnn_descriptor(
     index = 0
 
     with torch.inference_mode():
-        for input, target, cif_id in loader:
-            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
+        for input_batch, target, cif_id in loader:
+            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_batch
             atom_fea = atom_fea.to(device)
             nbr_fea = nbr_fea.to(device)
             nbr_fea_idx = nbr_fea_idx.to(device)

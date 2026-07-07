@@ -3,7 +3,6 @@ import logging
 import os
 from pprint import pformat
 import sys
-from typing import Optional
 
 import torch
 import torch.nn as nn
@@ -293,7 +292,9 @@ def main():
         )
         sys.exit(1)
     # Load checkpoint onto device
-    checkpoint = torch.load(args.model_path, map_location=args.device)
+    checkpoint = torch.load(
+        args.model_path, map_location=args.device, weights_only=False
+    )
     model_args = argparse.Namespace(**checkpoint["args"])
 
     # Prepare dataset and infer feature dimensions
@@ -419,7 +420,7 @@ def main():
     )
 
     # Initialize the scheduler
-    scheduler: Optional[ReduceLROnPlateau] = None
+    scheduler: ReduceLROnPlateau | None = None
 
     # Define the loss function
     criterion = nn.MSELoss(reduction="none")
@@ -451,8 +452,8 @@ def main():
         # --------------------
         model.train()
         train_loss = 0.0
-        for i, (input, targets, _) in enumerate(train_loader):
-            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
+        for input_data, targets, _ in train_loader:
+            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
             atom_fea = atom_fea.to(args.device)
             nbr_fea = nbr_fea.to(args.device)
             nbr_fea_idx = nbr_fea_idx.to(args.device)
@@ -482,8 +483,8 @@ def main():
         model.eval()
         valid_loss = 0.0
         with torch.inference_mode():
-            for i, (input, targets, _) in enumerate(valid_loader):
-                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input
+            for input_data, targets, _ in valid_loader:
+                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
                 atom_fea = atom_fea.to(args.device)
                 nbr_fea = nbr_fea.to(args.device)
                 nbr_fea_idx = nbr_fea_idx.to(args.device)

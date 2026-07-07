@@ -123,7 +123,9 @@ def main():
     os.makedirs(output_folder, exist_ok=True)
 
     # Load checkpoint onto device
-    checkpoint = torch.load(args.model_path, map_location=args.device)
+    checkpoint = torch.load(
+        args.model_path, map_location=args.device, weights_only=False
+    )
     model_args = argparse.Namespace(**checkpoint["args"])
 
     # Prepare dataset and infer feature dimensions
