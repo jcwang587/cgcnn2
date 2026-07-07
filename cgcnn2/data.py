@@ -280,6 +280,17 @@ class CIFData(Dataset):
     def __getitem__(self, idx):
         return self._cache_load(idx)
 
+    def __getstate__(self):
+        # The lru_cache wrapper around a bound method is not picklable; drop
+        # it so instances survive spawn-based DataLoader workers.
+        state = self.__dict__.copy()
+        state.pop("_cache_load", None)
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._configure_cache()
+
     def _configure_cache(self) -> None:
         """
         Wrap `_raw_load_item` with an LRU cache.
@@ -328,7 +339,7 @@ class CIFData(Dataset):
         atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
         nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
         nbr_fea_idx = torch.as_tensor(nbr_fea_idx, dtype=torch.long)
-        target = torch.tensor([float(target)])
+        target = torch.tensor([float(target)], dtype=torch.float32)
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
     def _load_item_fast(self, idx):
@@ -364,7 +375,7 @@ class CIFData(Dataset):
         nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
         nbr_fea = self.gdf.expand(np.array(nbr_fea))
         nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
-        target = torch.tensor([float(target)])
+        target = torch.tensor([float(target)], dtype=torch.float32)
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
@@ -424,6 +435,17 @@ class CIFData_NoTarget(Dataset):
     def __getitem__(self, idx):
         return self._cache_load(idx)
 
+    def __getstate__(self):
+        # The lru_cache wrapper around a bound method is not picklable; drop
+        # it so instances survive spawn-based DataLoader workers.
+        state = self.__dict__.copy()
+        state.pop("_cache_load", None)
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._cache_load = functools.lru_cache(maxsize=None)(self._load_item)
+
     def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
@@ -459,7 +481,7 @@ class CIFData_NoTarget(Dataset):
         atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
         nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
         nbr_fea_idx = torch.as_tensor(nbr_fea_idx, dtype=torch.long)
-        target = torch.tensor([float(target)])
+        target = torch.tensor([float(target)], dtype=torch.float32)
         return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
 
 
