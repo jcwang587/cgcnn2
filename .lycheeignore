@@ -10,3 +10,11 @@ https://aip.scitation.org/doi/10.1063/1.4812323
 
 # APS Physical Review Letters (CGCNN paper)
 https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301
+
+# model-viewer asset in docs/2_cgcnn.md: ../assets/nacl.glb is correct for the
+# built MkDocs site (page renders at /2_cgcnn/, asset at /assets/nacl.glb) but
+# resolves outside docs/ in the source tree
+file://.*/assets/nacl\.glb
+
+# GitHub's /releases/latest always 302s to the latest tag by design
+https://github.com/jcwang587/cgcnn2/releases/latest

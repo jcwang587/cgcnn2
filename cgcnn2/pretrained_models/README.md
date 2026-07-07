@@ -24,7 +24,7 @@ This directory includes several pre-trained CGCNN models that one can use to pre
 
 ## Before using pre-trained models
 
-- CGCNN models (and machine learning models in general) can only generalize to crystals from the same distribution as training data. It is advised to check **Data Ref.** before using pre-trained models. For instance, Materials Project uses [ICSD](https://icsd.fiz-karlsruhe.de/search/index.xhtml;jsessionid=E3291AF7E25ED34B31B9AD5A9CBF80A1) structures as input, which includes experimentally synthesized crystal structures. Significant errors can be expected if a CGCNN model trained on Materials Project is used to predict the properties of imaginary, thermadynamically unstable crystals.
+- CGCNN models (and machine learning models in general) can only generalize to crystals from the same distribution as training data. It is advised to check **Data Ref.** before using pre-trained models. For instance, Materials Project uses [ICSD](https://www.fiz-karlsruhe.de/en/produkte-und-dienstleistungen/inorganic-crystal-structure-database-icsd) structures as input, which includes experimentally synthesized crystal structures. Significant errors can be expected if a CGCNN model trained on Materials Project is used to predict the properties of imaginary, thermodynamically unstable crystals.
 - CGCNN models have prediction errors. It is advised to check **Model Ref.** to understand their accuracy before using pre-trained models.
 
 ## How to cite
