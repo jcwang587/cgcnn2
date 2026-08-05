@@ -561,7 +561,7 @@ def cgcnn_test(
             atom_fea = atom_fea.to(device)
             nbr_fea = nbr_fea.to(device)
             nbr_fea_idx = nbr_fea_idx.to(device)
-            crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
+            crystal_atom_idx = crystal_atom_idx.to(device)
             target = target.to(device)
             output, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
 
@@ -648,7 +648,7 @@ def cgcnn_descriptor(
             atom_fea = atom_fea.to(device)
             nbr_fea = nbr_fea.to(device)
             nbr_fea_idx = nbr_fea_idx.to(device)
-            crystal_atom_idx = [idx_map.to(device) for idx_map in crystal_atom_idx]
+            crystal_atom_idx = crystal_atom_idx.to(device)
             target = target.to(device)
 
             output, crys_fea = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
