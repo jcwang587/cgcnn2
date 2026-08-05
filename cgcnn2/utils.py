@@ -558,11 +558,11 @@ def cgcnn_test(
     with torch.inference_mode():
         for input_batch, target, cif_id in loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_batch
-            atom_fea = atom_fea.to(device)
-            nbr_fea = nbr_fea.to(device)
-            nbr_fea_idx = nbr_fea_idx.to(device)
-            crystal_atom_idx = crystal_atom_idx.to(device)
-            target = target.to(device)
+            atom_fea = atom_fea.to(device, non_blocking=True)
+            nbr_fea = nbr_fea.to(device, non_blocking=True)
+            nbr_fea_idx = nbr_fea_idx.to(device, non_blocking=True)
+            crystal_atom_idx = crystal_atom_idx.to(device, non_blocking=True)
+            target = target.to(device, non_blocking=True)
             output, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
 
             targets_list.extend(target.cpu().numpy().ravel().tolist())
@@ -627,7 +627,7 @@ def cgcnn_descriptor(
     Returns:
         tuple: A tuple containing:
             - list: Model predictions
-            - list: Crystal features from the last layer
+            - list: Crystal features from the last layer, one 1D array per crystal
 
     Notes:
         This function is intended for use in programmatic downstream analysis,
@@ -645,28 +645,25 @@ def cgcnn_descriptor(
     with torch.inference_mode():
         for input_batch, target, cif_id in loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_batch
-            atom_fea = atom_fea.to(device)
-            nbr_fea = nbr_fea.to(device)
-            nbr_fea_idx = nbr_fea_idx.to(device)
-            crystal_atom_idx = crystal_atom_idx.to(device)
-            target = target.to(device)
+            atom_fea = atom_fea.to(device, non_blocking=True)
+            nbr_fea = nbr_fea.to(device, non_blocking=True)
+            nbr_fea_idx = nbr_fea_idx.to(device, non_blocking=True)
+            crystal_atom_idx = crystal_atom_idx.to(device, non_blocking=True)
+            target = target.to(device, non_blocking=True)
 
             output, crys_fea = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
 
+            outputs_np = output.cpu().numpy().ravel()
             targets_list.extend(target.cpu().numpy().ravel().tolist())
-            outputs_list.extend(output.cpu().numpy().ravel().tolist())
-            crys_feas_list.append(crys_fea.cpu().numpy())
+            outputs_list.extend(outputs_np.tolist())
+            crys_feas_list.extend(crys_fea.cpu().numpy())
 
-            index += 1
-
-            # Extract the true values from cif_id and output tensor
-            cif_id_value = cif_id[0] if cif_id and isinstance(cif_id, list) else cif_id
-            prediction_value = output.item() if output.numel() == 1 else output.tolist()
-
-            if verbose >= 10:
-                logging.info(
-                    f"index: {index} | cif id: {cif_id_value} | prediction: {prediction_value}"
-                )
+            for cif_id_value, prediction_value in zip(cif_id, outputs_np):
+                index += 1
+                if verbose >= 10:
+                    logging.info(
+                        f"index: {index} | cif id: {cif_id_value} | prediction: {prediction_value}"
+                    )
 
     return outputs_list, crys_feas_list
 
@@ -677,6 +674,7 @@ def cgcnn_pred(
     verbose: int = 101,
     cuda: bool = False,
     num_workers: int = 0,
+    batch_size: int = 256,
 ) -> tuple[list[float], list[torch.Tensor]]:
     """
     This function takes the path to a pre-trained CGCNN model and a dataset,
@@ -689,6 +687,7 @@ def cgcnn_pred(
         verbose (int): Verbosity level of the output.
         cuda (bool): Whether to use CUDA.
         num_workers (int): Number of subprocesses for data loading.
+        batch_size (int): Batch size for inference.
 
     Returns:
         tuple: A tuple containing:
@@ -736,11 +735,12 @@ def cgcnn_pred(
 
     full_loader = DataLoader(
         total_dataset,
-        batch_size=1,
+        batch_size=batch_size,
         shuffle=False,
         num_workers=num_workers,
         collate_fn=collate_pool,
         pin_memory=cuda,
+        persistent_workers=num_workers > 0,
     )
 
     pred, last_layer = cgcnn_descriptor(model, full_loader, device, verbose)
