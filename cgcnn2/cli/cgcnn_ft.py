@@ -296,14 +296,8 @@ def main():
     )
     model_args = argparse.Namespace(**checkpoint["args"])
 
-    # Prepare dataset and infer feature dimensions
-    if args.full_set:
-        sample_set = args.full_set
-    else:
-        sample_set = args.train_set
-
-    dataset = CIFData(sample_set)
-    atom_graph, _, _ = dataset[0]
+    # Infer feature dimensions from the first training sample
+    atom_graph, _, _ = train_dataset[0]
     orig_atom_fea_len = atom_graph[0].shape[-1]
     nbr_fea_len = atom_graph[1].shape[-1]
 
@@ -330,6 +324,7 @@ def main():
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
+        persistent_workers=args.workers > 0,
     )
 
     valid_loader = DataLoader(
@@ -339,6 +334,7 @@ def main():
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
+        persistent_workers=args.workers > 0,
     )
 
     test_loader = DataLoader(
@@ -348,6 +344,7 @@ def main():
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
+        persistent_workers=args.workers > 0,
     )
 
     if args.train_last_fc:
@@ -358,9 +355,7 @@ def main():
         if args.reset:
             logging.info("The last fully connected layer will be reset.")
             # Reset the fully connected layers after graph features were obtained
-            model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.device.type == "cuda":
-                model.fc_out = model.fc_out.cuda()
+            model.fc_out = nn.Linear(model.fc_out.in_features, 1).to(args.device)
 
         # Define parameters to be fine-tuned
         fc_parameters = [param for param in model.fc_out.parameters()]
@@ -375,9 +370,7 @@ def main():
             logging.info("All the fully connected layers will be reset.")
             model.conv_to_fc = nn.Linear(
                 model.conv_to_fc.in_features, model.conv_to_fc.out_features
-            )
-            if args.device.type == "cuda":
-                model.conv_to_fc = model.conv_to_fc.cuda()
+            ).to(args.device)
 
             if hasattr(model, "fcs"):
                 model.fcs = nn.ModuleList(
@@ -385,13 +378,9 @@ def main():
                         nn.Linear(layer.in_features, layer.out_features)
                         for layer in model.fcs
                     ]
-                )
-                if args.device.type == "cuda":
-                    model.fcs = nn.ModuleList([layer.cuda() for layer in model.fcs])
+                ).to(args.device)
 
-            model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.device.type == "cuda":
-                model.fc_out = model.fc_out.cuda()
+            model.fc_out = nn.Linear(model.fc_out.in_features, 1).to(args.device)
 
         # Define parameters to be trained
         fc_parameters = [param for param in model.conv_to_fc.parameters()]
@@ -412,8 +401,14 @@ def main():
         [
             {"params": fc_parameters, "lr": args.lr_fc},
             {"params": other_parameters, "lr": args.lr_non_fc},
-        ]
+        ],
+        fused=args.device.type == "cuda",
     )
+
+    # Compile the model on GPU for faster training
+    if args.device.type == "cuda":
+        model.compile()
+    amp_enabled = args.device.type == "cuda"
 
     # Initialize the scheduler
     scheduler: ReduceLROnPlateau | None = None
@@ -450,21 +445,24 @@ def main():
         train_loss = 0.0
         for input_data, targets, _ in train_loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-            atom_fea = atom_fea.to(args.device)
-            nbr_fea = nbr_fea.to(args.device)
-            nbr_fea_idx = nbr_fea_idx.to(args.device)
-            crystal_atom_idx = crystal_atom_idx.to(args.device)
-            targets = targets.to(args.device)
+            atom_fea = atom_fea.to(args.device, non_blocking=True)
+            nbr_fea = nbr_fea.to(args.device, non_blocking=True)
+            nbr_fea_idx = nbr_fea_idx.to(args.device, non_blocking=True)
+            crystal_atom_idx = crystal_atom_idx.to(args.device, non_blocking=True)
+            targets = targets.to(args.device, non_blocking=True)
 
             # Forward pass
-            outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
-            loss = criterion(outputs, targets)
-            if args.bias_temperature > 0.0:
-                # Boltzmann factor weighting
-                bias = torch.exp(-targets / args.bias_temperature).to(args.device)
-                loss = (loss * bias).mean()
-            else:
-                loss = loss.mean()
+            with torch.autocast(
+                args.device.type, dtype=torch.bfloat16, enabled=amp_enabled
+            ):
+                outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+                loss = criterion(outputs, targets)
+                if args.bias_temperature > 0.0:
+                    # Boltzmann factor weighting
+                    bias = torch.exp(-targets / args.bias_temperature)
+                    loss = (loss * bias).mean()
+                else:
+                    loss = loss.mean()
 
             optimizer.zero_grad()
             loss.backward()
@@ -481,21 +479,24 @@ def main():
         with torch.inference_mode():
             for input_data, targets, _ in valid_loader:
                 atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-                atom_fea = atom_fea.to(args.device)
-                nbr_fea = nbr_fea.to(args.device)
-                nbr_fea_idx = nbr_fea_idx.to(args.device)
-                crystal_atom_idx = crystal_atom_idx.to(args.device)
-                targets = targets.to(args.device)
+                atom_fea = atom_fea.to(args.device, non_blocking=True)
+                nbr_fea = nbr_fea.to(args.device, non_blocking=True)
+                nbr_fea_idx = nbr_fea_idx.to(args.device, non_blocking=True)
+                crystal_atom_idx = crystal_atom_idx.to(args.device, non_blocking=True)
+                targets = targets.to(args.device, non_blocking=True)
 
-                outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
-                loss = criterion(outputs, targets)
+                with torch.autocast(
+                    args.device.type, dtype=torch.bfloat16, enabled=amp_enabled
+                ):
+                    outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+                    loss = criterion(outputs, targets)
 
-                if args.bias_temperature > 0.0:
-                    # Boltzmann factor weighting
-                    bias = torch.exp(-targets / args.bias_temperature).to(args.device)
-                    loss = (loss * bias).mean()
-                else:
-                    loss = loss.mean()
+                    if args.bias_temperature > 0.0:
+                        # Boltzmann factor weighting
+                        bias = torch.exp(-targets / args.bias_temperature)
+                        loss = (loss * bias).mean()
+                    else:
+                        loss = loss.mean()
 
                 valid_loss += loss.item()
 

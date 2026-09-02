@@ -142,6 +142,7 @@ def main():
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=(args.device.type == "cuda"),
+        persistent_workers=args.workers > 0,
     )
 
     # Initialize and load model

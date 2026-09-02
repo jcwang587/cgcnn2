@@ -294,6 +294,11 @@ def main():
     # Move to device
     model.to(args.device)
 
+    # Compile the model on GPU for faster training
+    if args.device.type == "cuda":
+        model.compile()
+    amp_enabled = args.device.type == "cuda"
+
     # Dataloaders
     train_loader = DataLoader(
         train_dataset,
@@ -302,6 +307,7 @@ def main():
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
+        persistent_workers=args.workers > 0,
     )
     valid_loader = DataLoader(
         valid_dataset,
@@ -310,6 +316,7 @@ def main():
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
+        persistent_workers=args.workers > 0,
     )
     test_loader = DataLoader(
         test_dataset,
@@ -318,10 +325,15 @@ def main():
         num_workers=args.workers,
         collate_fn=collate_pool,
         pin_memory=args.device.type == "cuda",
+        persistent_workers=args.workers > 0,
     )
 
     # Single LR optimizer
-    optimizer = torch.optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer = torch.optim.Adam(
+        model.parameters(),
+        lr=args.learning_rate,
+        fused=args.device.type == "cuda",
+    )
 
     # Optional LR scheduler
     scheduler = None
@@ -350,23 +362,26 @@ def main():
         train_loss_sum = 0.0
         for input_data, targets, _ in train_loader:
             atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-            atom_fea = atom_fea.to(args.device)
-            nbr_fea = nbr_fea.to(args.device)
-            nbr_fea_idx = nbr_fea_idx.to(args.device)
-            crystal_atom_idx = crystal_atom_idx.to(args.device)
-            targets = targets.to(args.device)
+            atom_fea = atom_fea.to(args.device, non_blocking=True)
+            nbr_fea = nbr_fea.to(args.device, non_blocking=True)
+            nbr_fea_idx = nbr_fea_idx.to(args.device, non_blocking=True)
+            crystal_atom_idx = crystal_atom_idx.to(args.device, non_blocking=True)
+            targets = targets.to(args.device, non_blocking=True)
 
             optimizer.zero_grad()
 
-            outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
-            loss = criterion(outputs, targets)
+            with torch.autocast(
+                args.device.type, dtype=torch.bfloat16, enabled=amp_enabled
+            ):
+                outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+                loss = criterion(outputs, targets)
 
-            if args.bias_temperature > 0.0:
-                # Boltzmann factor weighting
-                bias = torch.exp(-targets / args.bias_temperature).to(args.device)
-                loss = (loss * bias).mean()
-            else:
-                loss = loss.mean()
+                if args.bias_temperature > 0.0:
+                    # Boltzmann factor weighting
+                    bias = torch.exp(-targets / args.bias_temperature)
+                    loss = (loss * bias).mean()
+                else:
+                    loss = loss.mean()
 
             loss.backward()
             optimizer.step()
@@ -383,21 +398,24 @@ def main():
         with torch.inference_mode():
             for input_data, targets, _ in valid_loader:
                 atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-                atom_fea = atom_fea.to(args.device)
-                nbr_fea = nbr_fea.to(args.device)
-                nbr_fea_idx = nbr_fea_idx.to(args.device)
-                crystal_atom_idx = crystal_atom_idx.to(args.device)
-                targets = targets.to(args.device)
+                atom_fea = atom_fea.to(args.device, non_blocking=True)
+                nbr_fea = nbr_fea.to(args.device, non_blocking=True)
+                nbr_fea_idx = nbr_fea_idx.to(args.device, non_blocking=True)
+                crystal_atom_idx = crystal_atom_idx.to(args.device, non_blocking=True)
+                targets = targets.to(args.device, non_blocking=True)
 
-                outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
-                loss = criterion(outputs, targets)
+                with torch.autocast(
+                    args.device.type, dtype=torch.bfloat16, enabled=amp_enabled
+                ):
+                    outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+                    loss = criterion(outputs, targets)
 
-                if args.bias_temperature > 0.0:
-                    # Boltzmann factor weighting
-                    bias = torch.exp(-targets / args.bias_temperature).to(args.device)
-                    loss = (loss * bias).mean()
-                else:
-                    loss = loss.mean()
+                    if args.bias_temperature > 0.0:
+                        # Boltzmann factor weighting
+                        bias = torch.exp(-targets / args.bias_temperature)
+                        loss = (loss * bias).mean()
+                    else:
+                        loss = loss.mean()
 
                 valid_loss_sum += loss.item()
 
