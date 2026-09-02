@@ -2,7 +2,6 @@ import argparse
 import logging
 import os
 from pprint import pformat
-from random import sample
 import sys
 
 import torch
@@ -11,7 +10,7 @@ from torch.utils.data import DataLoader
 
 from cgcnn2.data import CIFData, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
-from cgcnn2.utils import Normalizer, cgcnn_test, get_lr, seed_everything, setup_logging
+from cgcnn2.utils import cgcnn_test, get_lr, seed_everything, setup_logging
 
 
 def parse_arguments(args=None):
@@ -275,26 +274,6 @@ def main():
         )
         sys.exit(1)
 
-    full_dataset = [*train_dataset, *valid_dataset, *test_dataset]
-
-    # Normalizer setup
-    # For classification we use a dummy normalizer, otherwise compute mean/std from data
-    if args.task == "classification":
-        normalizer = Normalizer(torch.zeros(2))
-        normalizer.load_state_dict({"mean": 0.0, "std": 1.0})
-    else:
-        if len(full_dataset) < 500:
-            logging.warning(
-                "Dataset has fewer than 500 data points; results may have higher variance."
-            )
-            sample_data_list = [full_dataset[i] for i in range(len(full_dataset))]
-        else:
-            sample_indices = sample(range(len(full_dataset)), 500)
-            sample_data_list = [full_dataset[i] for i in sample_indices]
-
-        _, sample_target, _ = collate_pool(sample_data_list)
-        normalizer = Normalizer(sample_target)
-
     # Build model
     # 1) gather input dimensions from first sample
     structures, _, _ = train_dataset[0]
@@ -446,7 +425,6 @@ def main():
             savepoint = {
                 "epoch": epoch + 1,
                 "state_dict": model.state_dict(),
-                "normalizer": normalizer.state_dict(),
                 "best_mse_error": avg_valid_loss,
                 "args": vars(args),
             }
@@ -470,10 +448,9 @@ def main():
     # TEST WITH BEST MODEL
     # --------------------
     best_checkpoint = torch.load(
-        os.path.join(output_folder, "best_model.ckpt"), weights_only=False
+        os.path.join(output_folder, "best_model.ckpt"), weights_only=True
     )
     model.load_state_dict(best_checkpoint["state_dict"])
-    normalizer.load_state_dict(best_checkpoint["normalizer"])
 
     cgcnn_test(
         model,

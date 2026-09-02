@@ -708,8 +708,8 @@ def cgcnn_pred(
 
     checkpoint = torch.load(
         model_path,
-        map_location=lambda storage, loc: storage if not cuda else None,
-        weights_only=False,
+        map_location="cpu",
+        weights_only=True,
     )
     structures, _, _ = total_dataset[0]
     orig_atom_fea_len = structures[0].shape[-1]
@@ -726,8 +726,6 @@ def cgcnn_pred(
     if cuda:
         model.cuda()
 
-    normalizer = Normalizer(torch.zeros(3))
-    normalizer.load_state_dict(checkpoint["normalizer"])
     model.load_state_dict(checkpoint["state_dict"])
 
     if verbose >= 100:

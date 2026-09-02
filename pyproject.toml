@@ -27,7 +27,7 @@ dependencies = [
   "numpy",
   "pandas",
   "pymatgen>=2026.3.23",
-  "torch>=2.6",
+  "torch>=2.10.0",
 ]
 urls.documentation = "https://jcwang.dev/cgcnn2/"
 urls.homepage = "https://github.com/jcwang587/cgcnn2/"
