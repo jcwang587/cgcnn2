@@ -71,7 +71,7 @@ requires-dist = [
     { name = "numpy" },
     { name = "pandas" },
     { name = "pymatgen", specifier = ">=2026.3.23" },
-    { name = "torch", specifier = ">=2.6" },
+    { name = "torch", specifier = ">=2.10.0" },
 ]
 
 [package.metadata.requires-dev]

@@ -708,7 +708,7 @@ def cgcnn_pred(
 
     checkpoint = torch.load(
         model_path,
-        map_location="cuda" if cuda else "cpu",
+        map_location="cpu",
         weights_only=True,
     )
     structures, _, _ = total_dataset[0]

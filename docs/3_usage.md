@@ -80,7 +80,7 @@ h_fea_len = model_args.h_fea_len
 n_h = model_args.n_h
 ```
 
-where `atom_fea_len`, `n_conv`, `h_fea_len`, and `n_h` are the dimensions of the atom features, the number of convolutional layers, the dimension of the hidden features, and the number of hidden layers, respectively. CGCNN checkpoints contain only tensors and plain Python values, so they load with `weights_only=True` (the secure default since PyTorch 2.6), which prevents checkpoint files from executing arbitrary code when loaded. Now, we can initialize the model by:
+where `atom_fea_len`, `n_conv`, `h_fea_len`, and `n_h` are the dimensions of the atom features, the number of convolutional layers, the dimension of the hidden features, and the number of hidden layers, respectively. CGCNN checkpoints contain only tensors and plain Python values, so they load with `weights_only=True` (the default since PyTorch 2.6), which reduces the risk of arbitrary code execution but does not prevent it in affected PyTorch versions. Now, we can initialize the model by:
 
 ```python
 model = CrystalGraphConvNet(
