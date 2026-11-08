@@ -9,7 +9,7 @@ import torch.nn as nn
 from torch.optim.lr_scheduler import ReduceLROnPlateau
 from torch.utils.data import DataLoader
 
-from cgcnn2.data import CIFData, collate_pool, full_set_split
+from cgcnn2.data import CIFData, batch_to_device, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.utils import (
     cgcnn_test,
@@ -296,14 +296,8 @@ def main():
     )
     model_args = argparse.Namespace(**checkpoint["args"])
 
-    # Prepare dataset and infer feature dimensions
-    if args.full_set:
-        sample_set = args.full_set
-    else:
-        sample_set = args.train_set
-
-    dataset = CIFData(sample_set)
-    atom_graph, _, _ = dataset[0]
+    # Infer feature dimensions from the first training sample
+    atom_graph, _, _ = train_dataset[0]
     orig_atom_fea_len = atom_graph[0].shape[-1]
     nbr_fea_len = atom_graph[1].shape[-1]
 
@@ -358,9 +352,7 @@ def main():
         if args.reset:
             logging.info("The last fully connected layer will be reset.")
             # Reset the fully connected layers after graph features were obtained
-            model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.device.type == "cuda":
-                model.fc_out = model.fc_out.cuda()
+            model.fc_out = nn.Linear(model.fc_out.in_features, 1).to(args.device)
 
         # Define parameters to be fine-tuned
         fc_parameters = [param for param in model.fc_out.parameters()]
@@ -375,9 +367,7 @@ def main():
             logging.info("All the fully connected layers will be reset.")
             model.conv_to_fc = nn.Linear(
                 model.conv_to_fc.in_features, model.conv_to_fc.out_features
-            )
-            if args.device.type == "cuda":
-                model.conv_to_fc = model.conv_to_fc.cuda()
+            ).to(args.device)
 
             if hasattr(model, "fcs"):
                 model.fcs = nn.ModuleList(
@@ -385,13 +375,9 @@ def main():
                         nn.Linear(layer.in_features, layer.out_features)
                         for layer in model.fcs
                     ]
-                )
-                if args.device.type == "cuda":
-                    model.fcs = nn.ModuleList([layer.cuda() for layer in model.fcs])
+                ).to(args.device)
 
-            model.fc_out = nn.Linear(model.fc_out.in_features, 1)
-            if args.device.type == "cuda":
-                model.fc_out = model.fc_out.cuda()
+            model.fc_out = nn.Linear(model.fc_out.in_features, 1).to(args.device)
 
         # Define parameters to be trained
         fc_parameters = [param for param in model.conv_to_fc.parameters()]
@@ -449,11 +435,9 @@ def main():
         model.train()
         train_loss = 0.0
         for input_data, targets, _ in train_loader:
-            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-            atom_fea = atom_fea.to(args.device)
-            nbr_fea = nbr_fea.to(args.device)
-            nbr_fea_idx = nbr_fea_idx.to(args.device)
-            crystal_atom_idx = crystal_atom_idx.to(args.device)
+            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = batch_to_device(
+                input_data, args.device
+            )
             targets = targets.to(args.device)
 
             # Forward pass
@@ -480,11 +464,9 @@ def main():
         valid_loss = 0.0
         with torch.inference_mode():
             for input_data, targets, _ in valid_loader:
-                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-                atom_fea = atom_fea.to(args.device)
-                nbr_fea = nbr_fea.to(args.device)
-                nbr_fea_idx = nbr_fea_idx.to(args.device)
-                crystal_atom_idx = crystal_atom_idx.to(args.device)
+                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = batch_to_device(
+                    input_data, args.device
+                )
                 targets = targets.to(args.device)
 
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)

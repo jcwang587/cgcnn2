@@ -66,6 +66,20 @@ def collate_pool(dataset_list):
     )
 
 
+def batch_to_device(batch, device):
+    """
+    Move the batch tensors produced by `collate_pool` to a device.
+
+    Args:
+        batch (tuple[torch.Tensor, ...]): (atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+        device (torch.device | str): Target device.
+
+    Returns:
+        tuple[torch.Tensor, ...]: The same tensors on `device`.
+    """
+    return tuple(t.to(device) for t in batch)
+
+
 class GaussianDistance:
     """
     Expands the distance by Gaussian basis.

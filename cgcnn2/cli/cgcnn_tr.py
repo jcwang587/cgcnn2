@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from cgcnn2.data import CIFData, collate_pool, full_set_split
+from cgcnn2.data import CIFData, batch_to_device, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.utils import cgcnn_test, get_lr, seed_everything, setup_logging
 
@@ -349,11 +349,9 @@ def main():
         model.train()
         train_loss_sum = 0.0
         for input_data, targets, _ in train_loader:
-            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-            atom_fea = atom_fea.to(args.device)
-            nbr_fea = nbr_fea.to(args.device)
-            nbr_fea_idx = nbr_fea_idx.to(args.device)
-            crystal_atom_idx = crystal_atom_idx.to(args.device)
+            atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = batch_to_device(
+                input_data, args.device
+            )
             targets = targets.to(args.device)
 
             optimizer.zero_grad()
@@ -382,11 +380,9 @@ def main():
         valid_loss_sum = 0.0
         with torch.inference_mode():
             for input_data, targets, _ in valid_loader:
-                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = input_data
-                atom_fea = atom_fea.to(args.device)
-                nbr_fea = nbr_fea.to(args.device)
-                nbr_fea_idx = nbr_fea_idx.to(args.device)
-                crystal_atom_idx = crystal_atom_idx.to(args.device)
+                atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx = batch_to_device(
+                    input_data, args.device
+                )
                 targets = targets.to(args.device)
 
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
