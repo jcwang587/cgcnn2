@@ -4,7 +4,7 @@ This directory includes several pre-trained CGCNN models that one can use to pre
 
 ## Pre-trained models
 
-### Regression
+All bundled models are regression models.
 
 | File                        | Property         | Units    | Data Ref.                                                      | Model Ref.                                                                         |
 | --------------------------- | ---------------- | -------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
@@ -15,12 +15,6 @@ This directory includes several pre-trained CGCNN models that one can use to pre
 | `bulk-moduli`               | Bulk Moduli      | log(GPa) | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
 | `shear-moduli`              | Shear Moduli     | log(GPa) | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
 | `poisson-ratio`             | Poisson Ratio    | —        | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
-
-### Classification
-
-| File                        | Positive | Negative      | Data Ref.                                                      | Model Ref.                                                                         |
-| --------------------------- | -------- | ------------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `semi-metal-classification` | Metal    | Semiconductor | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
 
 ## Before using pre-trained models
 
