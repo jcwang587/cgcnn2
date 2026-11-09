@@ -34,7 +34,7 @@ def collate_pool(dataset_list):
         batch_atom_fea (torch.Tensor): shape (N, orig_atom_fea_len) Atom features from atom type
         batch_nbr_fea (torch.Tensor): shape (N, M, nbr_fea_len) Bond features of each atom's M neighbors
         batch_nbr_fea_idx (torch.LongTensor): shape (N, M) Indices of M neighbors of each atom
-        crystal_atom_idx (list of torch.LongTensor): length N0 Mapping from the crystal idx to atom idx
+        crystal_atom_idx (torch.LongTensor): shape (N,) Index of the crystal each atom belongs to, sorted ascending
         batch_target (torch.Tensor): shape (N, 1) Target value for prediction
         batch_cif_ids (list of str or int): Unique IDs for each crystal
     """
@@ -43,13 +43,14 @@ def collate_pool(dataset_list):
     crystal_atom_idx, batch_target = [], []
     batch_cif_ids = []
     base_idx = 0
-    for (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id in dataset_list:
+    for crystal_i, ((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id) in enumerate(
+        dataset_list
+    ):
         n_i = atom_fea.shape[0]  # number of atoms for this crystal
         batch_atom_fea.append(atom_fea)
         batch_nbr_fea.append(nbr_fea)
         batch_nbr_fea_idx.append(nbr_fea_idx + base_idx)
-        new_idx = torch.arange(base_idx, base_idx + n_i, dtype=torch.long)
-        crystal_atom_idx.append(new_idx)
+        crystal_atom_idx.append(torch.full((n_i,), crystal_i, dtype=torch.long))
         batch_target.append(target)
         batch_cif_ids.append(cif_id)
         base_idx += n_i
@@ -58,7 +59,7 @@ def collate_pool(dataset_list):
             torch.cat(batch_atom_fea, dim=0),
             torch.cat(batch_nbr_fea, dim=0),
             torch.cat(batch_nbr_fea_idx, dim=0),
-            crystal_atom_idx,
+            torch.cat(crystal_atom_idx, dim=0),
         ),
         torch.stack(batch_target, dim=0),
         batch_cif_ids,

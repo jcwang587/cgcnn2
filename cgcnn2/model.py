@@ -130,7 +130,7 @@ class CrystalGraphConvNet(nn.Module):
         atom_fea: torch.Tensor,
         nbr_fea: torch.Tensor,
         nbr_fea_idx: torch.LongTensor,
-        crystal_atom_idx: list[torch.LongTensor],
+        crystal_atom_idx: torch.LongTensor,
     ):
         """
         Forward pass.
@@ -143,7 +143,7 @@ class CrystalGraphConvNet(nn.Module):
             atom_fea (torch.Tensor): Tensor of shape `(N, orig_atom_fea_len)` containing the atom features from atom type.
             nbr_fea (torch.Tensor): Tensor of shape `(N, M, nbr_fea_len)` containing the bond features of each atom's `M` neighbors.
             nbr_fea_idx (torch.LongTensor): Tensor of shape `(N, M)` containing the indices of the `M` neighbors of each atom.
-            crystal_atom_idx (list of torch.LongTensor): Mapping from the crystal index to atom index.
+            crystal_atom_idx (torch.LongTensor): Tensor of shape `(N,)` mapping each atom to the index of its crystal, sorted ascending.
 
         Returns:
             out (torch.Tensor):
@@ -169,20 +169,21 @@ class CrystalGraphConvNet(nn.Module):
         return out, crys_fea
 
     def pooling(
-        self, atom_fea: torch.Tensor, crystal_atom_idx: list[torch.LongTensor]
+        self, atom_fea: torch.Tensor, crystal_atom_idx: torch.LongTensor
     ) -> torch.Tensor:
         """
         Aggregate atom features into crystal-level features by mean pooling.
 
         Args:
             atom_fea (torch.Tensor): Tensor of shape `(N, atom_fea_len)` containing the atom embeddings for all atoms in the batch.
-            crystal_atom_idx (list[torch.LongTensor]): List of tensors, where `crystal_atom_idx[i]` contains the indices of atoms belonging to the `i`-th crystal. The concatenated indices must cover every atom exactly once.
+            crystal_atom_idx (torch.LongTensor): Tensor of shape `(N,)` mapping each atom to the index of its crystal, sorted ascending. Every atom must belong to exactly one crystal.
 
         Returns:
             mean_fea (torch.Tensor): Tensor of shape `(n_crystals, atom_fea_len)` containing the mean-pooled crystal embeddings.
         """
-        assert sum(len(idx) for idx in crystal_atom_idx) == atom_fea.shape[0]
-        mean_fea = torch.stack(
-            [torch.mean(atom_fea[idx], dim=0) for idx in crystal_atom_idx], dim=0
+        n_crystals = int(crystal_atom_idx[-1]) + 1
+        index = crystal_atom_idx.unsqueeze(1).expand(-1, atom_fea.shape[1])
+        mean_fea = atom_fea.new_zeros(n_crystals, atom_fea.shape[1]).scatter_reduce_(
+            0, index, atom_fea, reduce="mean", include_self=False
         )
         return mean_fea

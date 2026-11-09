@@ -457,7 +457,7 @@ def main():
             atom_fea = atom_fea.to(args.device)
             nbr_fea = nbr_fea.to(args.device)
             nbr_fea_idx = nbr_fea_idx.to(args.device)
-            crystal_atom_idx = [idx_map.to(args.device) for idx_map in crystal_atom_idx]
+            crystal_atom_idx = crystal_atom_idx.to(args.device)
             targets = targets.to(args.device)
 
             # Forward pass
@@ -488,9 +488,7 @@ def main():
                 atom_fea = atom_fea.to(args.device)
                 nbr_fea = nbr_fea.to(args.device)
                 nbr_fea_idx = nbr_fea_idx.to(args.device)
-                crystal_atom_idx = [
-                    idx_map.to(args.device) for idx_map in crystal_atom_idx
-                ]
+                crystal_atom_idx = crystal_atom_idx.to(args.device)
                 targets = targets.to(args.device)
 
                 outputs, _ = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
