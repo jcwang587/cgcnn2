@@ -5,9 +5,8 @@
 Writes <out>/train, <out>/valid and <out>/test in the layout `cgcnn2.data.CIFData`
 expects: one `<id>.cif` per structure, `id_prop.csv` and `atom_init.json`. The test
 set is the Matbench v0.1 fold-0 test split (`KFold(5, shuffle=True,
-random_state=18012019)`, stratified for classification tasks), so test errors are
-comparable with the Matbench leaderboard. The validation set is a random tenth of
-the fold-0 training split. IDs follow the Matbench convention, e.g.
+random_state=18012019)`), so test errors are comparable with the Matbench
+leaderboard. The validation set is a random tenth of the fold-0 training split. IDs follow the Matbench convention, e.g.
 `mb-log-kvrh-00006`.
 """
 
@@ -16,16 +15,15 @@ from importlib import resources
 from pathlib import Path
 
 from matminer.datasets import load_dataset
-from sklearn.model_selection import KFold, StratifiedKFold, train_test_split
+from sklearn.model_selection import KFold, train_test_split
 
 
 def main(task: str, out: str) -> None:
     df = load_dataset(task, pbar=True)
     (target,) = df.columns.drop("structure")
     y = df[target]
-    folds = StratifiedKFold if y.dtype == bool else KFold
     train_idx, test_idx = next(
-        folds(n_splits=5, shuffle=True, random_state=18012019).split(df, y)
+        KFold(n_splits=5, shuffle=True, random_state=18012019).split(df)
     )
     train_idx, valid_idx = train_test_split(train_idx, test_size=0.1, random_state=0)
 
