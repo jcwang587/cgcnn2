@@ -45,8 +45,6 @@ dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=
 [tool.uv]
 build-backend.module-name = "cgcnn2"
 build-backend.module-root = ""
-build-backend.source-exclude = [ "dev/**" ]
-build-backend.wheel-exclude = [ "dev/**" ]
 
 [tool.ruff]
 # target-version is inferred from requires-python (>=3.11)
