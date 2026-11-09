@@ -12,7 +12,6 @@ from torch.utils.data import DataLoader
 from cgcnn2.data import CIFData, collate_pool, full_set_split
 from cgcnn2.model import CrystalGraphConvNet
 from cgcnn2.utils import (
-    Normalizer,
     cgcnn_test,
     get_lr,
     print_checkpoint_info,
@@ -293,7 +292,7 @@ def main():
         sys.exit(1)
     # Load checkpoint onto device
     checkpoint = torch.load(
-        args.model_path, map_location=args.device, weights_only=False
+        args.model_path, map_location=args.device, weights_only=True
     )
     model_args = argparse.Namespace(**checkpoint["args"])
 
@@ -320,9 +319,6 @@ def main():
     model.load_state_dict(checkpoint["state_dict"])
     model.to(args.device)
     model.eval()
-
-    normalizer = Normalizer(torch.zeros(3))
-    normalizer.load_state_dict(checkpoint["normalizer"])
 
     print_checkpoint_info(checkpoint, args.model_path)
 
@@ -522,7 +518,6 @@ def main():
             savepoint = {
                 "epoch": epoch + 1,
                 "state_dict": model.state_dict(),
-                "normalizer": normalizer.state_dict(),
                 "best_mse_error": avg_valid_loss,
                 "args": vars(model_args),
             }
@@ -547,7 +542,7 @@ def main():
     # TEST WITH BEST MODEL
     # --------------------
     checkpoint = torch.load(
-        os.path.join(output_folder, "best_model.ckpt"), weights_only=False
+        os.path.join(output_folder, "best_model.ckpt"), weights_only=True
     )
     model.load_state_dict(checkpoint["state_dict"])
 

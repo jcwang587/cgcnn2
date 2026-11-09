@@ -27,13 +27,12 @@ dependencies = [
   "numpy",
   "pandas",
   "pymatgen>=2026.3.23",
-  "torch>=2.6",
+  "torch>=2.10",
 ]
 urls.documentation = "https://jcwang.dev/cgcnn2/"
 urls.homepage = "https://github.com/jcwang587/cgcnn2/"
 urls.repository = "https://github.com/jcwang587/cgcnn2/"
-# pymatgen tracks the first release of the current year
-# torch tracks the first release of the last year
+# pymatgen and torch track the first release of the current year
 scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 scripts.cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 scripts.cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"

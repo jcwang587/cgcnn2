@@ -708,8 +708,8 @@ def cgcnn_pred(
 
     checkpoint = torch.load(
         model_path,
-        map_location=lambda storage, loc: storage if not cuda else None,
-        weights_only=False,
+        map_location="cpu",
+        weights_only=True,
     )
     structures, _, _ = total_dataset[0]
     orig_atom_fea_len = structures[0].shape[-1]
@@ -726,8 +726,6 @@ def cgcnn_pred(
     if cuda:
         model.cuda()
 
-    normalizer = Normalizer(torch.zeros(3))
-    normalizer.load_state_dict(checkpoint["normalizer"])
     model.load_state_dict(checkpoint["state_dict"])
 
     if verbose >= 100:
@@ -786,68 +784,6 @@ def unique_structures_clean(dataset_dir, delete_duplicates=False):
                 os.remove(os.path.join(dataset_dir, dup_fname))
 
     return grouped_fnames
-
-
-class Normalizer:
-    """
-    Normalizes a PyTorch tensor and allows restoring it later.
-
-    This class keeps track of the mean and standard deviation of a tensor and provides methods
-    to normalize and denormalize tensors using these statistics.
-    """
-
-    def __init__(self, tensor: torch.Tensor) -> None:
-        """
-        Initialize the Normalizer with a sample tensor to calculate mean and standard deviation.
-
-        Args:
-            tensor (torch.Tensor): Sample tensor to compute mean and standard deviation.
-        """
-        self.mean: torch.Tensor = torch.mean(tensor)
-        self.std: torch.Tensor = torch.std(tensor)
-
-    def norm(self, tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Normalize a tensor using the stored mean and standard deviation.
-
-        Args:
-            tensor (torch.Tensor): Tensor to normalize.
-
-        Returns:
-            torch.Tensor: Normalized tensor.
-        """
-        return (tensor - self.mean) / self.std
-
-    def denorm(self, normed_tensor: torch.Tensor) -> torch.Tensor:
-        """
-        Denormalize a tensor using the stored mean and standard deviation.
-
-        Args:
-            normed_tensor (torch.Tensor): Normalized tensor to denormalize.
-
-        Returns:
-            torch.Tensor: Denormalized tensor.
-        """
-        return normed_tensor * self.std + self.mean
-
-    def state_dict(self) -> dict[str, torch.Tensor]:
-        """
-        Returns the state dictionary containing the mean and standard deviation.
-
-        Returns:
-            dict[str, torch.Tensor]: State dictionary.
-        """
-        return {"mean": self.mean, "std": self.std}
-
-    def load_state_dict(self, state_dict: dict[str, torch.Tensor]) -> None:
-        """
-        Loads the mean and standard deviation from a state dictionary.
-
-        Args:
-            state_dict (dict[str, torch.Tensor]): State dictionary containing 'mean' and 'std'.
-        """
-        self.mean = state_dict["mean"]
-        self.std = state_dict["std"]
 
 
 def print_checkpoint_info(checkpoint: dict[str, Any], model_path: str) -> None:

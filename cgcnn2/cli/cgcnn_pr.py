@@ -124,7 +124,7 @@ def main():
 
     # Load checkpoint onto device
     checkpoint = torch.load(
-        args.model_path, map_location=args.device, weights_only=False
+        args.model_path, map_location=args.device, weights_only=True
     )
     model_args = argparse.Namespace(**checkpoint["args"])
 
