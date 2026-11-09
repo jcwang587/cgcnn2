@@ -1,11 +1,11 @@
 from __future__ import annotations
 
 import atexit
+from collections.abc import Callable
 import csv
 import functools
 import json
 import os
-import random
 import shutil
 import tempfile
 import warnings
@@ -196,6 +196,54 @@ class AtomCustomJSONInitializer(AtomInitializer):
             self._embedding[key] = np.array(value, dtype=float)
 
 
+def _crystal_graph(crystal, cif_id, ari, gdf, max_num_nbr, radius):
+    """
+    Build the crystal-graph tensors for a single structure.
+
+    Uses pymatgen's C-backed `get_neighbor_list` and vectorized numpy
+    bucketing/padding instead of per-atom Python loops.
+
+    Args:
+        crystal (pymatgen.core.structure.Structure): The crystal structure.
+        cif_id (str or int): Unique ID for the crystal, used in warnings.
+        ari (AtomInitializer): Atom feature initializer.
+        gdf (GaussianDistance): Gaussian distance expander.
+        max_num_nbr (int): Maximum number of neighbors per atom.
+        radius (float): Cutoff radius for neighbor search.
+
+    Returns:
+        atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
+        nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len)
+        nbr_fea_idx (torch.LongTensor): shape (n_i, M)
+    """
+    atom_fea = np.vstack(
+        [ari.get_atom_fea(number) for number in crystal.atomic_numbers]
+    )
+    center_idx, neigh_idx, _images, dists = crystal.get_neighbor_list(radius)
+    n_sites = len(crystal)
+    order = np.lexsort((dists, center_idx))
+    center_idx, neigh_idx, dists = center_idx[order], neigh_idx[order], dists[order]
+    counts = np.bincount(center_idx, minlength=n_sites)
+    if (counts < max_num_nbr).any():
+        warnings.warn(
+            f"{cif_id} not find enough neighbors to build graph. "
+            "If it happens frequently, consider increase "
+            "radius.",
+            stacklevel=2,
+        )
+    starts = np.cumsum(counts) - counts
+    slot = np.arange(center_idx.shape[0]) - np.repeat(starts, counts)
+    keep = slot < max_num_nbr
+    nbr_fea_idx = np.zeros((n_sites, max_num_nbr), dtype=np.int64)
+    nbr_dist = np.full((n_sites, max_num_nbr), radius + 1.0)
+    nbr_fea_idx[center_idx[keep], slot[keep]] = neigh_idx[keep]
+    nbr_dist[center_idx[keep], slot[keep]] = dists[keep]
+    atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
+    nbr_fea = torch.as_tensor(gdf.expand(nbr_dist), dtype=torch.float32)
+    nbr_fea_idx = torch.as_tensor(nbr_fea_idx, dtype=torch.long)
+    return atom_fea, nbr_fea, nbr_fea_idx
+
+
 class CIFData(Dataset):
     """
     The CIFData dataset is a wrapper for a dataset where the crystal structures
@@ -218,7 +266,6 @@ class CIFData(Dataset):
         dmin (float): The minimum distance for constructing GaussianDistance
         step (float): The step size for constructing GaussianDistance
         cache_size (int | None): The size of the lru cache for the dataset. Default is None.
-        random_seed (int): Random seed for shuffling the dataset
 
     Returns:
         atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
@@ -228,6 +275,8 @@ class CIFData(Dataset):
         cif_id (str or int): Unique ID for the crystal
     """
 
+    _cache_load: Callable
+
     def __init__(
         self,
         root_dir,
@@ -236,7 +285,6 @@ class CIFData(Dataset):
         dmin=0,
         step=0.2,
         cache_size=None,
-        random_seed=123,
     ):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
@@ -246,12 +294,10 @@ class CIFData(Dataset):
         with open(id_prop_file) as f:
             reader = csv.reader(f)
             self.id_prop_data = [row for row in reader]
-        random.seed(random_seed)
         atom_init_file = os.path.join(self.root_dir, "atom_init.json")
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
         self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
-        self._raw_load_item = self._load_item_fast
         self.cache_size = cache_size
         self._configure_cache()
 
@@ -293,90 +339,25 @@ class CIFData(Dataset):
 
     def _configure_cache(self) -> None:
         """
-        Wrap `_raw_load_item` with an LRU cache.
+        Wrap `_load_item` with an LRU cache.
         """
         if self.cache_size is None:
-            self._cache_load = functools.lru_cache(maxsize=None)(self._raw_load_item)
+            self._cache_load = functools.lru_cache(maxsize=None)(self._load_item)
         elif self.cache_size <= 0:
-            self._cache_load = self._raw_load_item
+            self._cache_load = self._load_item
         else:
             self._cache_load = functools.lru_cache(maxsize=self.cache_size)(
-                self._raw_load_item
+                self._load_item
             )
 
     def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        atom_fea = np.vstack(
-            [
-                self.ari.get_atom_fea(crystal[i].specie.number)
-                for i in range(len(crystal))
-            ]
+        graph = _crystal_graph(
+            crystal, cif_id, self.ari, self.gdf, self.max_num_nbr, self.radius
         )
-        all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
-        all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
-        nbr_fea_idx, nbr_fea = [], []
-        for nbr in all_nbrs:
-            if len(nbr) < self.max_num_nbr:
-                warnings.warn(
-                    f"{cif_id} not find enough neighbors to build graph. "
-                    "If it happens frequently, consider increase "
-                    "radius.",
-                    stacklevel=2,
-                )
-                nbr_fea_idx.append(
-                    list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
-                )
-                nbr_fea.append(
-                    list(map(lambda x: x[1], nbr))
-                    + [self.radius + 1.0] * (self.max_num_nbr - len(nbr))
-                )
-            else:
-                nbr_fea_idx.append(list(map(lambda x: x[2], nbr[: self.max_num_nbr])))
-                nbr_fea.append(list(map(lambda x: x[1], nbr[: self.max_num_nbr])))
-        nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
-        nbr_fea = self.gdf.expand(nbr_fea)
-        atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
-        nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
-        nbr_fea_idx = torch.as_tensor(nbr_fea_idx, dtype=torch.long)
         target = torch.tensor([float(target)], dtype=torch.float32)
-        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
-
-    def _load_item_fast(self, idx):
-        cif_id, target = self.id_prop_data[idx]
-        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        atom_fea = np.vstack(
-            [
-                self.ari.get_atom_fea(crystal[i].specie.number)
-                for i in range(len(crystal))
-            ]
-        )
-        atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
-        center_idx, neigh_idx, _images, dists = crystal.get_neighbor_list(self.radius)
-        n_sites = len(crystal)
-        bucket = [[] for _ in range(n_sites)]
-        for c, n, d in zip(center_idx, neigh_idx, dists):
-            bucket[c].append((n, d))
-        bucket = [sorted(lst, key=lambda x: x[1]) for lst in bucket]
-        nbr_fea_idx, nbr_fea = [], []
-        for lst in bucket:
-            if len(lst) < self.max_num_nbr:
-                warnings.warn(
-                    f"{cif_id} not find enough neighbors to build graph. "
-                    "If it happens frequently, consider increase "
-                    "radius.",
-                    stacklevel=2,
-                )
-            idxs = [t[0] for t in lst[: self.max_num_nbr]]
-            dvec = [t[1] for t in lst[: self.max_num_nbr]]
-            pad = self.max_num_nbr - len(idxs)
-            nbr_fea_idx.append(idxs + [0] * pad)
-            nbr_fea.append(dvec + [self.radius + 1.0] * pad)
-        nbr_fea_idx = torch.as_tensor(np.array(nbr_fea_idx), dtype=torch.long)
-        nbr_fea = self.gdf.expand(np.array(nbr_fea))
-        nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
-        target = torch.tensor([float(target)], dtype=torch.float32)
-        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+        return graph, target, cif_id
 
 
 class CIFData_NoTarget(Dataset):
@@ -396,7 +377,6 @@ class CIFData_NoTarget(Dataset):
         radius (float): The cutoff radius for searching neighbors
         dmin (float): The minimum distance for constructing GaussianDistance
         step (float): The step size for constructing GaussianDistance
-        random_seed (int): Random seed for shuffling the dataset
 
     Returns:
         atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
@@ -406,9 +386,7 @@ class CIFData_NoTarget(Dataset):
         cif_id (str or int): Unique ID for the crystal
     """
 
-    def __init__(
-        self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2, random_seed=123
-    ):
+    def __init__(self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2):
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
         assert os.path.exists(root_dir), "root_dir does not exist!"
@@ -419,7 +397,6 @@ class CIFData_NoTarget(Dataset):
         id_prop_data = [(cif_id, 0) for cif_id in id_prop_data]
         id_prop_data.sort(key=lambda x: x[0])
         self.id_prop_data = id_prop_data
-        random.seed(random_seed)
         atom_init_file = os.path.join(self.root_dir, "atom_init.json")
         assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
         self.ari = AtomCustomJSONInitializer(atom_init_file)
@@ -449,40 +426,11 @@ class CIFData_NoTarget(Dataset):
     def _load_item(self, idx):
         cif_id, target = self.id_prop_data[idx]
         crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        atom_fea = np.vstack(
-            [
-                self.ari.get_atom_fea(crystal[i].specie.number)
-                for i in range(len(crystal))
-            ]
+        graph = _crystal_graph(
+            crystal, cif_id, self.ari, self.gdf, self.max_num_nbr, self.radius
         )
-        all_nbrs = crystal.get_all_neighbors(self.radius, include_index=True)
-        all_nbrs = [sorted(nbrs, key=lambda x: x[1]) for nbrs in all_nbrs]
-        nbr_fea_idx, nbr_fea = [], []
-        for nbr in all_nbrs:
-            if len(nbr) < self.max_num_nbr:
-                warnings.warn(
-                    f"{cif_id} not find enough neighbors to build graph. "
-                    "If it happens frequently, consider increase "
-                    "radius.",
-                    stacklevel=2,
-                )
-                nbr_fea_idx.append(
-                    list(map(lambda x: x[2], nbr)) + [0] * (self.max_num_nbr - len(nbr))
-                )
-                nbr_fea.append(
-                    list(map(lambda x: x[1], nbr))
-                    + [self.radius + 1.0] * (self.max_num_nbr - len(nbr))
-                )
-            else:
-                nbr_fea_idx.append(list(map(lambda x: x[2], nbr[: self.max_num_nbr])))
-                nbr_fea.append(list(map(lambda x: x[1], nbr[: self.max_num_nbr])))
-        nbr_fea_idx, nbr_fea = np.array(nbr_fea_idx), np.array(nbr_fea)
-        nbr_fea = self.gdf.expand(nbr_fea)
-        atom_fea = torch.as_tensor(atom_fea, dtype=torch.float32)
-        nbr_fea = torch.as_tensor(nbr_fea, dtype=torch.float32)
-        nbr_fea_idx = torch.as_tensor(nbr_fea_idx, dtype=torch.long)
         target = torch.tensor([float(target)], dtype=torch.float32)
-        return (atom_fea, nbr_fea, nbr_fea_idx), target, cif_id
+        return graph, target, cif_id
 
 
 def full_set_split(
