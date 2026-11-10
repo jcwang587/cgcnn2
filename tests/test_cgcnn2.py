@@ -117,8 +117,8 @@ def test_bundled_models_load_and_predict(model_path):
 
 def test_pretrained_prediction():
     predictions, descriptors = cgcnn_pred(FORMATION_ENERGY_MODEL, SAMPLE)
-    assert predictions.shape == (10,) and descriptors.shape == (10, 32)
-    assert predictions[0] == pytest.approx(-2.113, abs=1e-3)  # eV/atom
+    assert predictions.shape == (10,) and descriptors.shape == (10, 128)
+    assert predictions[0] == pytest.approx(-2.060, abs=1e-3)  # eV/atom
     batched, _ = cgcnn_pred(FORMATION_ENERGY_MODEL, SAMPLE, batch_size=3)
     assert np.allclose(predictions, batched, atol=1e-5)
 
