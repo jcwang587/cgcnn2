@@ -13,14 +13,7 @@ Each node $i$ is represented by a feature vector $v_i$, encoding the property of
 The crystal graph is unlike normal graphs since it allows multiple edges between the same pair of end nodes, a characteristic for crystal graphs due to their periodicity, in contrast to molecular graphs.
 
 <div class="grid" markdown>
-<model-viewer
-    src="../assets/nacl.glb"
-    alt="NaCl Crystal Structure"
-    auto-rotate
-    camera-controls
-    ar
-    style="width: 100%; height: 300px;">
-</model-viewer>
+<div id="nacl-viewer" role="img" aria-label="NaCl crystal structure" style="width: 100%; height: 300px;"></div>
 
 ```mermaid
 graph LR
@@ -51,6 +44,23 @@ graph LR
 ```
 
 </div>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.min.js",
+      "bravais": "https://cdn.jsdelivr.net/npm/bravais@0.3.1/dist/bravais.js"
+    }
+  }
+</script>
+
+<script type="module">
+  import { buildScene, createViewer, expandStructure, readCif } from "bravais";
+
+  const response = await fetch("../assets/nacl.cif");
+  const scene = buildScene(expandStructure(await readCif(await response.text())));
+  createViewer(document.getElementById("nacl-viewer")).setLayers([{ scene }]);
+</script>
 
 ## Model Architecture
 
