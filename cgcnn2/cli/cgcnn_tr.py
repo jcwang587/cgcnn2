@@ -22,6 +22,7 @@ from cgcnn2.utils import (
     input_feature_lengths,
     seed_everything,
     setup_logging,
+    target_statistics,
     train,
 )
 
@@ -90,12 +91,12 @@ def main(argv: list[str] | None = None) -> None:
         epochs=int(args.epoch),
         checkpoint_path=checkpoint_path,
         checkpoint_args=vars(args),
+        target_stats=target_statistics(train_dataset),
         scheduler=make_scheduler(optimizer, args),
         stop_patience=int(args.stop_patience) if args.stop_patience else None,
         bias_temperature=args.bias_temperature,
     )
 
-    model.load_state_dict(torch.load(checkpoint_path, weights_only=True)["state_dict"])
     cgcnn_test(
         model,
         make_loader(test_dataset, args),

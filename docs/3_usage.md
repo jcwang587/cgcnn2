@@ -104,11 +104,15 @@ Most of the hyperparameters are shared between these two scripts, including:
 
 - `device`: The torch device used for the model, e.g. `cpu`, `cuda`, `cuda:1` or `mps`. By default `cuda` is used when it is available, otherwise `cpu`.
 
+### Targets and Checkpoints
+
+Targets are standardized internally with the mean and standard deviation of the training set, so one learning rate suits properties of any unit and scale. The loss is the mean squared error on the standardized targets. After every epoch the model is evaluated on the validation set, and the checkpoint with the lowest validation MAE is kept. The statistics are folded into the output layer of the saved checkpoint, so a checkpoint predicts directly in the units of your data and needs nothing else at prediction time.
+
 ### Early Stopping
 
-Both the training and fine-tuning scripts implement an early stopping strategy that halts training if the validation loss fails to improve for a specified number of consecutive epochs.
+Both the training and fine-tuning scripts implement an early stopping strategy that halts training if the validation MAE fails to improve for a specified number of consecutive epochs.
 
-- `stop-patience`: Defines how many consecutive epochs without any decrease in validation loss are allowed before training is terminated. Default is `None`, which means no early stopping.
+- `stop-patience`: Defines how many consecutive epochs without any decrease in validation MAE are allowed before training is terminated. Default is `None`, which means no early stopping.
 
 ### Learning Rate Scheduler
 

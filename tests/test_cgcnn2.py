@@ -7,12 +7,22 @@ import numpy as np
 import pandas as pd
 import pytest
 import torch
+from torch.utils.data import DataLoader
 
 from cgcnn2.cli import cgcnn_ft, cgcnn_pr, cgcnn_tr
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import ConvLayer, CrystalGraphConvNet
 from cgcnn2.pretrained_models import FORMATION_ENERGY_MODEL
-from cgcnn2.utils import cgcnn_pred, metrics_text
+from cgcnn2.utils import (
+    cgcnn_pred,
+    load_checkpoint,
+    metrics_text,
+    model_from_checkpoint,
+    predict,
+    standardize_output,
+    target_statistics,
+    train,
+)
 
 SAMPLE = Path(__file__).resolve().parents[1] / "examples" / "data" / "sample-regression"
 
@@ -97,12 +107,53 @@ def test_pretrained_prediction():
     assert np.allclose(predictions, batched, atol=1e-5)
 
 
+def test_train_standardizes_targets_and_saves_original_units(tmp_path):
+    torch.manual_seed(0)
+    dataset = CIFData(SAMPLE)
+    loader = DataLoader(dataset, batch_size=5, collate_fn=collate_pool)
+    mean, std = target_statistics(dataset)
+    hyperparameters = {"atom_fea_len": 8, "n_conv": 3, "h_fea_len": 8, "n_h": 1}
+    model = CrystalGraphConvNet(92, 41, **hyperparameters)
+    train(
+        model,
+        loader,
+        loader,
+        torch.optim.Adam(model.parameters(), lr=1e-2),
+        "cpu",
+        epochs=3,
+        checkpoint_path=str(tmp_path / "best.ckpt"),
+        checkpoint_args=hyperparameters,
+        target_stats=(mean, std),
+    )
+    predictions, _, targets, _ = predict(model, loader, "cpu")
+    # predictions are in the units of the targets, not standardized
+    assert abs(predictions.mean() - mean) < std
+    # the model ends with the weights of the checkpoint, selected by validation MAE
+    checkpoint = load_checkpoint(tmp_path / "best.ckpt")
+    reloaded = model_from_checkpoint(checkpoint, dataset)
+    assert np.allclose(predictions, predict(reloaded, loader, "cpu")[0])
+    assert checkpoint["best_mae_error"] == pytest.approx(
+        np.abs(predictions - targets).mean(), rel=1e-4
+    )
+
+
+def test_standardize_output():
+    torch.manual_seed(0)
+    dataset = CIFData(SAMPLE)
+    loader = DataLoader(dataset, batch_size=10, collate_fn=collate_pool)
+    model = CrystalGraphConvNet(92, 41, atom_fea_len=8, h_fea_len=8)
+    before = predict(model, loader, "cpu")[0]
+    standardize_output(model, (1.5, 0.25))
+    after = predict(model, loader, "cpu")[0]
+    assert np.allclose(after, (before - 1.5) / 0.25, atol=1e-5)
+
+
 def test_cli_train_finetune_predict(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     common = ["--full-set", str(SAMPLE), "--device", "cpu", "--epoch", "2"]
     cgcnn_tr.main([*common, "--job-id", "tr"])
     checkpoint = torch.load("output_tr/best_model.ckpt", weights_only=True)
-    assert set(checkpoint) == {"epoch", "state_dict", "best_mse_error", "args"}
+    assert set(checkpoint) == {"epoch", "state_dict", "best_mae_error", "args"}
     assert (tmp_path / "output_tr" / "test_results.csv").exists()
     assert (tmp_path / "output_tr" / "parity_plot.png").exists()
 

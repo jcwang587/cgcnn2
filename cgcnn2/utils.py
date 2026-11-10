@@ -103,7 +103,7 @@ def load_checkpoint(model_path: str | os.PathLike[str]) -> dict:
 
     Returns:
         dict: The checkpoint, with the keys `epoch`, `state_dict`, `args` and
-            `best_mse_error` (or `best_mae_error` for the bundled models).
+            `best_mae_error` (`best_mse_error` in checkpoints trained with 0.6).
     """
     checkpoint = torch.load(model_path, map_location="cpu", weights_only=True)
     metrics = [
@@ -160,53 +160,36 @@ def model_from_checkpoint(checkpoint: dict, dataset: CIFData) -> CrystalGraphCon
 # ----------------------------------------------------------------------
 
 
-def weighted_mse_loss(
-    outputs: torch.Tensor, targets: torch.Tensor, bias_temperature: float = -1.0
-) -> torch.Tensor:
+def target_statistics(dataset: CIFData) -> tuple[float, float]:
     """
-    Mean squared error. With `bias_temperature > 0` each squared error is weighted by
-    `exp(-target / bias_temperature)`, so structures with low targets (low energies)
-    weigh more.
+    Mean and standard deviation of the targets of a dataset.
 
     Args:
-        outputs (torch.Tensor): shape (B, 1), the predictions.
-        targets (torch.Tensor): shape (B, 1), the targets.
-        bias_temperature (float): The Boltzmann-like temperature; off when not positive.
+        dataset (CIFData): The dataset, usually the training set.
     """
-    loss = torch.nn.functional.mse_loss(outputs, targets, reduction="none")
-    if bias_temperature > 0:
-        loss = loss * torch.exp(-targets / bias_temperature)
-    return loss.mean()
+    targets = np.array([target for _, target in dataset.id_prop_data])
+    return float(targets.mean()), float(targets.std())
 
 
-def validate(
-    model: torch.nn.Module,
-    loader: DataLoader,
-    device: torch.device | str,
-    bias_temperature: float = -1.0,
-) -> float:
+def standardize_output(
+    model: CrystalGraphConvNet, target_stats: tuple[float, float]
+) -> None:
     """
-    Mean loss of a model over a loader.
+    Make a model that predicts in the original units predict standardized targets, by
+    rewriting its output layer. `train` needs this for a model loaded from a checkpoint.
 
     Args:
-        model (torch.nn.Module): The model.
-        loader (DataLoader): The data, batched with `collate_pool`.
-        device (torch.device | str): Where the model lives.
-        bias_temperature (float): See `weighted_mse_loss`.
+        model (CrystalGraphConvNet): The model, changed in place.
+        target_stats (tuple[float, float]): Mean and standard deviation from `target_statistics`.
     """
-    model.eval()
-    total = 0.0
-    with torch.inference_mode():
-        for batch, targets, _ in loader:
-            outputs, _ = model(*batch_to_device(batch, device))
-            total += weighted_mse_loss(
-                outputs, targets.to(device), bias_temperature
-            ).item()
-    return total / len(loader)
+    mean, std = target_stats
+    with torch.no_grad():
+        model.fc_out.bias.sub_(mean).div_(std)
+        model.fc_out.weight.div_(std)
 
 
 def train(
-    model: torch.nn.Module,
+    model: CrystalGraphConvNet,
     train_loader: DataLoader,
     valid_loader: DataLoader,
     optimizer: torch.optim.Optimizer,
@@ -214,15 +197,24 @@ def train(
     epochs: int,
     checkpoint_path: str,
     checkpoint_args: dict,
+    target_stats: tuple[float, float],
     scheduler: torch.optim.lr_scheduler.ReduceLROnPlateau | None = None,
     stop_patience: int | None = None,
     bias_temperature: float = -1.0,
 ) -> None:
     """
-    Train a model and save the weights with the lowest validation loss.
+    Train a model and keep the weights with the lowest validation MAE.
+
+    The model is trained on standardized targets, `(target - mean) / std`, so that one
+    learning rate suits properties of any unit and scale. A new model can be passed as it
+    is; a model that already predicts in the original units, such as one loaded from a
+    checkpoint, needs `standardize_output` first. The loss is the mean squared error.
+
+    Checkpoints have the statistics folded into the output layer, so they predict in the
+    original units. When training ends the model holds the weights of the best checkpoint.
 
     Args:
-        model (torch.nn.Module): The model, already on `device`.
+        model (CrystalGraphConvNet): The model, already on `device`.
         train_loader (DataLoader): Training data, batched with `collate_pool`.
         valid_loader (DataLoader): Validation data.
         optimizer (torch.optim.Optimizer): The optimizer.
@@ -232,39 +224,58 @@ def train(
         checkpoint_args (dict): Stored under the checkpoint's `args` key. It must hold the
             model hyperparameters (`atom_fea_len`, `n_conv`, `h_fea_len`, `n_h`) so that
             `model_from_checkpoint` can rebuild the model.
-        scheduler (ReduceLROnPlateau | None): Stepped with the validation loss every epoch.
+        target_stats (tuple[float, float]): Mean and standard deviation of the training
+            targets, from `target_statistics`.
+        scheduler (ReduceLROnPlateau | None): Stepped with the validation MAE every epoch.
         stop_patience (int | None): Epochs without improvement before training stops.
-        bias_temperature (float): See `weighted_mse_loss`.
+        bias_temperature (float): If positive, every error is weighted by
+            `exp(-target / bias_temperature)` in the loss and in the validation MAE, so
+            that structures with low targets (low energies) weigh more.
     """
-    best_valid_loss = float("inf")
+    mean, std = target_stats
+    best_valid_mae = float("inf")
     epochs_without_improvement = 0
     for epoch in range(1, epochs + 1):
         model.train()
         train_loss = 0.0
         for batch, targets, _ in train_loader:
+            targets = targets.to(device)
             optimizer.zero_grad()
             outputs, _ = model(*batch_to_device(batch, device))
-            loss = weighted_mse_loss(outputs, targets.to(device), bias_temperature)
+            loss = (outputs - (targets - mean) / std) ** 2
+            if bias_temperature > 0:
+                loss = loss * torch.exp(-targets / bias_temperature)
+            loss = loss.mean()
             loss.backward()
             optimizer.step()
             train_loss += loss.item()
         train_loss /= len(train_loader)
-        valid_loss = validate(model, valid_loader, device, bias_temperature)
+
+        predictions, _, targets, _ = predict(model, valid_loader, device)
+        errors = np.abs(predictions * std + mean - targets)
+        if bias_temperature > 0:
+            errors = errors * np.exp(-targets / bias_temperature)
+        valid_mae = float(errors.mean())
         if scheduler is not None:
-            scheduler.step(valid_loss)
+            scheduler.step(valid_mae)
         learning_rates = [group["lr"] for group in optimizer.param_groups]
         logging.info(
             f"Epoch [{epoch:03d}/{epochs}] - Train Loss: {train_loss:.5f}, "
-            f"Valid Loss: {valid_loss:.5f}, LR: {learning_rates}"
+            f"Valid MAE: {valid_mae:.5f}, LR: {learning_rates}"
         )
-        if valid_loss < best_valid_loss:
-            best_valid_loss = valid_loss
+        if valid_mae < best_valid_mae:
+            best_valid_mae = valid_mae
             epochs_without_improvement = 0
+            # fold the target statistics into the output layer: the checkpoint predicts
+            # in the original units
+            state_dict = dict(model.state_dict())
+            state_dict["fc_out.weight"] = state_dict["fc_out.weight"] * std
+            state_dict["fc_out.bias"] = state_dict["fc_out.bias"] * std + mean
             torch.save(
                 {
                     "epoch": epoch,
-                    "state_dict": model.state_dict(),
-                    "best_mse_error": valid_loss,
+                    "state_dict": state_dict,
+                    "best_mae_error": valid_mae,
                     "args": checkpoint_args,
                 },
                 checkpoint_path,
@@ -278,6 +289,7 @@ def train(
                 )
                 break
     logging.info("Training complete.")
+    model.load_state_dict(torch.load(checkpoint_path, weights_only=True)["state_dict"])
 
 
 # ----------------------------------------------------------------------
