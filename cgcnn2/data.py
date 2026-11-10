@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import atexit
 from collections.abc import Callable
 import csv
@@ -16,37 +14,35 @@ from pymatgen.core.structure import Structure
 import torch
 from torch.utils.data import Dataset
 
+Graph = tuple[torch.Tensor, torch.Tensor, torch.Tensor]
+Item = tuple[Graph, torch.Tensor, str]
 
-def collate_pool(dataset_list):
+
+def collate_pool(dataset_list: list[Item]):
     """
-    Collate a list of data and return a batch for predicting crystal properties.
+    Collate a list of dataset items into one batch.
 
     Args:
-        dataset_list (list of tuples): List of tuples for each data point. Each tuple contains:
-
-            - atom_fea (torch.Tensor): shape (n_i, atom_fea_len) Atom features for each atom in the crystal
-            - nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len) Bond features for each atom's M neighbors
-            - nbr_fea_idx (torch.LongTensor): shape (n_i, M) Indices of M neighbors of each atom
-            - target (torch.Tensor): shape (1, ) Target value for prediction
-            - cif_id (str or int): Unique ID for the crystal
+        dataset_list (list): Items `((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id)` as
+            returned by `CIFData`, with `n_i` atoms and `M` neighbors per atom.
 
     Returns:
-        batch_atom_fea (torch.Tensor): shape (N, orig_atom_fea_len) Atom features from atom type
-        batch_nbr_fea (torch.Tensor): shape (N, M, nbr_fea_len) Bond features of each atom's M neighbors
-        batch_nbr_fea_idx (torch.LongTensor): shape (N, M) Indices of M neighbors of each atom
-        crystal_atom_idx (torch.LongTensor): shape (N,) Index of the crystal each atom belongs to, sorted ascending
-        batch_target (torch.Tensor): shape (N, 1) Target value for prediction
-        batch_cif_ids (list of str or int): Unique IDs for each crystal
-    """
+        tuple: `((atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx), target, cif_ids)` where
 
+            - atom_fea (torch.Tensor): shape (N, orig_atom_fea_len), all atoms of the batch
+            - nbr_fea (torch.Tensor): shape (N, M, nbr_fea_len), bond features of each atom's neighbors
+            - nbr_fea_idx (torch.LongTensor): shape (N, M), neighbor indices into the batch
+            - crystal_atom_idx (torch.LongTensor): shape (N,), the crystal of each atom, sorted ascending
+            - target (torch.Tensor): shape (B, 1)
+            - cif_ids (list[str]): the ID of each crystal
+    """
     batch_atom_fea, batch_nbr_fea, batch_nbr_fea_idx = [], [], []
-    crystal_atom_idx, batch_target = [], []
-    batch_cif_ids = []
+    crystal_atom_idx, batch_target, batch_cif_ids = [], [], []
     base_idx = 0
     for crystal_i, ((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id) in enumerate(
         dataset_list
     ):
-        n_i = atom_fea.shape[0]  # number of atoms for this crystal
+        n_i = atom_fea.shape[0]
         batch_atom_fea.append(atom_fea)
         batch_nbr_fea.append(nbr_fea)
         batch_nbr_fea_idx.append(nbr_fea_idx + base_idx)
@@ -56,12 +52,12 @@ def collate_pool(dataset_list):
         base_idx += n_i
     return (
         (
-            torch.cat(batch_atom_fea, dim=0),
-            torch.cat(batch_nbr_fea, dim=0),
-            torch.cat(batch_nbr_fea_idx, dim=0),
-            torch.cat(crystal_atom_idx, dim=0),
+            torch.cat(batch_atom_fea),
+            torch.cat(batch_nbr_fea),
+            torch.cat(batch_nbr_fea_idx),
+            torch.cat(crystal_atom_idx),
         ),
-        torch.stack(batch_target, dim=0),
+        torch.stack(batch_target),
         batch_cif_ids,
     )
 
@@ -82,133 +78,59 @@ def batch_to_device(batch, device):
 
 class GaussianDistance:
     """
-    Expands the distance by Gaussian basis.
+    Expands interatomic distances (in angstrom) in a Gaussian basis.
 
-    Unit: angstrom
+    Args:
+        dmin (float): Center of the first Gaussian.
+        dmax (float): Center of the last Gaussian.
+        step (float): Spacing between consecutive centers.
+        var (float | None): Variance of each Gaussian. Defaults to `step`.
     """
 
     def __init__(self, dmin, dmax, step, var=None):
-        """
-        Args:
-            dmin (float): Minimum interatomic distance (center of the first Gaussian).
-            dmax (float): Maximum interatomic distance (center of the last Gaussian).
-            step (float): Spacing between consecutive Gaussian centers.
-            var (float, optional): Variance of each Gaussian. If None, defaults to step.
-        """
-
         assert dmin < dmax
         assert dmax - dmin > step
         self.filter = np.arange(dmin, dmax + step, step)
-        if var is None:
-            var = step
-        self.var = var
+        self.var = step if var is None else var
 
     def expand(self, distances):
         """
-        Project each scalar distance onto a set of Gaussian basis functions.
+        Project distances onto the Gaussian basis.
 
         Args:
-            distances (np.ndarray): An array of interatomic distances.
+            distances (np.ndarray): Interatomic distances of any shape.
 
         Returns:
-            expanded_distance (np.ndarray): An array where the last dimension contains the Gaussian basis values for each input distance.
+            np.ndarray: `distances.shape + (len(filter),)` basis values.
         """
-
-        expanded_distance = np.exp(
-            -((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2
-        )
-        return expanded_distance
+        return np.exp(-((distances[..., np.newaxis] - self.filter) ** 2) / self.var**2)
 
 
 class AtomInitializer:
     """
-    Base class for initializing the vector representation for atoms.
-    Use one `AtomInitializer` per dataset.
-    """
-
-    def __init__(self, atom_types):
-        """
-        Initialize the atom types and embedding dictionary.
-
-        Args:
-            atom_types (set): A set of unique atom types in the dataset.
-        """
-        self.atom_types = set(atom_types)
-        self._embedding = {}
-
-    def get_atom_fea(self, atom_type):
-        """
-        Get the vector representation for an atom type.
-
-        Args:
-            atom_type (str): The type of atom to get the vector representation for.
-        """
-        assert atom_type in self.atom_types
-        return self._embedding[atom_type]
-
-    def load_state_dict(self, state_dict):
-        """
-        Load the state dictionary for the atom initializer.
-
-        Args:
-            state_dict (dict): The state dictionary to load.
-        """
-        self._embedding = state_dict
-        self.atom_types = set(self._embedding.keys())
-        self._decodedict = {
-            idx: atom_type for atom_type, idx in self._embedding.items()
-        }
-
-    def state_dict(self) -> dict:
-        """
-        Get the state dictionary for the atom initializer.
-
-        Returns:
-            dict: The state dictionary.
-        """
-        return self._embedding
-
-    def decode(self, idx: int) -> str:
-        """
-        Decode an index to an atom type.
-
-        Args:
-            idx (int): The index to decode.
-
-        Returns:
-            str: The decoded atom type.
-        """
-        if not hasattr(self, "_decodedict"):
-            self._decodedict = {
-                idx: atom_type for atom_type, idx in self._embedding.items()
-            }
-        return self._decodedict[idx]
-
-
-class AtomCustomJSONInitializer(AtomInitializer):
-    """
-    Initialize atom feature vectors using a JSON file, which is a python
-    dictionary mapping from element number to a list representing the
-    feature vector of the element.
+    Atom feature vectors read from an `atom_init.json` file, a dictionary mapping
+    atomic numbers to feature vectors.
 
     Args:
-        elem_embedding_file (str): The path to the `.json` file
+        elem_embedding_file (str): Path to the JSON file.
     """
 
     def __init__(self, elem_embedding_file):
-        """
-        Initialize atom feature embeddings from a JSON file mapping element numbers to feature vectors.
-
-        Parameters:
-            elem_embedding_file (str): Path to a JSON file where keys are element numbers and values are feature vectors.
-        """
         with open(elem_embedding_file) as f:
             elem_embedding = json.load(f)
-        elem_embedding = {int(key): value for key, value in elem_embedding.items()}
-        atom_types = set(elem_embedding.keys())
-        super().__init__(atom_types)
-        for key, value in elem_embedding.items():
-            self._embedding[key] = np.array(value, dtype=float)
+        self._embedding = {
+            int(number): np.array(vector, dtype=float)
+            for number, vector in elem_embedding.items()
+        }
+
+    def get_atom_fea(self, atom_type):
+        """
+        Return the feature vector of an atomic number.
+
+        Args:
+            atom_type (int): Atomic number.
+        """
+        return self._embedding[atom_type]
 
 
 def _crystal_graph(crystal, cif_id, ari, gdf, max_num_nbr, radius):
@@ -220,11 +142,11 @@ def _crystal_graph(crystal, cif_id, ari, gdf, max_num_nbr, radius):
 
     Args:
         crystal (pymatgen.core.structure.Structure): The crystal structure.
-        cif_id (str or int): Unique ID for the crystal, used in warnings.
+        cif_id (str): Unique ID of the crystal, used in warnings.
         ari (AtomInitializer): Atom feature initializer.
         gdf (GaussianDistance): Gaussian distance expander.
         max_num_nbr (int): Maximum number of neighbors per atom.
-        radius (float): Cutoff radius for neighbor search.
+        radius (float): Cutoff radius for the neighbor search.
 
     Returns:
         atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
@@ -261,85 +183,71 @@ def _crystal_graph(crystal, cif_id, ari, gdf, max_num_nbr, radius):
 
 class CIFData(Dataset):
     """
-    The CIFData dataset is a wrapper for a dataset where the crystal structures
-    are stored in the form of CIF files.
+    Crystal structures stored as CIF files in one directory.
 
-    `id_prop.csv`: a CSV file with two columns. The first column records a
-    unique ID for each crystal, and the second column records the value of
-    target property.
+    - `atom_init.json`: the initialization vector of each element.
+    - `ID.cif`: one CIF file per crystal, where `ID` is the unique ID of the crystal.
+    - `id_prop.csv` (optional): two columns, the ID of each crystal and the value of its
+      target property. Without it every CIF file in the directory is loaded with a NaN
+      target, which is all that prediction needs.
 
-    `atom_init.json`: a JSON file that stores the initialization vector for each
-    element.
-
-    `ID.cif`: a CIF file that records the crystal structure, where ID is the
-    unique ID for the crystal.
+    Parsed crystal graphs are kept in a per-instance LRU cache, so each CIF file is
+    parsed once per process.
 
     Args:
-        root_dir (str): The path to the root directory of the dataset
-        max_num_nbr (int): The maximum number of neighbors while constructing the crystal graph
-        radius (float): The cutoff radius for searching neighbors
-        dmin (float): The minimum distance for constructing GaussianDistance
-        step (float): The step size for constructing GaussianDistance
-        cache_size (int | None): The size of the lru cache for the dataset. Default is None.
+        root_dir (str): The dataset directory.
+        max_num_nbr (int): Maximum number of neighbors per atom in the crystal graph.
+        radius (float): Cutoff radius for the neighbor search.
+        dmin (float): Center of the first Gaussian of the distance expansion.
+        step (float): Spacing of the Gaussian centers.
+        cache_size (int | None): Number of parsed crystals kept in memory. None (default)
+            keeps all of them, 0 disables the cache.
 
-    Returns:
+    Each item is `((atom_fea, nbr_fea, nbr_fea_idx), target, cif_id)`:
+
         atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
         nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len)
         nbr_fea_idx (torch.LongTensor): shape (n_i, M)
-        target (torch.Tensor): shape (1, )
-        cif_id (str or int): Unique ID for the crystal
+        target (torch.Tensor): shape (1,)
+        cif_id (str): the ID of the crystal
     """
 
-    _cache_load: Callable
+    _cache_load: Callable[[int], Item]
 
     def __init__(
         self,
-        root_dir,
+        root_dir: str | os.PathLike[str],
         max_num_nbr=12,
         radius=8,
         dmin=0,
         step=0.2,
         cache_size=None,
     ):
+        assert os.path.isdir(root_dir), f"{root_dir} is not a directory"
         self.root_dir = root_dir
         self.max_num_nbr, self.radius = max_num_nbr, radius
-        assert os.path.exists(root_dir), "root_dir does not exist!"
-        id_prop_file = os.path.join(self.root_dir, "id_prop.csv")
-        assert os.path.exists(id_prop_file), "id_prop.csv does not exist!"
-        with open(id_prop_file) as f:
-            reader = csv.reader(f)
-            self.id_prop_data = [row for row in reader]
-        atom_init_file = os.path.join(self.root_dir, "atom_init.json")
-        assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
-        self.ari = AtomCustomJSONInitializer(atom_init_file)
-        self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
+        id_prop_file = os.path.join(root_dir, "id_prop.csv")
+        if os.path.isfile(id_prop_file):
+            with open(id_prop_file) as f:
+                self.id_prop_data = [
+                    (row[0], float(row[1])) for row in csv.reader(f) if row
+                ]
+        else:
+            self.id_prop_data = sorted(
+                (name[:-4], float("nan"))
+                for name in os.listdir(root_dir)
+                if name.endswith(".cif")
+            )
+        self.ari = AtomInitializer(os.path.join(root_dir, "atom_init.json"))
+        self.gdf = GaussianDistance(dmin=dmin, dmax=radius, step=step)
         self.cache_size = cache_size
         self._configure_cache()
-
-    def set_cache_size(self, cache_size: int | None) -> None:
-        """
-        Change the LRU-cache capacity on the fly.
-
-        Args:
-            cache_size (int | None): The size of the cache to set, None for unlimited size. Default is None.
-        """
-        self.cache_size = cache_size
-        if hasattr(self._cache_load, "cache_clear"):
-            self._cache_load.cache_clear()
-        self._configure_cache()
-
-    def clear_cache(self) -> None:
-        """
-        Clear the current cache.
-        """
-        if hasattr(self._cache_load, "cache_clear"):
-            self._cache_load.cache_clear()
 
     def __len__(self):
         return len(self.id_prop_data)
 
-    def __getitem__(self, idx):
-        return self._cache_load(idx)
+    def __getitem__(self, index):
+        return self._cache_load(index)
 
     def __getstate__(self):
         # The lru_cache wrapper around a bound method is not picklable; drop
@@ -353,99 +261,20 @@ class CIFData(Dataset):
         self._configure_cache()
 
     def _configure_cache(self) -> None:
-        """
-        Wrap `_load_item` with an LRU cache.
-        """
-        if self.cache_size is None:
-            self._cache_load = functools.lru_cache(maxsize=None)(self._load_item)
-        elif self.cache_size <= 0:
+        if self.cache_size is not None and self.cache_size <= 0:
             self._cache_load = self._load_item
         else:
             self._cache_load = functools.lru_cache(maxsize=self.cache_size)(
                 self._load_item
             )
 
-    def _load_item(self, idx):
-        cif_id, target = self.id_prop_data[idx]
-        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
+    def _load_item(self, index: int) -> Item:
+        cif_id, target = self.id_prop_data[index]
+        crystal = Structure.from_file(os.path.join(self.root_dir, f"{cif_id}.cif"))
         graph = _crystal_graph(
             crystal, cif_id, self.ari, self.gdf, self.max_num_nbr, self.radius
         )
-        target = torch.tensor([float(target)], dtype=torch.float32)
-        return graph, target, cif_id
-
-
-class CIFData_NoTarget(Dataset):
-    """
-    The CIFData_NoTarget dataset is a wrapper for a dataset where the crystal
-    structures are stored in the form of CIF files.
-
-    `atom_init.json`: a JSON file that stores the initialization vector for each
-    element.
-
-    `ID.cif`: a CIF file that records the crystal structure, where ID is the
-    unique ID for the crystal.
-
-    Args:
-        root_dir (str): The path to the root directory of the dataset
-        max_num_nbr (int): The maximum number of neighbors while constructing the crystal graph
-        radius (float): The cutoff radius for searching neighbors
-        dmin (float): The minimum distance for constructing GaussianDistance
-        step (float): The step size for constructing GaussianDistance
-
-    Returns:
-        atom_fea (torch.Tensor): shape (n_i, atom_fea_len)
-        nbr_fea (torch.Tensor): shape (n_i, M, nbr_fea_len)
-        nbr_fea_idx (torch.LongTensor): shape (n_i, M)
-        target (torch.Tensor): shape (1, )
-        cif_id (str or int): Unique ID for the crystal
-    """
-
-    def __init__(self, root_dir, max_num_nbr=12, radius=8, dmin=0, step=0.2):
-        self.root_dir = root_dir
-        self.max_num_nbr, self.radius = max_num_nbr, radius
-        assert os.path.exists(root_dir), "root_dir does not exist!"
-        id_prop_data = []
-        for file in os.listdir(root_dir):
-            if file.endswith(".cif"):
-                id_prop_data.append(file[:-4])
-        id_prop_data = [(cif_id, 0) for cif_id in id_prop_data]
-        id_prop_data.sort(key=lambda x: x[0])
-        self.id_prop_data = id_prop_data
-        atom_init_file = os.path.join(self.root_dir, "atom_init.json")
-        assert os.path.exists(atom_init_file), "atom_init.json does not exist!"
-        self.ari = AtomCustomJSONInitializer(atom_init_file)
-        self.gdf = GaussianDistance(dmin=dmin, dmax=self.radius, step=step)
-        # Per-instance cache: decorating `__getitem__` directly would keep a
-        # class-level cache that holds every instance alive for the process
-        # lifetime.
-        self._cache_load = functools.lru_cache(maxsize=None)(self._load_item)
-
-    def __len__(self):
-        return len(self.id_prop_data)
-
-    def __getitem__(self, idx):
-        return self._cache_load(idx)
-
-    def __getstate__(self):
-        # The lru_cache wrapper around a bound method is not picklable; drop
-        # it so instances survive spawn-based DataLoader workers.
-        state = self.__dict__.copy()
-        state.pop("_cache_load", None)
-        return state
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._cache_load = functools.lru_cache(maxsize=None)(self._load_item)
-
-    def _load_item(self, idx):
-        cif_id, target = self.id_prop_data[idx]
-        crystal = Structure.from_file(os.path.join(self.root_dir, cif_id + ".cif"))
-        graph = _crystal_graph(
-            crystal, cif_id, self.ari, self.gdf, self.max_num_nbr, self.radius
-        )
-        target = torch.tensor([float(target)], dtype=torch.float32)
-        return graph, target, cif_id
+        return graph, torch.tensor([target], dtype=torch.float32), cif_id
 
 
 def full_set_split(
@@ -456,86 +285,53 @@ def full_set_split(
     random_seed: int = 0,
 ):
     """
-    Split the full set into train, valid, and test sets into a temporary directory.
+    Split a dataset directory into train, valid and test directories.
+
+    The CIF files are copied into three temporary directories that are removed when
+    the process exits. The test set receives whatever the two ratios leave.
 
     Args:
-        full_set_dir (str): The path to the full set
-        train_ratio (float): The ratio of the training set
-        valid_ratio (float): The ratio of the validation set
-        train_force_dir (str): The path to the forced training set. Adding this will no longer keep the original split ratio.
-        random_seed (int): The random seed for the split
+        full_set_dir (str): The dataset to split.
+        train_ratio (float): Fraction of the dataset used for training.
+        valid_ratio (float): Fraction of the dataset used for validation.
+        train_force_dir (str | None): A dataset directory whose structures are all added
+            to the training set on top of the split.
+        random_seed (int): Seed of the shuffle.
 
     Returns:
-        train_dir (str): The path to a temporary directory containing the train set
-        valid_dir (str): The path to a temporary directory containing the valid set
-        test_dir (str): The path to a temporary directory containing the test set
+        tuple[str, str, str]: The train, valid and test directories.
     """
     df = pd.read_csv(
         os.path.join(full_set_dir, "id_prop.csv"),
         header=None,
         names=["cif_id", "property"],
     )
-
     rng = np.random.default_rng(random_seed)
-    df_shuffle = df.sample(frac=1.0, random_state=rng).reset_index(drop=True)
-
-    n_total = len(df_shuffle)
-    n_train = int(n_total * train_ratio)
-    n_valid = int(n_total * valid_ratio)
-
-    train_df = df_shuffle[:n_train]
-    valid_df = df_shuffle[n_train : n_train + n_valid]
-    test_df = df_shuffle[n_train + n_valid :]
-
-    temp_train_dir = tempfile.mkdtemp()
-    temp_valid_dir = tempfile.mkdtemp()
-    temp_test_dir = tempfile.mkdtemp()
-
-    atexit.register(shutil.rmtree, temp_train_dir, ignore_errors=True)
-    atexit.register(shutil.rmtree, temp_valid_dir, ignore_errors=True)
-    atexit.register(shutil.rmtree, temp_test_dir, ignore_errors=True)
-
-    splits = {
-        temp_train_dir: train_df,
-        temp_valid_dir: valid_df,
-        temp_test_dir: test_df,
-    }
-
-    for temp_dir, df in splits.items():
-        for cif_id in df["cif_id"]:
-            src = os.path.join(full_set_dir, f"{cif_id}.cif")
-            dst = os.path.join(temp_dir, f"{cif_id}.cif")
-            shutil.copy(src, dst)
-
-    train_df.to_csv(
-        os.path.join(temp_train_dir, "id_prop.csv"), index=False, header=False
-    )
-    valid_df.to_csv(
-        os.path.join(temp_valid_dir, "id_prop.csv"), index=False, header=False
-    )
-    test_df.to_csv(
-        os.path.join(temp_test_dir, "id_prop.csv"), index=False, header=False
-    )
-
-    shutil.copy(os.path.join(full_set_dir, "atom_init.json"), temp_train_dir)
-    shutil.copy(os.path.join(full_set_dir, "atom_init.json"), temp_valid_dir)
-    shutil.copy(os.path.join(full_set_dir, "atom_init.json"), temp_test_dir)
-
+    df = df.sample(frac=1.0, random_state=rng).reset_index(drop=True)
+    n_train, n_valid = int(len(df) * train_ratio), int(len(df) * valid_ratio)
+    splits = [
+        [(df[:n_train], full_set_dir)],
+        [(df[n_train : n_train + n_valid], full_set_dir)],
+        [(df[n_train + n_valid :], full_set_dir)],
+    ]
     if train_force_dir is not None:
         df_force = pd.read_csv(
             os.path.join(train_force_dir, "id_prop.csv"),
             header=None,
             names=["cif_id", "property"],
         )
+        splits[0].append((df_force, train_force_dir))
 
-        train_df = pd.concat([train_df, df_force])
-        train_df.to_csv(
-            os.path.join(temp_train_dir, "id_prop.csv"), index=False, header=False
+    temp_dirs = []
+    for parts in splits:
+        temp_dir = tempfile.mkdtemp()
+        atexit.register(shutil.rmtree, temp_dir, ignore_errors=True)
+        for part, source_dir in parts:
+            for cif_id in part["cif_id"]:
+                shutil.copy(os.path.join(source_dir, f"{cif_id}.cif"), temp_dir)
+        pd.concat([part for part, _ in parts]).to_csv(
+            os.path.join(temp_dir, "id_prop.csv"), index=False, header=False
         )
-
-        for cif_id in df_force["cif_id"]:
-            src = os.path.join(train_force_dir, f"{cif_id}.cif")
-            dst = os.path.join(temp_train_dir, f"{cif_id}.cif")
-            shutil.copy(src, dst)
-
-    return temp_train_dir, temp_valid_dir, temp_test_dir
+        shutil.copy(os.path.join(full_set_dir, "atom_init.json"), temp_dir)
+        temp_dirs.append(temp_dir)
+    return tuple(temp_dirs)

@@ -17,17 +17,16 @@ The following Slurm scripts are examples of how to run the training, prediction,
 
 ## Retraining on Matbench
 
-The bundled models were trained on a 2017 Materials Project snapshot that can no longer be downloaded. [Matbench](https://matbench.materialsproject.org/) provides fixed, versioned datasets for the same properties, fetched through [matminer](https://hackingmaterials.lbl.gov/matminer/), which is not a dependency of `cgcnn2`. The first four tasks below correspond to the bundled `formation-energy-per-atom`, `band-gap`, `bulk-moduli` and `shear-moduli` models; the last column is the 5-fold mean of the CGCNN entry on the [Matbench leaderboard](https://matbench.materialsproject.org/).
+The bundled models were trained on a 2017 Materials Project snapshot that can no longer be downloaded. [Matbench](https://matbench.materialsproject.org/) provides fixed, versioned datasets for the same properties, fetched through [matminer](https://hackingmaterials.lbl.gov/matminer/), which is not a dependency of `cgcnn2`. The four tasks below correspond to the bundled `formation-energy-per-atom`, `band-gap`, `bulk-moduli` and `shear-moduli` models; the last column is the 5-fold mean of the CGCNN entry on the [Matbench leaderboard](https://matbench.materialsproject.org/).
 
-| Task                   | Target                   | Unit       | Structures | Download | Leaderboard CGCNN |
-| ---------------------- | ------------------------ | ---------- | ---------- | -------- | ----------------- |
-| `matbench_mp_e_form`   | formation energy         | eV/atom    | 132,752    | 167 MB   | MAE 0.0337        |
-| `matbench_mp_gap`      | PBE band gap             | eV         | 106,113    | 137 MB   | MAE 0.2972        |
-| `matbench_log_kvrh`    | bulk modulus, log10      | log10(GPa) | 10,987     | 4 MB     | MAE 0.0712        |
-| `matbench_log_gvrh`    | shear modulus, log10     | log10(GPa) | 10,987     | 4 MB     | MAE 0.0895        |
-| `matbench_mp_is_metal` | metal (1.0) or not (0.0) | —          | 106,113    | 137 MB   | ROC-AUC 0.9520    |
+| Task                 | Target               | Unit       | Structures | Download | Leaderboard CGCNN |
+| -------------------- | -------------------- | ---------- | ---------- | -------- | ----------------- |
+| `matbench_mp_e_form` | formation energy     | eV/atom    | 132,752    | 167 MB   | MAE 0.0337        |
+| `matbench_mp_gap`    | PBE band gap         | eV         | 106,113    | 137 MB   | MAE 0.2972        |
+| `matbench_log_kvrh`  | bulk modulus, log10  | log10(GPa) | 10,987     | 4 MB     | MAE 0.0712        |
+| `matbench_log_gvrh`  | shear modulus, log10 | log10(GPa) | 10,987     | 4 MB     | MAE 0.0895        |
 
-[`examples/matbench_dataset.py`](https://github.com/jcwang587/cgcnn2/blob/HEAD/examples/matbench_dataset.py) writes a task as `train/`, `valid/` and `test/` directories in the `CIFData` layout (`<id>.cif` files, `id_prop.csv` and `atom_init.json`). The test set is the Matbench fold-0 test split, `KFold(n_splits=5, shuffle=True, random_state=18012019)` (stratified for classification), so test errors are directly comparable with the leaderboard; the validation set is a random 10% of the fold-0 training split. IDs follow the Matbench convention, e.g. `mb-log-kvrh-00006`.
+[`examples/matbench_dataset.py`](https://github.com/jcwang587/cgcnn2/blob/HEAD/examples/matbench_dataset.py) writes a task as `train/`, `valid/` and `test/` directories in the `CIFData` layout (`<id>.cif` files, `id_prop.csv` and `atom_init.json`). The test set is the Matbench fold-0 test split, `KFold(n_splits=5, shuffle=True, random_state=18012019)`, so test errors are directly comparable with the leaderboard; the validation set is a random 10% of the fold-0 training split. IDs follow the Matbench convention, e.g. `mb-log-kvrh-00006`.
 
 ```bash
 uv run --with matminer examples/matbench_dataset.py matbench_log_kvrh data/matbench_log_kvrh
