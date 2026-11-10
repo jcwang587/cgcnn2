@@ -96,6 +96,13 @@ def add_training_arguments(parser: argparse.ArgumentParser) -> argparse._Argumen
         type=float,
         help="If > 0, weight each squared error by exp(-target / bias_temperature), favouring low-energy structures. Default: off",
     )
+    group.add_argument(
+        "-rs",
+        "--random-seed",
+        default=42,
+        type=int,
+        help="Seed of the weight initialization and the batch order; the split of --full-set does not depend on it. Default: 42",
+    )
     return group
 
 
@@ -104,13 +111,6 @@ def add_runtime_arguments(parser: argparse.ArgumentParser) -> None:
     group.add_argument(
         "--device",
         help="Torch device, e.g. cpu, cuda, cuda:1 or mps. Default: cuda if available, else cpu",
-    )
-    group.add_argument(
-        "-rs",
-        "--random-seed",
-        default=42,
-        type=int,
-        help="Random seed for reproducibility. Default: 42",
     )
     group.add_argument(
         "-bs",

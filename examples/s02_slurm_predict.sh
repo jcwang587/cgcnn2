@@ -29,7 +29,6 @@ FULLSET=${2:-"./data/sample-regression"}
 srun --unbuffered cgcnn-pr \
 	--model-path $MODELPATH \
 	--full-set $FULLSET \
-	--job-id $SLURM_JOB_ID \
-	--random-seed 42
+	--job-id $SLURM_JOB_ID
 
 exit 0

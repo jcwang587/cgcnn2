@@ -5,9 +5,9 @@
 Writes <out>/train, <out>/valid and <out>/test in the layout `cgcnn2.data.CIFData`
 expects: one `<id>.cif` per structure, `id_prop.csv` and `atom_init.json`. The test
 set is the Matbench v0.1 fold-0 test split (`KFold(5, shuffle=True,
-random_state=18012019)`), so test errors are comparable with the Matbench
-leaderboard. The validation set is a random tenth of the fold-0 training split. IDs follow the Matbench convention, e.g.
-`mb-log-kvrh-00006`.
+random_state=18012019)`), so a test error corresponds to the fold-0 score of a
+Matbench leaderboard entry. The validation set is a random tenth of the fold-0
+training split. IDs follow the Matbench convention, e.g. `mb-log-kvrh-00006`.
 """
 
 import argparse
@@ -22,6 +22,10 @@ def main(task: str, out: str) -> None:
     df = load_dataset(task, pbar=True)
     (target,) = df.columns.drop("structure")
     y = df[target]
+    if y.dtype == bool:
+        raise SystemExit(
+            f"{task} is a classification task; cgcnn2 trains regression models."
+        )
     train_idx, test_idx = next(
         KFold(n_splits=5, shuffle=True, random_state=18012019).split(df)
     )

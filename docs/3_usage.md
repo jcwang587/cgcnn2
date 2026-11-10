@@ -34,10 +34,10 @@ Organize these files in a directory (`root_dir`) with the following structure:
 1. `CIF` files:
    One `.cif` file per material, named `ID.cif`, where `ID` matches the entries in `id_prop.csv`.
 
-Once your `root_dir` (for example, `/examples/data/sample_regression`) contains these files, you can load the dataset using the `CIFData` class:
+Once your `root_dir` (for example, `examples/data/sample-regression`) contains these files, you can load the dataset using the `CIFData` class:
 
 ```python
-dataset = CIFData("/examples/data/sample_regression")
+dataset = CIFData("examples/data/sample-regression")
 ```
 
 This will prepare your crystal structures (and, if provided, their target properties) for use with CGCNN. Then, we can build a `torch.utils.data.DataLoader` object that can be used to load the dataset in a batch.
@@ -79,14 +79,14 @@ cgcnn_test(
 )
 ```
 
-For downstream analysis in Python, `cgcnn_pred` does all of the above in one call and returns the predictions and the crystal descriptors (the features before the output layer) as NumPy arrays:
+For downstream analysis in Python, `cgcnn_pred` loads the dataset and the model in one call and returns the predictions and the crystal descriptors (the features before the output layer) as NumPy arrays; it writes no files and computes no metrics:
 
 ```python
 from cgcnn2.pretrained_models import FORMATION_ENERGY_MODEL
 from cgcnn2.utils import cgcnn_pred
 
 predictions, descriptors = cgcnn_pred(
-    FORMATION_ENERGY_MODEL, "/examples/data/sample_regression"
+    FORMATION_ENERGY_MODEL, "examples/data/sample-regression"
 )
 ```
 
