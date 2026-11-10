@@ -26,7 +26,7 @@ The bundled models were trained on a 2017 Materials Project snapshot that can no
 | `matbench_log_kvrh`  | bulk modulus, log10  | log10(GPa) | 10,987     | 4 MB     | MAE 0.0712        |
 | `matbench_log_gvrh`  | shear modulus, log10 | log10(GPa) | 10,987     | 4 MB     | MAE 0.0895        |
 
-[`examples/matbench_dataset.py`](https://github.com/jcwang587/cgcnn2/blob/HEAD/examples/matbench_dataset.py) writes a task as `train/`, `valid/` and `test/` directories in the `CIFData` layout (`<id>.cif` files, `id_prop.csv` and `atom_init.json`). The test set is the Matbench fold-0 test split, `KFold(n_splits=5, shuffle=True, random_state=18012019)`, so test errors are directly comparable with the leaderboard; the validation set is a random 10% of the fold-0 training split. IDs follow the Matbench convention, e.g. `mb-log-kvrh-00006`.
+[`examples/matbench_dataset.py`](https://github.com/jcwang587/cgcnn2/blob/HEAD/examples/matbench_dataset.py) writes a task as `train/`, `valid/` and `test/` directories in the `CIFData` layout (`<id>.cif` files, `id_prop.csv` and `atom_init.json`). The test set is the Matbench fold-0 test split, `KFold(n_splits=5, shuffle=True, random_state=18012019)`, so a test error corresponds to the fold-0 score of a leaderboard entry. The table lists 5-fold means, and a single fold scatters around its mean. The validation set is a random 10% of the fold-0 training split. IDs follow the Matbench convention, e.g. `mb-log-kvrh-00006`.
 
 ```bash
 uv run --with matminer examples/matbench_dataset.py matbench_log_kvrh data/matbench_log_kvrh

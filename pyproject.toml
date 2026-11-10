@@ -40,7 +40,7 @@ scripts.cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 
 [dependency-groups]
-dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.1a18" ]
+dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.97" ]
 
 [tool.uv]
 build-backend.module-name = "cgcnn2"
@@ -100,6 +100,7 @@ keep_full_version = false
 max_supported_python = "3.14"
 
 [tool.ty]
+src.exclude = [ "examples" ]
 environment.python = ".venv"
 rules.import-not-found = "error"
 rules.missing-argument = "error"

@@ -4,6 +4,7 @@ from pathlib import Path
 import shutil
 
 import numpy as np
+import pandas as pd
 import pytest
 import torch
 
@@ -11,7 +12,7 @@ from cgcnn2.cli import cgcnn_ft, cgcnn_pr, cgcnn_tr
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import ConvLayer, CrystalGraphConvNet
 from cgcnn2.pretrained_models import FORMATION_ENERGY_MODEL
-from cgcnn2.utils import cgcnn_pred
+from cgcnn2.utils import cgcnn_pred, metrics_text
 
 SAMPLE = Path(__file__).resolve().parents[1] / "examples" / "data" / "sample-regression"
 
@@ -131,3 +132,9 @@ def test_cli_train_finetune_predict(tmp_path, monkeypatch):
     )
     results = (tmp_path / "output_pr" / "results.csv").read_text().splitlines()
     assert results[0] == "cif_id,true,pred" and len(results) == 11
+
+
+def test_metrics_text_scales_squared_units():
+    df = pd.DataFrame({"true": [0.0, 0.0], "pred": [0.003, -0.003]})  # eV
+    text = metrics_text(df, metrics=("mae", "mse", "rmse"), unit="meV", unit_scale=1000)
+    assert "MAE}: 3.000" in text and "RMSE}: 3.000" in text and "MSE}: 9.000" in text

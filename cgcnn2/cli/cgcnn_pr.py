@@ -11,7 +11,6 @@ from cgcnn2.utils import (
     cgcnn_test,
     load_checkpoint,
     model_from_checkpoint,
-    seed_everything,
     setup_logging,
 )
 
@@ -37,7 +36,6 @@ def main(argv: list[str] | None = None) -> None:
     setup_logging()
     args = parse_arguments(build_parser(), argv)
     logging.info(f"Parsed arguments:\n{pformat(vars(args))}")
-    seed_everything(args.random_seed)
     output_folder = f"output_{args.job_id}"
     os.makedirs(output_folder, exist_ok=True)
 

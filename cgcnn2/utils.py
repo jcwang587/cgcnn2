@@ -445,7 +445,7 @@ def metrics_text(
         if m_lower == "mae":
             values["MAE"] = np.mean(np.abs(errors)) * unit_scale
         elif m_lower == "mse":
-            values["MSE"] = np.mean(errors**2) * unit_scale
+            values["MSE"] = np.mean(errors**2) * unit_scale**2
         elif m_lower == "rmse":
             values["RMSE"] = np.sqrt(np.mean(errors**2)) * unit_scale
         elif m_lower == "r2":
