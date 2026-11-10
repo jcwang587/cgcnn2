@@ -22,7 +22,7 @@ The package provides the following major functions:
 
 ## Installation
 
-Make sure you have a Python interpreter, version 3.11 to 3.14. Then, you can simply install cgcnn2 from
+Make sure you have a Python interpreter, version 3.11 to 3.15. Then, you can simply install cgcnn2 from
 PyPI using `pip`:
 
 ```bash

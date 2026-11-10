@@ -12,7 +12,7 @@ license = "MIT"
 license-files = [ "LICENSE" ]
 maintainers = [ { name = "Jiacheng Wang", email = "jcwang.dev@gmail.com" } ]
 authors = [ { name = "Jiacheng Wang", email = "jcwang.dev@gmail.com" } ]
-requires-python = ">=3.11,<3.15"
+requires-python = ">=3.11,<3.16"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -22,6 +22,7 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
   "matplotlib",
@@ -98,7 +99,7 @@ lint.isort.known-first-party = [ "cgcnn2" ]
 column_width = 120
 indent = 2
 keep_full_version = false
-max_supported_python = "3.14"
+max_supported_python = "3.15"
 
 [tool.ty]
 src.exclude = [ "examples" ]
