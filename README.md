@@ -3,71 +3,23 @@
 [![Release](https://img.shields.io/github/v/release/jcwang587/cgcnn2)](https://github.com/jcwang587/cgcnn2/releases/latest)
 [![PyPI Downloads](https://static.pepy.tech/badge/cgcnn2)](https://pepy.tech/projects/cgcnn2)
 
-<!--
-[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
-![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/jcwang587/cgcnn2?utm_source=oss&utm_medium=github&utm_campaign=jcwang587%2Fcgcnn2&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
-[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/jcwang587/cgcnn2/main.svg)](https://results.pre-commit.ci/latest/github/jcwang587/cgcnn2/main)
--->
+A maintained reproduction of the Crystal Graph Convolutional Neural Network ([CGCNN](https://github.com/txie-93/cgcnn)) by Xie and Grossman, whose original repository is no longer active. CGCNN remains a small, fast model for predicting material properties from crystal structures that is easy to learn and use.
 
-As the original Crystal Graph Convolutional Neural Networks (CGCNN) repository is no longer actively maintained, this repository is a reproduction of [CGCNN](https://github.com/txie-93/cgcnn) by Xie *et al*. It includes necessary updates for deprecated components and a few additional functions to ensure smooth operation. Despite its age, CGCNN remains a straightforward and fast deep learning framework that is easy to learn and use.
-
-The package provides the following major functions:
-
-- **Training** a CGCNN model using a custom dataset.
-- **Predicting** material properties with a pre-trained CGCNN model.
-- **Fine-tuning** a pre-trained CGCNN model on a new dataset.
-- **Extracting** structural features as descriptors for downstream tasks.
-
-<!---**Augmenting** training data by pertubing atomic positions (in development).-->
+- **Train** a model on your own dataset with `cgcnn-tr`.
+- **Predict** material properties with a trained model with `cgcnn-pr`.
+- **Fine-tune** a trained model on a new dataset with `cgcnn-ft`.
+- **Extract** crystal descriptors for downstream tasks with `cgcnn_pred`.
 
 ## Installation
-
-Make sure you have a Python interpreter, version 3.11 to 3.15. Then, you can simply install cgcnn2 from
-PyPI using `pip`:
 
 ```bash
 pip install cgcnn2
 ```
 
-or, if you manage your project with [uv](https://docs.astral.sh/uv/):
+## Documentation
 
-```bash
-uv add cgcnn2
-```
+The user guide, examples and API reference are at [jcwang.dev/cgcnn2](https://jcwang.dev/cgcnn2/).
 
-If you'd like to use the latest unreleased version on the main branch, you can install it directly from GitHub:
+## Reference
 
-```bash
-pip install git+https://github.com/jcwang587/cgcnn2@main
-```
-
-## Get Started
-
-There are entry points for training, predicting, and fine-tuning CGCNN models. For example, to explore the usage of the provided training script `cgcnn-tr`, you can use the `--help` option of the command:
-
-```bash
-cgcnn-tr --help
-```
-
-Similarly, you can access the predicting and fine-tuning functionalities through `cgcnn-pr` and `cgcnn-ft` commands. A detailed user guide documentation is available at: [https://jcwang.dev/cgcnn2/](https://jcwang.dev/cgcnn2/)
-
-## References
-
-The original paper describes the CGCNN framework in detail:
-
-```bibtex
-@article{PhysRevLett2018,
-  title = {Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties},
-  author = {Xie, Tian and Grossman, Jeffrey C.},
-  journal = {Phys. Rev. Lett.},
-  volume = {120},
-  issue = {14},
-  pages = {145301},
-  numpages = {6},
-  year = {2018},
-  month = {Apr},
-  publisher = {American Physical Society},
-  doi = {10.1103/PhysRevLett.120.145301},
-  url = {https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301}
-}
-```
+Tian Xie and Jeffrey C. Grossman, "Crystal Graph Convolutional Neural Networks for an Accurate and Interpretable Prediction of Material Properties", [Phys. Rev. Lett. 120, 145301 (2018)](https://doi.org/10.1103/PhysRevLett.120.145301).
