@@ -9,8 +9,8 @@ description = "Reproduction of Crystal Graph Convolutional Neural Networks"
 readme = "README.md"
 keywords = [ "computational-materials", "fine-tuning", "graph-model", "python" ]
 license = { text = "MIT" }
-maintainers = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
-authors = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
+maintainers = [ { name = "Jiacheng Wang", email = "jcwang.dev@gmail.com" } ]
+authors = [ { name = "Jiacheng Wang", email = "jcwang.dev@gmail.com" } ]
 requires-python = ">=3.11,<3.15"
 classifiers = [
   "Development Status :: 4 - Beta",
