@@ -12,7 +12,12 @@ from torch.utils.data import DataLoader
 from cgcnn2.cli import cgcnn_ft, cgcnn_pr, cgcnn_tr
 from cgcnn2.data import CIFData, collate_pool
 from cgcnn2.model import ConvLayer, CrystalGraphConvNet
-from cgcnn2.pretrained_models import FORMATION_ENERGY_MODEL
+from cgcnn2.pretrained_models import (
+    BAND_GAP_MODEL,
+    BULK_MODULI_MODEL,
+    FORMATION_ENERGY_MODEL,
+    SHEAR_MODULI_MODEL,
+)
 from cgcnn2.utils import (
     cgcnn_pred,
     load_checkpoint,
@@ -97,6 +102,17 @@ def test_conv_layer_matches_concatenated_linear():
         assert torch.allclose(
             layer(atom_fea, nbr_fea, nbr_fea_idx), expected, atol=1e-5
         )
+
+
+@pytest.mark.parametrize(
+    "model_path",
+    [BAND_GAP_MODEL, BULK_MODULI_MODEL, FORMATION_ENERGY_MODEL, SHEAR_MODULI_MODEL],
+)
+def test_bundled_models_load_and_predict(model_path):
+    checkpoint = load_checkpoint(model_path)
+    predictions, descriptors = cgcnn_pred(model_path, SAMPLE)
+    assert np.isfinite(predictions).all()
+    assert descriptors.shape == (10, checkpoint["args"]["h_fea_len"])
 
 
 def test_pretrained_prediction():
