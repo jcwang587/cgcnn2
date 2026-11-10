@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-- Python 3.11–3.14
+- Python 3.11–3.15
 
 ## Installation Steps
 
