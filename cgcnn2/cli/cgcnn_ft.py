@@ -24,6 +24,8 @@ from cgcnn2.utils import (
     model_from_checkpoint,
     seed_everything,
     setup_logging,
+    standardize_output,
+    target_statistics,
     train,
 )
 
@@ -79,6 +81,7 @@ def main(argv: list[str] | None = None) -> None:
     train_dataset, valid_dataset, test_dataset = load_datasets(args)
     checkpoint = load_checkpoint(args.model_path)
     model = model_from_checkpoint(checkpoint, train_dataset).to(args.device)
+    target_stats = target_statistics(train_dataset)
 
     if args.train_last_fc:
         fc_layers = [model.fc_out]
@@ -90,6 +93,10 @@ def main(argv: list[str] | None = None) -> None:
         logging.info("Reinitializing the fine-tuned layers.")
         for layer in fc_layers:
             layer.reset_parameters()
+    else:
+        # the loaded output layer predicts in the original units; training runs on
+        # standardized targets
+        standardize_output(model, target_stats)
     fc_params = [param for layer in fc_layers for param in layer.parameters()]
     fc_param_ids = set(map(id, fc_params))
     other_params = [p for p in model.parameters() if id(p) not in fc_param_ids]
@@ -110,12 +117,12 @@ def main(argv: list[str] | None = None) -> None:
         epochs=int(args.epoch),
         checkpoint_path=checkpoint_path,
         checkpoint_args=checkpoint["args"],
+        target_stats=target_stats,
         scheduler=make_scheduler(optimizer, args),
         stop_patience=int(args.stop_patience) if args.stop_patience else None,
         bias_temperature=args.bias_temperature,
     )
 
-    model.load_state_dict(torch.load(checkpoint_path, weights_only=True)["state_dict"])
     cgcnn_test(
         model,
         make_loader(test_dataset, args),
