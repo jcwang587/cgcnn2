@@ -310,7 +310,7 @@ def predict(
 
     Returns:
         predictions (np.ndarray): shape (n,), the predicted property of each crystal.
-        descriptors (np.ndarray): shape (n, h_fea_len), the crystal features before the output layer.
+        descriptors (np.ndarray): shape (n, atom_fea_len), the mean atom features of each crystal after the convolutions.
         targets (np.ndarray): shape (n,), NaN where the dataset has no targets.
         cif_ids (list[str]): The ID of each crystal.
     """
@@ -409,8 +409,8 @@ def cgcnn_pred(
     Returns:
         predictions (np.ndarray): shape (n,), the predicted property of each crystal, in
             the order of `id_prop.csv` or sorted by ID without it.
-        descriptors (np.ndarray): shape (n, h_fea_len), the crystal features before the
-            output layer, for downstream analysis.
+        descriptors (np.ndarray): shape (n, atom_fea_len), the mean atom features of each
+            crystal after the convolutions, for downstream analysis.
     """
     dataset = CIFData(full_set)
     model = model_from_checkpoint(load_checkpoint(model_path), dataset).to(device)
