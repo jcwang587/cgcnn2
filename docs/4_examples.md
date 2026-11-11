@@ -17,7 +17,7 @@ The following Slurm scripts are examples of how to run the training, prediction,
 
 ## Retraining on Matbench
 
-The bundled models were trained on a 2017 Materials Project snapshot that can no longer be downloaded. [Matbench](https://matbench.materialsproject.org/) provides fixed, versioned datasets for the same properties, fetched through [matminer](https://hackingmaterials.lbl.gov/matminer/), which is not a dependency of `cgcnn2`. The four tasks below correspond to the bundled `formation-energy-per-atom`, `band-gap`, `bulk-moduli` and `shear-moduli` models; the last column is the 5-fold mean of the CGCNN entry on the [Matbench leaderboard](https://matbench.materialsproject.org/).
+The bundled models are trained with the recipe below on [Matbench](https://matbench.materialsproject.org/) datasets, which are fixed and versioned and are fetched through [matminer](https://hackingmaterials.lbl.gov/matminer/), which is not a dependency of `cgcnn2`. The four tasks below correspond to the bundled `formation-energy-per-atom`, `band-gap`, `bulk-moduli` and `shear-moduli` models, whose test errors are listed in the [models README](https://github.com/jcwang587/cgcnn2/blob/HEAD/cgcnn2/pretrained_models/README.md); the last column is the 5-fold mean of the CGCNN entry on the [Matbench leaderboard](https://matbench.materialsproject.org/).
 
 | Task                 | Target               | Unit       | Structures | Download | Leaderboard CGCNN |
 | -------------------- | -------------------- | ---------- | ---------- | -------- | ----------------- |

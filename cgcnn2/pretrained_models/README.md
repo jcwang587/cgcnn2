@@ -1,37 +1,38 @@
 # Pre-trained CGCNN models
 
-This directory includes several pre-trained CGCNN models that one can use to predict the material properties of new crystals. We encourage users to report their own CGCNN models for other properties which might benefit the community.
+The bundled models are trained with cgcnn2 on [Matbench](https://matbench.materialsproject.org/) v0.1 datasets, which come from the Materials Project. Each model was trained on the fold-0 training split of its task and evaluated once on the fold-0 test split.
 
-## Pre-trained models
+| File                                | Property             | Unit       | Matbench task        | Structures | Test MAE | Leaderboard CGCNN |
+| ----------------------------------- | -------------------- | ---------- | -------------------- | ---------- | -------- | ----------------- |
+| `formation-energy-per-atom.pth.tar` | Formation energy     | eV/atom    | `matbench_mp_e_form` | 132,752    | 0.0323   | 0.0340            |
+| `band-gap.pth.tar`                  | PBE band gap         | eV         | `matbench_mp_gap`    | 106,113    | 0.2520   | 0.2978            |
+| `bulk-moduli.pth.tar`               | Bulk modulus, log10  | log10(GPa) | `matbench_log_kvrh`  | 10,987     | 0.0648   | 0.0702            |
+| `shear-moduli.pth.tar`              | Shear modulus, log10 | log10(GPa) | `matbench_log_gvrh`  | 10,987     | 0.0821   | 0.0870            |
 
-All bundled models are regression models.
+The last column is the test MAE of the [CGCNN entry on the Matbench leaderboard](https://matbench.materialsproject.org/Full%20Benchmark%20Data/matbench_v0.1_cgcnnv2019/) on the same fold. That entry trained on 60 % of each dataset and these models on 72 %.
 
-| File                        | Property         | Units    | Data Ref.                                                      | Model Ref.                                                                         |
-| --------------------------- | ---------------- | -------- | -------------------------------------------------------------- | ---------------------------------------------------------------------------------- |
-| `formation-energy-per-atom` | Formation Energy | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
-| `final-energy-per-atom`     | Absolute Energy  | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
-| `band-gap`                  | Band Gap         | eV       | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
-| `efermi`                    | Fermi Energy     | eV/atom  | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
-| `bulk-moduli`               | Bulk Moduli      | log(GPa) | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
-| `shear-moduli`              | Shear Moduli     | log(GPa) | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
-| `poisson-ratio`             | Poisson Ratio    | —        | [Jain et al.](https://aip.scitation.org/doi/10.1063/1.4812323) | [Xie et al.](https://journals.aps.org/prl/abstract/10.1103/PhysRevLett.120.145301) |
+## Training
 
-## Before using pre-trained models
+Of each dataset, 72 % is used for training, 8 % for validation and 20 % for testing. The models use the default architecture and were trained at commit [`ea5d804`](https://github.com/jcwang587/cgcnn2/commit/ea5d8041107ca10fc316b7e0608c4bc8a5b36ef0) with the commands of [Retraining on Matbench](https://jcwang.dev/cgcnn2/4_examples/#retraining-on-matbench), for example:
 
-- CGCNN models (and machine learning models in general) can only generalize to crystals from the same distribution as training data. It is advised to check **Data Ref.** before using pre-trained models. For instance, Materials Project uses [ICSD](https://www.fiz-karlsruhe.de/en/produkte-und-dienstleistungen/inorganic-crystal-structure-database-icsd) structures as input, which includes experimentally synthesized crystal structures. Significant errors can be expected if a CGCNN model trained on Materials Project is used to predict the properties of imaginary, thermodynamically unstable crystals.
-- The bundled files are the original CGCNN checkpoints re-saved for cgcnn2: the target standardization used during their training is folded into the output layer, so predictions are directly in the units listed above; the optimizer state is removed; they load with `torch.load(weights_only=True)`.
-- CGCNN models have prediction errors. It is advised to check **Model Ref.** to understand their accuracy before using pre-trained models.
+```bash
+uv run --with matminer examples/matbench_dataset.py matbench_log_kvrh data/matbench_log_kvrh
+cgcnn-tr --train-set data/matbench_log_kvrh/train --valid-set data/matbench_log_kvrh/valid --test-set data/matbench_log_kvrh/test --stop-patience 100 --lr-patience 20
+```
+
+## Before using the models
+
+- A model only generalizes to crystals from the distribution it was trained on. The Materials Project mostly holds relaxed structures of known compounds, so expect larger errors for hypothetical or unstable crystals.
+- The bulk and shear modulus models predict the base-10 logarithm of the modulus in GPa.
+- Predictions are in the units listed above, and the checkpoints load with `torch.load(weights_only=True)`.
 
 ## How to cite
 
-If you used any pre-trained models, please cite both **Data Ref.** and **Model Ref.** because data and model are equally important for a successful machine learning model!
+Please cite the model and the data:
 
-## How to share your pre-trained models
+- Tian Xie and Jeffrey C. Grossman, [Phys. Rev. Lett. 120, 145301 (2018)](https://doi.org/10.1103/PhysRevLett.120.145301), for CGCNN.
+- Alexander Dunn *et al.*, [npj Comput. Mater. 6, 138 (2020)](https://doi.org/10.1038/s41524-020-00406-3), for Matbench.
 
-Please open a Pull Request if you want to share your own pre-trained models. Since we don't have time to check the validity of your model, we only accept **peer reviewed** works.
+## Sharing a model
 
-To submit, be sure to include:
-
-1. A `pth.tar` file storing the CGCNN model.
-1. The type of the model and the target property.
-1. The links to the data reference and model reference.
+To share a model of your own, open a pull request with the checkpoint, the property and its unit, and references for the data and the model. Only peer-reviewed work is accepted.
