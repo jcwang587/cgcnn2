@@ -79,7 +79,7 @@ cgcnn_test(
 )
 ```
 
-For downstream analysis in Python, `cgcnn_pred` loads the dataset and the model in one call and returns the predictions and the crystal descriptors (the features before the output layer) as NumPy arrays; it writes no files and computes no metrics:
+For downstream analysis in Python, `cgcnn_pred` loads the dataset and the model in one call and returns the predictions and the crystal descriptors (the atom features after the convolutions, averaged over each crystal) as NumPy arrays; it writes no files and computes no metrics:
 
 ```python
 from cgcnn2.pretrained_models import FORMATION_ENERGY_MODEL

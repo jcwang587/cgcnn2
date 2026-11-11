@@ -115,16 +115,16 @@ class CrystalGraphConvNet(nn.Module):
 
         Returns:
             out (torch.Tensor): shape (B, 1), the predicted property.
-            crys_fea (torch.Tensor): shape (B, h_fea_len), the crystal features before the output layer.
+            crys_fea (torch.Tensor): shape (B, atom_fea_len), the mean atom features of each crystal after the convolutions.
         """
         atom_fea = self.embedding(atom_fea)
         for conv in self.convs:
             atom_fea = conv(atom_fea, nbr_fea, nbr_fea_idx)
-        crys_fea = self.softplus(self.pooling(atom_fea, crystal_atom_idx))
-        crys_fea = self.softplus(self.conv_to_fc(crys_fea))
+        crys_fea = self.pooling(atom_fea, crystal_atom_idx)
+        h_fea = self.softplus(self.conv_to_fc(self.softplus(crys_fea)))
         for fc in self.fcs:
-            crys_fea = self.softplus(fc(crys_fea))
-        return self.fc_out(crys_fea), crys_fea
+            h_fea = self.softplus(fc(h_fea))
+        return self.fc_out(h_fea), crys_fea
 
     def pooling(
         self, atom_fea: torch.Tensor, crystal_atom_idx: torch.Tensor

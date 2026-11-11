@@ -78,6 +78,22 @@ def test_collate_and_pooling():
     assert torch.allclose(pooled, expected, atol=1e-6)
 
 
+def test_descriptors_are_the_pooled_atom_features():
+    dataset = CIFData(SAMPLE)
+    (atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx), _, _ = collate_pool(
+        [dataset[i] for i in range(3)]
+    )
+    torch.manual_seed(0)
+    model = CrystalGraphConvNet(92, 41, atom_fea_len=8, h_fea_len=4).eval()
+    with torch.no_grad():
+        _, crys_fea = model(atom_fea, nbr_fea, nbr_fea_idx, crystal_atom_idx)
+        atom_out = model.embedding(atom_fea)
+        for conv in model.convs:
+            atom_out = conv(atom_out, nbr_fea, nbr_fea_idx)
+    expected = torch.stack([atom_out[crystal_atom_idx == i].mean(0) for i in range(3)])
+    assert torch.allclose(crys_fea, expected, atol=1e-6)
+
+
 def test_conv_layer_matches_concatenated_linear():
     torch.manual_seed(0)
     n_atoms, n_nbr, atom_fea_len, nbr_fea_len = 50, 12, 16, 7
@@ -112,15 +128,16 @@ def test_bundled_models_load_and_predict(model_path):
     checkpoint = load_checkpoint(model_path)
     predictions, descriptors = cgcnn_pred(model_path, SAMPLE)
     assert np.isfinite(predictions).all()
-    assert descriptors.shape == (10, checkpoint["args"]["h_fea_len"])
+    assert descriptors.shape == (10, checkpoint["args"]["atom_fea_len"])
 
 
 def test_pretrained_prediction():
     predictions, descriptors = cgcnn_pred(FORMATION_ENERGY_MODEL, SAMPLE)
-    assert predictions.shape == (10,) and descriptors.shape == (10, 128)
+    assert predictions.shape == (10,) and descriptors.shape == (10, 64)
     assert predictions[0] == pytest.approx(-2.060, abs=1e-3)  # eV/atom
-    batched, _ = cgcnn_pred(FORMATION_ENERGY_MODEL, SAMPLE, batch_size=3)
-    assert np.allclose(predictions, batched, atol=1e-5)
+    batched = cgcnn_pred(FORMATION_ENERGY_MODEL, SAMPLE, batch_size=3)
+    assert np.allclose(predictions, batched[0], atol=1e-5)
+    assert np.allclose(descriptors, batched[1], atol=1e-5)
 
 
 def test_train_standardizes_targets_and_saves_original_units(tmp_path):
