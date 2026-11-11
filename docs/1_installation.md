@@ -2,7 +2,7 @@
 
 ## Prerequisite
 
-- Python 3.11–3.15
+- Python 3.11–3.15. On 3.15, pymatgen is built from source until it publishes wheels for that version, which needs a C compiler.
 
 ## Installation Steps
 

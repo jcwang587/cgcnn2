@@ -164,6 +164,17 @@ def test_standardize_output():
     assert np.allclose(after, (before - 1.5) / 0.25, atol=1e-5)
 
 
+def test_target_statistics_needs_varying_targets(tmp_path):
+    for cif in sorted(SAMPLE.glob("*.cif"))[:3]:
+        shutil.copy(cif, tmp_path)
+    shutil.copy(SAMPLE / "atom_init.json", tmp_path)
+    with pytest.raises(ValueError):  # no id_prop.csv, so the targets are missing
+        target_statistics(CIFData(tmp_path))
+    (tmp_path / "id_prop.csv").write_text("1000041,1.5\n1000050,1.5\n1101051,1.5\n")
+    with pytest.raises(ValueError):  # all targets are equal
+        target_statistics(CIFData(tmp_path))
+
+
 def test_cli_train_finetune_predict(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
     common = ["--full-set", str(SAMPLE), "--device", "cpu", "--epoch", "2"]

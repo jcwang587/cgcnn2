@@ -90,6 +90,8 @@ predictions, descriptors = cgcnn_pred(
 )
 ```
 
+Both arrays follow the order of `id_prop.csv`, or the sorted IDs of the CIF files when there is none.
+
 ## Training Options
 
 You can view the training hyperparameters by using the `--help` flag with both the `cgcnn-tr` and `cgcnn-ft` commands.
@@ -108,11 +110,13 @@ Most of the hyperparameters are shared between these two scripts, including:
 
 Targets are standardized internally with the mean and standard deviation of the training set, so one learning rate suits properties of any unit and scale. The loss is the mean squared error on the standardized targets. After every epoch the model is evaluated on the validation set, and the checkpoint with the lowest validation MAE is kept. The statistics are folded into the output layer of the saved checkpoint, so a checkpoint predicts directly in the units of your data and needs nothing else at prediction time.
 
+With `--bias-temperature`, every error in the loss and in the validation MAE is weighted by `exp(-target / bias_temperature)`, which favors structures with low targets such as low energies. The checkpoint is then selected by this weighted MAE.
+
 ### Early Stopping
 
-Both the training and fine-tuning scripts implement an early stopping strategy that halts training if the validation MAE fails to improve for a specified number of consecutive epochs.
+Both the training and fine-tuning scripts implement an early stopping strategy that halts training when the validation MAE has not reached a new best for a specified number of consecutive epochs.
 
-- `stop-patience`: Defines how many consecutive epochs without any decrease in validation MAE are allowed before training is terminated. Default is `None`, which means no early stopping.
+- `stop-patience`: Defines how many consecutive epochs without a new best validation MAE are allowed before training is terminated. Default is `None`, which means no early stopping.
 
 ### Learning Rate Scheduler
 

@@ -94,7 +94,7 @@ def add_training_arguments(parser: argparse.ArgumentParser) -> argparse._Argumen
         "--bias-temperature",
         default=-1.0,
         type=float,
-        help="If > 0, weight each squared error by exp(-target / bias_temperature), favouring low-energy structures. Default: off",
+        help="If > 0, weight each error by exp(-target / bias_temperature) in the loss and in the validation MAE, favouring low-energy structures. Default: off",
     )
     group.add_argument(
         "-rs",
