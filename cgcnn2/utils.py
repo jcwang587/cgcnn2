@@ -168,7 +168,12 @@ def target_statistics(dataset: CIFData) -> tuple[float, float]:
         dataset (CIFData): The dataset, usually the training set.
     """
     targets = np.array([target for _, target in dataset.id_prop_data])
-    return float(targets.mean()), float(targets.std())
+    mean, std = float(targets.mean()), float(targets.std())
+    if not std > 0:  # NaN without targets, 0 when they are all equal
+        raise ValueError(
+            "The targets are missing or all equal, so they cannot be standardized."
+        )
+    return mean, std
 
 
 def standardize_output(
