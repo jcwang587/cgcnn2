@@ -48,7 +48,8 @@ jobs:
           gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '
             .[] | select(.draft | not)
             | "\n## [\(.tag_name)](\(.html_url)) - \(.published_at[:10])\n\n"
-              + (.body | gsub("\r"; "") | sub("^## What.s Changed\n+"; "") | gsub("(?m)^## "; "### ")
+              + (.body | gsub("\r"; "") | gsub("(?s)<!--.*?-->\n*"; "") | gsub("(?m)^## What.s Changed\n+"; "")
+                | gsub("(?m)^## "; "### ")
                 | sub(": (?P<url>https://\\S+/(compare|commits)/(?P<range>\\S+))"; ": [\(.range)](\(.url))"))
           ' >> docs/changelog.md
       - name: Deploy to GitHub Pages
