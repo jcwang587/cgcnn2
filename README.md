@@ -1,6 +1,6 @@
 # CGCNN2
 
-[![Release](https://img.shields.io/github/v/release/jcwang587/cgcnn2)](https://github.com/jcwang587/cgcnn2/releases/latest)
+[![PyPI](https://img.shields.io/pypi/v/cgcnn2)](https://pypi.org/project/cgcnn2/)
 [![PyPI Downloads](https://static.pepy.tech/badge/cgcnn2)](https://pepy.tech/projects/cgcnn2)
 
 A maintained reproduction of the Crystal Graph Convolutional Neural Network ([CGCNN](https://github.com/txie-93/cgcnn)) by Xie and Grossman, whose original repository is no longer active. CGCNN remains a small, fast model for predicting material properties from crystal structures that is easy to learn and use.

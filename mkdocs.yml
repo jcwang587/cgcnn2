@@ -39,6 +39,14 @@ markdown_extensions:
           format: !!python/name:pymdownx.superfences.fence_code_format
   - toc:
       permalink: true
+  # Renders the GitHub links and @mentions of the release notes as #123 and links
+  - pymdownx.magiclink:
+      repo_url_shortener: true
+      normalize_issue_symbols: true
+      social_url_shorthand: true
+      provider: github
+      user: jcwang587
+      repo: cgcnn2
   - attr_list
   - md_in_html
 plugins:
