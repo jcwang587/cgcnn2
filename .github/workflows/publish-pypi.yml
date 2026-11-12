@@ -1,6 +1,7 @@
 name: publish pypi
 # Publishing a GitHub release tests and builds the package and uploads it to PyPI.
-# To release, set the version in pyproject.toml, merge dev into main and run
+# To release, set the version in pyproject.toml, merge dev into main with a pull
+# request labeled ignore-for-release, and run
 #   gh release create vX.Y.Z --target main --generate-notes
 # or draft the release on GitHub with "Generate release notes" and publish it.
 on:

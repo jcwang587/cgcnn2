@@ -4,21 +4,5 @@ changelog:
     labels:
       - ignore-for-release
     authors:
-      - dependabot
-      - pre-commit-ci
-  categories:
-    - title: Breaking changes
-      labels:
-        - breaking
-    - title: New features
-      labels:
-        - enhancement
-    - title: Bug fixes
-      labels:
-        - bug
-    - title: Documentation
-      labels:
-        - documentation
-    - title: Other changes
-      labels:
-        - "*"
+      - dependabot[bot]
+      - pre-commit-ci[bot]
