@@ -1,12 +1,12 @@
 name: build docs
 on:
   workflow_dispatch:
-    inputs:
-      forceDeploy:
-        description: 'Force deploy documentation?'
-        required: true
-        default: 'no'
   push: {branches: ["main", "docs"]}
+  # The changelog page shows the GitHub release notes, so it is rebuilt when they change
+  release:
+    types: [published, edited, deleted]
+concurrency:
+  group: docs
 permissions:
   contents: write
   issues: write
@@ -14,17 +14,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           ref: main
       - name: Link Checker
         id: lychee
-        uses: lycheeverse/lychee-action@v2
+        uses: lycheeverse/lychee-action@e7477775783ea5526144ba13e8db5eec57747ce8 # v2.9.0
         with:
           fail: false
       - name: Create Issue From File
         if: steps.lychee.outputs.exit_code != 0
-        uses: peter-evans/create-issue-from-file@v6
+        uses: peter-evans/create-issue-from-file@fca9117c27cdc29c6c4db3b86c48e4115a786710 # v6.0.0
         with:
           title: Link Checker Report
           content-filepath: ./lychee/out.md
@@ -33,7 +33,7 @@ jobs:
         run: |
           git config user.name github-actions[bot]
           git config user.email 41898282+github-actions[bot]@users.noreply.github.com
-      - uses: actions/setup-python@v6
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -41,5 +41,16 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r docs/requirements.txt
+      - name: Add the release notes to the changelog page
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/releases" --paginate --jq '
+            .[] | select(.draft | not)
+            | "\n## [\(.tag_name)](\(.html_url)) - \(.published_at[:10])\n\n"
+              + (.body | gsub("\r"; "") | gsub("(?s)<!--.*?-->\n*"; "") | gsub("(?m)^## What.s Changed\n+"; "")
+                | gsub("(?m)^## "; "### ")
+                | sub(": (?P<url>https://\\S+/(compare|commits)/(?P<range>\\S+))"; ": [\(.range)](\(.url))"))
+          ' >> docs/changelog.md
       - name: Deploy to GitHub Pages
         run: mkdocs gh-deploy --force
