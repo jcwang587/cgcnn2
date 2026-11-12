@@ -4,14 +4,15 @@ requires = [ "uv-build>=0.7.10,<0.14" ]
 
 [project]
 name = "cgcnn2"
-version = "0.6.0"
+version = "1.0.0"
 description = "Reproduction of Crystal Graph Convolutional Neural Networks"
 readme = "README.md"
 keywords = [ "computational-materials", "fine-tuning", "graph-model", "python" ]
-license = { text = "MIT" }
-maintainers = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
-authors = [ { name = "Jiacheng Wang", email = "jiachengwang@umass.edu" } ]
-requires-python = ">=3.11,<3.15"
+license = "MIT"
+license-files = [ "LICENSE" ]
+maintainers = [ { name = "Jiacheng Wang", email = "jcwang.dev@gmail.com" } ]
+authors = [ { name = "Jiacheng Wang", email = "jcwang.dev@gmail.com" } ]
+requires-python = ">=3.11,<3.16"
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Science/Research",
@@ -21,19 +22,19 @@ classifiers = [
   "Programming Language :: Python :: 3.12",
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: 3.15",
 ]
 dependencies = [
   "matplotlib",
   "numpy",
   "pandas",
   "pymatgen>=2026.3.23",
-  "torch>=2.6",
+  "torch>=2.10",
 ]
 urls.documentation = "https://jcwang.dev/cgcnn2/"
 urls.homepage = "https://github.com/jcwang587/cgcnn2/"
 urls.repository = "https://github.com/jcwang587/cgcnn2/"
-# pymatgen tracks the first release of the current year
-# torch tracks the first release of the last year
+# pymatgen and torch track the first release of the current year
 scripts.atom-gen = "cgcnn2.cli.cgcnn_init:atom_gen"
 scripts.cgcnn-ft = "cgcnn2.cli.cgcnn_ft:main"
 scripts.cgcnn-pr = "cgcnn2.cli.cgcnn_pr:main"
@@ -41,13 +42,11 @@ scripts.cgcnn-tr = "cgcnn2.cli.cgcnn_tr:main"
 scripts.id-gen = "cgcnn2.cli.cgcnn_init:id_gen"
 
 [dependency-groups]
-dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.1a18" ]
+dev = [ "pre-commit>=4.3", "pytest>=8.3", "pytest-cov>=6", "ruff>=0.12.9", "ty>=0.0.97" ]
 
 [tool.uv]
 build-backend.module-name = "cgcnn2"
 build-backend.module-root = ""
-build-backend.source-exclude = [ "dev/**" ]
-build-backend.wheel-exclude = [ "dev/**" ]
 
 [tool.ruff]
 # target-version is inferred from requires-python (>=3.11)
@@ -100,10 +99,11 @@ lint.isort.known-first-party = [ "cgcnn2" ]
 column_width = 120
 indent = 2
 keep_full_version = false
-max_supported_python = "3.14"
+max_supported_python = "3.15"
 
 [tool.ty]
+src.exclude = [ "examples" ]
 environment.python = ".venv"
+rules.import-not-found = "error"
 rules.missing-argument = "error"
 rules.unresolved-attribute = "error"
-rules.unresolved-import = "error"

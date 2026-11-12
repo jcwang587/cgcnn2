@@ -34,10 +34,10 @@ Organize these files in a directory (`root_dir`) with the following structure:
 1. `CIF` files:
    One `.cif` file per material, named `ID.cif`, where `ID` matches the entries in `id_prop.csv`.
 
-Once your `root_dir` (for example, `/examples/data/sample_regression`) contains these files, you can load the dataset using the `CIFData` class:
+Once your `root_dir` (for example, `examples/data/sample-regression`) contains these files, you can load the dataset using the `CIFData` class:
 
 ```python
-dataset = CIFData("/examples/data/sample_regression")
+dataset = CIFData("examples/data/sample-regression")
 ```
 
 This will prepare your crystal structures (and, if provided, their target properties) for use with CGCNN. Then, we can build a `torch.utils.data.DataLoader` object that can be used to load the dataset in a batch.
@@ -54,66 +54,43 @@ loader = DataLoader(
 )
 ```
 
-### 3. Model Initialization
+### 3. Model Loading
 
-We need some information from the dataset to initialize the model, which can be done by:
-
-```python
-atom_graph, _, _ = dataset[0]
-orig_atom_fea_len = atom_graph[0].shape[-1]
-nbr_fea_len = atom_graph[1].shape[-1]
-```
-
-where `dataset[0]` is a tuple of `(atom_graph, target, cif_id)`, where `atom_graph` is a tuple of `(atom_fea, nbr_fea, nbr_fea_idx)`, `target` is the target property value, and `cif_id` is the unique ID of the material. The `atom_graph` tuple contains the atom features, neighbor features, and neighbor indices, and the dimensions of these features given by `orig_atom_fea_len` and `nbr_fea_len` are needed to initialize the model.
-
-Besides, we need some information about the pre-trained model architecture, which can be done by:
+A checkpoint holds the model weights and the hyperparameters of the architecture, so the model is rebuilt from the checkpoint and the dataset, which provides the input feature lengths:
 
 ```python
 import torch
-import argparse
+from cgcnn2.utils import load_checkpoint, model_from_checkpoint
 
-checkpoint = torch.load(args.model_path, map_location=args.device, weights_only=False)
-model_args = argparse.Namespace(**checkpoint["args"])
-atom_fea_len = model_args.atom_fea_len
-n_conv = model_args.n_conv
-h_fea_len = model_args.h_fea_len
-n_h = model_args.n_h
-```
-
-where `atom_fea_len`, `n_conv`, `h_fea_len`, and `n_h` are the dimensions of the atom features, the number of convolutional layers, the dimension of the hidden features, and the number of hidden layers, respectively. Since PyTorch 2.6, `torch.load` defaults to `weights_only=True`, so `weights_only=False` is required to load full CGCNN checkpoints; only load checkpoint files from sources you trust. Now, we can initialize the model by:
-
-```python
-model = CrystalGraphConvNet(
-    orig_atom_fea_len=orig_atom_fea_len,
-    nbr_fea_len=nbr_fea_len,
-    atom_fea_len=atom_fea_len,
-    n_conv=n_conv,
-    h_fea_len=h_fea_len,
-    n_h=n_h,
-)
-```
-
-### 4. Model Loading and Prediction
-
-The `checkpoint` from the pre-trained model includes the model's state dictionary and training arguments. The state dictionary contains all the learned parameters of the model, while the training arguments store the hyperparameters used during training. The model can be loaded onto either CPU or GPU device by specifying `device` as `cpu` or `cuda`. Using GPU is recommended for faster inference if available.
-
-```python
-model.load_state_dict(checkpoint["state_dict"])
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
-model.eval()
+checkpoint = load_checkpoint("formation-energy-per-atom.pth.tar")
+model = model_from_checkpoint(checkpoint, dataset).to(device)
 ```
 
-Now, we can run the prediction with the `cgcnn_test` utility function:
+Checkpoints contain only tensors and plain Python values, so they load with the default `weights_only=True`; only load checkpoint files from sources you trust.
+
+### 4. Prediction
+
+`cgcnn_test` writes the predictions to a CSV file and, when the dataset has an `id_prop.csv`, logs the MAE, MSE and R² and saves a parity plot:
 
 ```python
 cgcnn_test(
-    model=model,
-    loader=loader,
-    device=device,
-    plot_file=os.path.join(output_folder, "parity_plot.png"),
+    model, loader, device, results_file="results.csv", plot_file="parity_plot.png"
 )
 ```
+
+For downstream analysis in Python, `cgcnn_pred` loads the dataset and the model in one call and returns the predictions and the crystal descriptors (the atom features after the convolutions, averaged over each crystal) as NumPy arrays; it writes no files and computes no metrics:
+
+```python
+from cgcnn2.pretrained_models import FORMATION_ENERGY_MODEL
+from cgcnn2.utils import cgcnn_pred
+
+predictions, descriptors = cgcnn_pred(
+    FORMATION_ENERGY_MODEL, "examples/data/sample-regression"
+)
+```
+
+Both arrays follow the order of `id_prop.csv`, or the sorted IDs of the CIF files when there is none.
 
 ## Training Options
 
@@ -127,17 +104,19 @@ Most of the hyperparameters are shared between these two scripts, including:
 
 - `epoch`: Specifies how many epochs the training loop will make over the entire dataset during both training and fine-tuning. More epochs give the model more opportunities to learn but increase total runtime and can lead to overfitting if too many are used. The default is `epoch = 1000`. Monitor your validation loss and use early stopping if you observe that performance plateaus.
 
-- `device`: Indicates which hardware backend to use for both data loading and model computation. Usually `cuda` for NVIDIA GPUs or `cpu`. When set to `cuda`, tensors and the model are moved onto the GPU. By default, we auto-detect the device by checking if `cuda` is available. Using the GPU generally yields significant speed-ups.
+- `device`: The torch device used for the model, e.g. `cpu`, `cuda`, `cuda:1` or `mps`. By default `cuda` is used when it is available, otherwise `cpu`.
 
-```bash
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-```
+### Targets and Checkpoints
+
+Targets are standardized internally with the mean and standard deviation of the training set, so one learning rate suits properties of any unit and scale. The loss is the mean squared error on the standardized targets. After every epoch the model is evaluated on the validation set, and the checkpoint with the lowest validation MAE is kept. The statistics are folded into the output layer of the saved checkpoint, so a checkpoint predicts directly in the units of your data and needs nothing else at prediction time.
+
+With `--bias-temperature`, every error in the loss and in the validation MAE is weighted by `exp(-target / bias_temperature)`, which favors structures with low targets such as low energies. The checkpoint is then selected by this weighted MAE.
 
 ### Early Stopping
 
-Both the training and fine-tuning scripts implement an early stopping strategy that halts training if the validation loss fails to improve for a specified number of consecutive epochs.
+Both the training and fine-tuning scripts implement an early stopping strategy that halts training when the validation MAE has not reached a new best for a specified number of consecutive epochs.
 
-- `stop-patience`: Defines how many consecutive epochs without any decrease in validation loss are allowed before training is terminated. Default is `None`, which means no early stopping.
+- `stop-patience`: Defines how many consecutive epochs without a new best validation MAE are allowed before training is terminated. Default is `None`, which means no early stopping.
 
 ### Learning Rate Scheduler
 
