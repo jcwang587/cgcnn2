@@ -8,3 +8,8 @@ updates:
     directory: "/" # Location of package manifests
     schedule:
       interval: "monthly"
+  # Keeps the commit SHAs that the workflows pin their actions to up to date
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
